@@ -32,7 +32,56 @@
   if (!lsGet(LS_NOTICES)) {
     lsSet(LS_NOTICES, [{ id: `N-${Date.now()}`, title: "Welcome", body: "Welcome to the supermarket invoicing app.", pinned: true, created: Date.now() }]);
   }
-
+  (function initStorage() {
+    const FIRST_RUN_KEY = "__netlifyFirstRun";
+  
+    // 1) First load on Netlify → wipe everything once
+    if (!localStorage.getItem(FIRST_RUN_KEY)) {
+      console.log("🚀 First run on Netlify, clearing localStorage...");
+      localStorage.clear();
+      localStorage.setItem(FIRST_RUN_KEY, "true");
+  
+      // Show a toast/notice
+      if (window.Notices && typeof window.Notices.add === "function") {
+        window.Notices.add({
+          title: "Storage Reset",
+          body: "Local data was reset for a fresh start on first load."
+        });
+      }
+    }
+  
+    // 2) Safe getter with auto-repair for Gmail JSON
+    function safeGet(key, fallback = null) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (e) {
+        console.warn("⚠️ Corrupted storage for", key, "- resetting...");
+        localStorage.removeItem(key);
+  
+        // Show notice for corrupted Gmail only
+        if (key === "gmailBackup" && window.Notices) {
+          window.Notices.add({
+            title: "Storage Repair",
+            body: "Your Gmail data was corrupted and has been reset."
+          });
+        }
+  
+        return fallback;
+      }
+    }
+  
+    // Example usage: auto-fix Gmail backup JSON
+    const gmailData = safeGet("gmailBackup", []); 
+    if (!Array.isArray(gmailData)) {
+      localStorage.setItem("gmailBackup", JSON.stringify([]));
+    }
+  
+    // expose helper globally if you want
+    window.safeGet = safeGet;
+  })();
+  
+  
   /* small helpers */
   function fmtMoney(n) { const num = Number(n) || 0; return num.toFixed(2); }
   function fmtDate(d) { const date = d ? new Date(d) : new Date(); const yyyy = date.getFullYear(); const mm = String(date.getMonth() + 1).padStart(2, '0'); const dd = String(date.getDate()).padStart(2, '0'); return `${yyyy}-${mm}-${dd}`; }
@@ -614,6 +663,8 @@
     setTimeout(() => window.AppSettings?.createStoreSettingsBtn?.(), 200);
   });
 
+
+
   logoutBtn?.addEventListener('click', () => {
     if (!confirm('Are you sure you want to logout?')) return;
   
@@ -954,69 +1005,77 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
   /* =========================
-     NAV / showSection
-     ========================= */
-  function showSection(targetId) {
-    [dashboardContent, invoicesSection, productsSection, reportsSection].forEach(s => s && s.classList.add('hidden'));
-    const el = document.getElementById(targetId);
-    if (el) el.classList.remove('hidden');
-    if (targetId === "dashboardContent") updateDashboardTotals();
-    if (targetId === "invoicesSection") renderInvoiceTable();
-    if (targetId === "productsSection") renderProductList(searchInput?.value || '');
-    if (targetId === "reportsSection") renderReports();
-  }
-  navButtons.forEach(btn => btn.addEventListener('click', () => {
-    const target = btn.getAttribute('data-target');
-    if (target) showSection(target);
-  }));/* =========================
-  NAV / showSection
-  ========================= */
+    /* =========================
+   NAV / showSection (single consolidated version)
+   ========================= */
 function showSection(targetId) {
- [dashboardContent, invoicesSection, productsSection, reportsSection]
-   .forEach(s => s && s.classList.add('hidden'));
+  // hide main sections
+  [dashboardContent, invoicesSection, productsSection, reportsSection].forEach(s => s && s.classList.add('hidden'));
 
- const el = document.getElementById(targetId);
- if (el) el.classList.remove('hidden');
+  // show requested section (if it exists)
+  const el = document.getElementById(targetId);
+  if (el) el.classList.remove('hidden');
 
- if (targetId === "dashboardContent") updateDashboardTotals();
- if (targetId === "invoicesSection") renderInvoiceTable();
- if (targetId === "productsSection") renderProductList(searchInput?.value || '');
- if (targetId === "reportsSection") renderReports();
+  // section-specific updates
+  if (targetId === "dashboardContent") updateDashboardTotals();
+  if (targetId === "invoicesSection") renderInvoiceTable();
+  if (targetId === "productsSection") renderProductList(searchInput?.value || '');
+  if (targetId === "reportsSection") renderReports();
 
- // mark active nav button
- setActiveNav(targetId);
+  // mark active nav button (pass null/empty to clear all)
+  setActiveNav(targetId || null);
 
- // show nav bar on app sections
- document.getElementById('bottomNav')?.classList.remove('hidden');
+  // ensure bottom nav is visible when on app pages (hide on auth)
+  document.getElementById('bottomNav')?.classList.remove('hidden');
+
+  // when showing an app section, make sure auth UI is hidden
+  if (authSection) authSection.classList.add('hidden');
+  setAuthVisibility(false);
 }
 
-// highlight active button
+// highlight active button (accepts null to clear active state)
 function setActiveNav(targetId) {
- navButtons.forEach(btn => {
-   if (btn.getAttribute('data-target') === targetId) {
-     btn.classList.add('text-blue-600', 'font-bold');
-   } else {
-     btn.classList.remove('text-blue-600', 'font-bold');
-   }
- });
+  navButtons.forEach(btn => {
+    const isActive = targetId && btn.getAttribute('data-target') === targetId;
+    btn.classList.toggle('text-blue-600', !!isActive);
+    btn.classList.toggle('font-bold', !!isActive);
+  });
 }
 
-// wire up buttons
+// single wiring for nav buttons (only once)
 navButtons.forEach(btn => btn.addEventListener('click', () => {
- const target = btn.getAttribute('data-target');
- if (target) showSection(target);
+  const target = btn.getAttribute('data-target');
+  if (target) showSection(target);
 }));
 
-/* Hide bottom nav on login & register */
+/* =========================
+   Show/hide auth (login/register)
+   ========================= */
 function showLoginForm() {
- authSection?.classList.remove('hidden');
- dashboardSection?.classList.add('hidden');
- document.getElementById('bottomNav')?.classList.add('hidden');
+  // show auth container and login panel, hide dashboard/other app sections
+  authSection?.classList.remove('hidden');
+  registrationForm?.classList.add('hidden');
+  loginForm?.classList.remove('hidden');
+  dashboardSection?.classList.add('hidden');
+
+  // hide bottom nav while on auth screens
+  document.getElementById('bottomNav')?.classList.add('hidden');
+
+  // mark nav as inactive
+  setActiveNav(null);
+  setAuthVisibility(true);
 }
 
 function showRegisterForm() {
- // your register form logic...
- document.getElementById('bottomNav')?.classList.add('hidden');
+  authSection?.classList.remove('hidden');
+  registrationForm?.classList.remove('hidden');
+  loginForm?.classList.add('hidden');
+  dashboardSection?.classList.add('hidden');
+
+  document.getElementById('bottomNav')?.classList.add('hidden');
+
+  setActiveNav(null);
+  setAuthVisibility(true);
 }
 
 
