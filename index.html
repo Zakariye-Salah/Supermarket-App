@@ -88,8 +88,25 @@
 }
 #app-toast.opacity-0 { opacity: 0; transform: translateY(6px); }
 /* keep dashboard chart card compact */
-.chart-card { min-height: 160px; max-height: 400px; overflow: hidden; }
+/* .chart-card { min-height: 160px; max-height: 400px; overflow: hidden; }
 #salesChart { display: block; width: 100%; }
+ */
+
+/* Chart sizing helpers */
+.chart-card { min-height: 160px; max-height: 320px; overflow: hidden; }
+.chart-canvas-wrap { position: relative; width: 100%; height: 220px; } /* default height */
+.chart-card.small { max-height: 220px; }
+#salesChart { display: block; width: 100%; height: 100%; }
+
+/* Optional: keep the small summary cards from stretching too tall */
+#dashboardContent .bg-white,
+#dashboardContent .dark\:bg-gray-800 {
+  min-height: 110px; /* adjust if you want smaller/larger cards */
+}
+/* optional: tighten spacing for mobile small items */
+.invoice-item-row { border: 1px solid rgba(0,0,0,0.04); padding: 0.5rem; border-radius: 0.75rem; background: white; }
+.invoice-item-row .small-btn { min-width: 36px; min-height: 36px; display: inline-flex; align-items: center; justify-content: center; }
+
 
 </style>
 </head>
@@ -213,52 +230,54 @@
       <span id="currentTime" class="text-sm text-red-500 font-semibold"></span>
     </div>
 
-    <!-- CREATE INVOICE FORM -->
-    <section id="createInvoiceSection" class="bg-white rounded-2xl shadow p-4 sm:p-6 mb-6 hidden-section">
-      <input type="hidden" id="editingInvoiceId" />
-      <h2 class="text-lg font-semibold mb-3">Create Invoice</h2>
+  <!-- CREATE INVOICE FORM (mobile-friendly) -->
+<section id="createInvoiceSection" class="bg-white rounded-2xl shadow p-4 sm:p-6 mb-6 hidden-section">
+  <input type="hidden" id="editingInvoiceId" />
+  <h2 class="text-lg font-semibold mb-3">Create Invoice</h2>
 
-      <!-- Customer Info -->
-      <div class="grid sm:grid-cols-5 gap-3 mb-4">
-        <label class="block sm:col-span-2">
-          <span class="text-sm">Customer Name</span>
-          <input id="customerName" class="mt-1 w-full rounded-xl border px-3 py-2" placeholder="e.g. Zakariye Salah" />
-        </label>
-        <label class="block sm:col-span-2">
-          <span class="text-sm">Customer Phone</span>
-          <input id="customerPhone" class="mt-1 w-full rounded-xl border px-3 py-2" placeholder="e.g. 617125558" />
-        </label>
-        <label class="block">
-          <span class="text-sm">Invoice Date</span>
-          <input id="invoiceDate" type="date" class="mt-1 w-full rounded-xl border px-3 py-2" />
-        </label>
-      </div>
+  <!-- Customer Info -->
+  <div class="grid sm:grid-cols-5 gap-3 mb-4">
+    <label class="block sm:col-span-2">
+      <span class="text-sm">Customer Name</span>
+      <input id="customerName" class="mt-1 w-full rounded-xl border px-3 py-2" placeholder="e.g. Zakariye Salah" />
+    </label>
+    <label class="block sm:col-span-2">
+      <span class="text-sm">Customer Phone</span>
+      <input id="customerPhone" class="mt-1 w-full rounded-xl border px-3 py-2" placeholder="e.g. 617125558" />
+    </label>
+    <label class="block">
+      <span class="text-sm">Invoice Date</span>
+      <input id="invoiceDate" type="date" class="mt-1 w-full rounded-xl border px-3 py-2" />
+    </label>
+  </div>
 
-      <!-- Invoice Items -->
-      <div id="invoiceItemsContainer" class="mb-3"></div>
-      <button id="addItemBtn" class="mb-3 inline-block rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">+ Add Item</button>
+  <!-- Invoice Items -->
+  <div id="invoiceItemsContainer" class="mb-3 space-y-2"></div>
+  <button id="addItemBtn" type="button" class="mb-3 inline-block rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">+ Add Item</button>
 
-      <div class="grid sm:grid-cols-3 gap-3 mb-3">
-        <label>
-          <span class="text-sm">Total Amount</span>
-          <input id="amount" type="number" step="0.01" class="mt-1 w-full rounded-xl border px-3 py-2" placeholder="0" readonly />
-        </label>
-        <label>
-          <span class="text-sm">Amount Paid</span>
-          <input id="paid" type="number" step="0.01" class="mt-1 w-full rounded-xl border px-3 py-2" placeholder="0" />
-        </label>
-        <label>
-          <span class="text-sm">Status</span>
-          <select id="status" class="mt-1 w-full rounded-xl border px-3 py-2">
-            <option value="unpaid">Unpaid</option>
-            <option value="paid">Paid</option>
-          </select>
-        </label>
-      </div>
+  <div class="grid sm:grid-cols-3 gap-3 mb-3">
+    <label>
+      <span class="text-sm">Total Amount</span>
+      <input id="amount" type="number" step="0.01" class="mt-1 w-full rounded-xl border px-3 py-2" placeholder="0" readonly />
+    </label>
+    <label>
+      <span class="text-sm">Amount Paid</span>
+      <input id="paid" type="number" step="0.01" class="mt-1 w-full rounded-xl border px-3 py-2" placeholder="0" />
+    </label>
+    <label>
+      <span class="text-sm">Status</span>
+      <select id="status" class="mt-1 w-full rounded-xl border px-3 py-2">
+        <option value="unpaid">Unpaid</option>
+        <option value="paid">Paid</option>
+        <!-- partial will be injected by applyStatusPaidBehavior -->
+      </select>
+    </label>
+  </div>
 
-      <button id="saveInvoiceBtn" class="rounded-xl bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 w-full">Save Invoice</button>
-      <p id="formMsg" class="hidden mt-3 text-red-600 text-sm"></p>
-    </section>
+  <button id="saveInvoiceBtn" class="rounded-xl bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 w-full">Save Invoice</button>
+  <p id="formMsg" class="hidden mt-3 text-red-600 text-sm"></p>
+</section>
+
 
     <!-- INVOICES LIST -->
     <section class="bg-white rounded-2xl shadow p-4 sm:p-6">
