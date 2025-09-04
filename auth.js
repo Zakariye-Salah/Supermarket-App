@@ -368,196 +368,6 @@
   function openSettingsModal() {
     let modal = document.getElementById('appSettingsModal');
 
-    if (!modal) {
-      const html = `
-      <div id="appSettingsModal" class="hidden fixed inset-0 z-70 flex items-start justify-center p-4">
-        <div id="appSettingsModalBackdrop" class="absolute inset-0 bg-black/50"></div>
-        <div class="relative w-full max-w-4xl bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-auto max-h-[90vh]">
-          <div class="flex items-center justify-between p-4 border-b">
-            <h2 id="settingsTitle" class="text-lg font-semibold">Settings & Utilities</h2>
-            <div class="flex items-center gap-2">
-              <label class="flex items-center gap-2 text-sm"><input id="settingsDarkMode" type="checkbox"> Dark</label>
-              <button id="settingsCloseBtn" class="px-3 py-1 rounded bg-gray-200">Close</button>
-            </div>
-          </div>
-          <div class="flex gap-4 p-4">
-            <nav id="settingsNav" class="w-56">
-              <ul class="space-y-2">
-                <li><button class="settings-tab w-full text-left px-3 py-2 rounded" data-tab="messages">Messages</button></li>
-                <li><button class="settings-tab w-full text-left px-3 py-2 rounded" data-tab="help">Help</button></li>
-                <li><button class="settings-tab w-full text-left px-3 py-2 rounded" data-tab="export">Export</button></li>
-              </ul>
-            </nav>
-            <div class="flex-1" id="settingsContent">
-              <div class="settings-panel hidden" data-panel="user">
-                <h3 class="font-semibold mb-2">Edit User</h3>
-                <form id="settingsEditUserForm" class="space-y-2 p-2">
-                  <div><label class="block text-sm">Supermarket Name</label><input id="settingsUserName" class="border rounded px-2 py-1 w-full"></div>
-                  <div><label class="block text-sm">Phone</label><input id="settingsUserPhone" class="border rounded px-2 py-1 w-full"></div>
-                  <div><label class="block text-sm">Address</label><input id="settingsUserAddress" class="border rounded px-2 py-1 w-full"></div>
-                  <div><label class="block text-sm">Email</label><input id="settingsUserEmail" class="border rounded px-2 py-1 w-full"></div>
-                  <div class="grid grid-cols-2 gap-2">
-                    <div><label class="block text-sm">Password</label><input id="settingsUserPassword" type="password" class="border rounded px-2 py-1 w-full"></div>
-                    <div><label class="block text-sm">Confirm</label><input id="settingsUserPasswordConfirm" type="password" class="border rounded px-2 py-1 w-full"></div>
-                  </div>
-                  <div class="flex gap-2">
-                    <button id="settingsSaveUserBtn" class="px-3 py-2 bg-emerald-600 text-white rounded">Save Changes</button>
-                    <button id="settingsCancelUserBtn" type="button" class="px-3 py-2 bg-gray-200 rounded">Cancel</button>
-                  </div>
-                  <div id="settingsUserMsg" class="text-sm text-red-600 hidden"></div>
-                </form>
-              </div>
-
-              <div class="settings-panel hidden" data-panel="messages">
-                <h3 class="font-semibold mb-2">WhatsApp / SMS Templates</h3>
-                <p class="text-sm mb-2">Use placeholders: <code>{customer}</code>, <code>{id}</code>, <code>{balance}</code>, <code>{store}</code>, <code>{phone}</code></p>
-                <div class="space-y-2 p-2">
-                  <div>
-                    <label class="block text-sm">WhatsApp Template</label>
-                    <textarea id="settingsWaTpl" rows="3" class="w-full border rounded p-2"></textarea>
-                  </div>
-                  <div>
-                    <label class="block text-sm">SMS Template</label>
-                    <textarea id="settingsSmsTpl" rows="3" class="w-full border rounded p-2"></textarea>
-                  </div>
-                  <div class="flex gap-2">
-                    <button id="settingsSaveMsgBtn" class="px-3 py-2 bg-blue-600 text-white rounded">Save</button>
-                    <button id="settingsResetMsgBtn" class="px-3 py-2 bg-gray-200 rounded">Reset Defaults</button>
-                  </div>
-                  <div id="settingsMsgStatus" class="text-sm text-green-600 hidden"></div>
-                </div>
-              </div>
-
-              <div class="settings-panel hidden" data-panel="help">
-                <h3 class="font-semibold mb-2">Help & Guidance</h3>
-                <div class="prose max-w-none p-2">
-                  <h4>Invoices</h4>
-                  <ul>
-                    <li>To create an invoice, open the invoice form and add items (name & price). Save to add it to the list.</li>
-                    <li>Mark as paid/unpaid using the toggle button on each invoice row.</li>
-                    <li>Use the action icons to call, WhatsApp, SMS, print, or share an invoice card.</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div class="settings-panel hidden" data-panel="export">
-                <h3 class="font-semibold mb-2">Export / Download</h3>
-                <p class="text-sm mb-2">Download invoices as JSON or CSV (local data).</p>
-                <div class="flex gap-2 mb-4 p-2">
-                  <button id="exportInvoicesJson" class="px-3 py-2 bg-blue-600 text-white rounded">Download JSON</button>
-                  <button id="exportInvoicesCsv" class="px-3 py-2 bg-gray-700 text-white rounded">Download CSV</button>
-                </div>
-                <div id="settingsExportMsg" class="text-sm text-green-600 hidden"></div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </div>
-      `;
-      const wrapper = document.createElement('div');
-      wrapper.innerHTML = html;
-      document.body.appendChild(wrapper);
-      modal = document.getElementById('appSettingsModal');
-
-      // tabs wiring
-      modal.querySelectorAll('.settings-tab').forEach(tb => tb.addEventListener('click', () => {
-        const name = tb.dataset.tab;
-        modal.querySelectorAll('.settings-panel').forEach(p => p.dataset.panel === name ? p.classList.remove('hidden') : p.classList.add('hidden'));
-        modal.querySelectorAll('.settings-tab').forEach(tt => tt.classList.toggle('bg-gray-100', tt === tb));
-      }));
-
-      // close/backdrop
-      modal.querySelector('#settingsCloseBtn')?.addEventListener('click', () => modal.classList.add('hidden'));
-      modal.addEventListener('click', (e) => { if (e.target === modal || e.target.id === 'appSettingsModalBackdrop') modal.classList.add('hidden'); });
-
-      // dark toggle wiring
-      modal.querySelector('#settingsDarkMode')?.addEventListener('change', (e) => {
-        const on = !!e.target.checked; lsSet(LS_DARK, on);
-        if (on) document.body.classList.add('dark'); else document.body.classList.remove('dark');
-        toast('Dark mode updated', 'success');
-      });
-
-      // save user (IMPORTANT: match by id, not name)
-      modal.querySelector('#settingsSaveUserBtn')?.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        const msgEl = document.getElementById('settingsUserMsg');
-        msgEl.classList.add('hidden'); msgEl.textContent = '';
-        const name = document.getElementById('settingsUserName').value.trim();
-        const phone = document.getElementById('settingsUserPhone').value.trim();
-        const address = document.getElementById('settingsUserAddress').value.trim();
-        const email = document.getElementById('settingsUserEmail').value.trim();
-        const pass = document.getElementById('settingsUserPassword').value;
-        const pass2 = document.getElementById('settingsUserPasswordConfirm').value;
-        if (!name || !phone || !address || !email) { msgEl.textContent = 'All fields required'; msgEl.classList.remove('hidden'); return; }
-        if (pass || pass2) { if (pass !== pass2) { msgEl.textContent = 'Passwords do not match'; msgEl.classList.remove('hidden'); return; } if (pass.length < 4) { msgEl.textContent = 'Password too short'; msgEl.classList.remove('hidden'); return; } }
-        const users = getUsers();
-        const current = getCurrentUser();
-        if (!current) { msgEl.textContent = 'No logged-in user'; msgEl.classList.remove('hidden'); return; }
-        // match by id (stable)
-        const idx = users.findIndex(u => u.id === current.id);
-        if (idx === -1) { msgEl.textContent = 'User not found'; msgEl.classList.remove('hidden'); return; }
-        // only update fields provided, keep others intact
-        const updated = { ...users[idx] };
-        updated.name = name;
-        updated.phone = phone;
-        updated.address = address;
-        updated.email = email;
-        if (pass) updated.password = pass;
-        users[idx] = updated;
-        saveUsers(users);
-        setCurrentUser(updated);
-        // update UI label immediately
-        if (document.getElementById('storeDisplayDesktop')) document.getElementById('storeDisplayDesktop').textContent = updated.name;
-        msgEl.textContent = 'Saved.'; msgEl.classList.remove('hidden'); msgEl.style.color = 'green';
-        toast('User settings saved', 'success');
-        setTimeout(() => { msgEl.classList.add('hidden'); msgEl.style.color = ''; }, 1500);
-      });
-
-      // cancel reload
-      modal.querySelector('#settingsCancelUserBtn')?.addEventListener('click', () => {
-        const current = getCurrentUser() || {};
-        document.getElementById('settingsUserName') && (document.getElementById('settingsUserName').value = current.name || '');
-        document.getElementById('settingsUserPhone') && (document.getElementById('settingsUserPhone').value = current.phone || '');
-        document.getElementById('settingsUserAddress') && (document.getElementById('settingsUserAddress').value = current.address || '');
-        document.getElementById('settingsUserEmail') && (document.getElementById('settingsUserEmail').value = current.email || '');
-      });
-
-      // messages save/reset
-      modal.querySelector('#settingsSaveMsgBtn')?.addEventListener('click', () => {
-        const wa = document.getElementById('settingsWaTpl').value.trim();
-        const sms = document.getElementById('settingsSmsTpl').value.trim();
-        lsSet(LS_MSG_TPL, { reminder_wa: wa, reminder_sms: sms });
-        const s = document.getElementById('settingsMsgStatus'); s.textContent = 'Saved'; s.classList.remove('hidden'); setTimeout(()=>s.classList.add('hidden'),1400);
-        toast('Templates saved', 'success');
-      });
-      modal.querySelector('#settingsResetMsgBtn')?.addEventListener('click', () => {
-        if (!confirm('Reset message templates to defaults?')) return;
-        lsSet(LS_MSG_TPL, {
-          reminder_wa: "Xasuusin: {customer}, lacagta lagugu leeyahay waa: {balance}.\nFadlan iska bixi dukaanka {store} ({phone}).",
-          reminder_sms: "Xasuusin: {customer}, lacagta lagugu leeyahay waa: {balance}. Fadlan iska bixi dukaanka {store} ({phone})."
-        });
-        toast('Templates reset to defaults', 'success');
-      });
-
-      // exports
-      modal.querySelector('#exportInvoicesJson')?.addEventListener('click', () => {
-        const user = getCurrentUser(); if (!user) { toast('Login required','error'); return; }
-        const inv = getStoreInvoices(user.name) || [];
-        const blob = new Blob([JSON.stringify(inv, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `invoices_${user.name}_${Date.now()}.json`; document.body.appendChild(a); a.click(); a.remove(); toast('Invoices JSON exported','success');
-      });
-      modal.querySelector('#exportInvoicesCsv')?.addEventListener('click', () => {
-        const user = getCurrentUser(); if (!user) { toast('Login required','error'); return; }
-        const inv = getStoreInvoices(user.name) || [];
-        const rows = [['id','date','customer','phone','amount','paid','status','items']];
-        inv.forEach(i => rows.push([i.id, i.date, `"${(i.customer||'').replace(/"/g,'""')}"`, i.phone, i.amount, i.paid, i.status, `"${(i.items||[]).map(it=>it.name).join('|')}"`]));
-        const csv = rows.map(r => r.map(c => String(c).replace(/\n/g,' ')).join(',')).join('\n');
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `invoices_${user.name}_${Date.now()}.csv`; document.body.appendChild(a); a.click(); a.remove(); toast('Invoices CSV exported','success');
-      });
-
-    } // end modal creation
 
     // show it and populate fields
     modal.classList.remove('hidden');
@@ -849,30 +659,36 @@ function buildSalesSeries(invoices, period = 'lifetime') {
 }
 
 function renderSalesChart(series, period = 'lifetime') {
-  const ctx = document.getElementById('salesChart').getContext('2d');
+  const canvas = document.getElementById('salesChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
   if (dashboardChart) {
-    try { dashboardChart.destroy(); } catch(e){}
+    try { dashboardChart.destroy(); } catch (e) {}
     dashboardChart = null;
   }
 
-  // compute max from data
-  const maxData = Array.isArray(series.data) && series.data.length ? Math.max(...series.data.map(v => Number(v) || 0)) : 0;
+  // ensure arrays
+  series = series || { labels: [], data: [] };
+  series.labels = Array.isArray(series.labels) ? series.labels : [];
+  series.data = Array.isArray(series.data) ? series.data.map(v => Number(v) || 0) : [];
 
-  // candidate step sizes (covers your requested behavior)
+  // compute max & empty state
+  const maxData = series.data.length ? Math.max(...series.data) : 0;
+  const allZero = maxData === 0;
+
+  // choose step & max for non-zero values (keeps y-axis "nice")
   const candidateSteps = [1,5,10,50,100,500,1000,5000,10000,50000,100000,500000,1000000];
-
-  // choose smallest step such that number of steps <= 10 (keeps bars readable)
   function chooseStepAndMax(val) {
-    if (!isFinite(val) || val <= 0) return { step: 1, max: 10 };
+    if (!isFinite(val) || val <= 0) return { step: 1, max: 1 };
     for (let i = 0; i < candidateSteps.length; i++) {
       const step = candidateSteps[i];
       const stepsNeeded = Math.ceil(val / step);
       if (stepsNeeded <= 10) {
-        const niceMax = step * Math.ceil(val / step); // round up to multiple of step
+        const niceMax = step * Math.ceil(val / step);
         return { step, max: niceMax };
       }
     }
-    // fallback for very large numbers: use power-of-10 step scaled so steps <= 10
     const pow = Math.pow(10, Math.floor(Math.log10(val)));
     let step = pow;
     while (Math.ceil(val / step) > 10) step *= 10;
@@ -880,7 +696,12 @@ function renderSalesChart(series, period = 'lifetime') {
     return { step, max: niceMax };
   }
 
-  const { step: stepSize, max: niceMax } = chooseStepAndMax(maxData);
+  const { step: autoStep, max: autoMax } = chooseStepAndMax(maxData);
+  const stepSize = allZero ? 1 : autoStep;
+  const niceMax = allZero ? 1 : autoMax;
+
+  // sensible aspect ratio - when empty keep it compact
+  const aspectRatio = allZero ? 2.6 : Math.min(4, Math.max(1.2, (series.labels.length || 1) / 6));
 
   dashboardChart = new Chart(ctx, {
     type: 'bar',
@@ -888,24 +709,33 @@ function renderSalesChart(series, period = 'lifetime') {
       labels: series.labels,
       datasets: [{
         label: 'Paid Sales',
-        data: series.data.map(v => Number(v) || 0),
+        data: series.data,
         fill: false,
         borderWidth: 1,
         barPercentage: 0.75,
-        categoryPercentage: 0.85
+        categoryPercentage: 0.85,
+        maxBarThickness: 60,
+        // subtle color when empty so UI looks muted
+        backgroundColor: allZero ? 'rgba(15,23,42,0.06)' : undefined
       }]
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false,
+      maintainAspectRatio: true,
+      aspectRatio: aspectRatio,
       scales: {
         y: {
           beginAtZero: true,
           max: niceMax,
+          grid: { display: !allZero },
           ticks: {
             stepSize: stepSize,
             callback: function(v) { return fmtMoney(v); }
           }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { autoSkip: true, maxRotation: 0, minRotation: 0 }
         }
       },
       plugins: {
@@ -914,10 +744,26 @@ function renderSalesChart(series, period = 'lifetime') {
             label: function(ctx) { return fmtMoney(ctx.parsed.y ?? ctx.parsed); }
           }
         },
-        legend: { display: false }
+        legend: { display: false },
+        subtitle: {
+          display: allZero,
+          text: allZero ? 'No sales in selected period' : '',
+          align: 'center',
+          font: { size: 12 },
+          padding: { bottom: 6 }
+        }
       }
     }
   });
+
+  // make sure the canvas container isn't huge when there is no data
+  try {
+    const parent = canvas.parentElement;
+    if (parent) {
+      if (allZero) parent.style.maxHeight = '220px';
+      else parent.style.maxHeight = '';
+    }
+  } catch (e) {}
 }
 
 
@@ -1498,6 +1344,7 @@ buyRecordBtn?.addEventListener('click', () => {
   invoiceModal?.classList.add('hidden');
   window.dispatchEvent(new Event('dataUpdated'));
   toast('Sold & recorded.', 'success');
+  clearCartBtn();
 });
 
 /* ----------------- BUY ONLY (quick record) ----------------- */
@@ -1567,6 +1414,7 @@ buyOnlyBtn?.addEventListener('click', () => {
   shopBackdrop?.classList.add('hidden');
   window.dispatchEvent(new Event('dataUpdated'));
   toast('Recorded in Reports.', 'success');
+  clearCartBtn();
 });
 
 
@@ -3067,7 +2915,7 @@ buyOnlyBtn?.addEventListener('click', () => {
     });
   }
 })();
-window.Notices.add({ title: 'New', body: 'Something important' });
+//window.Notices.add({ title: 'New', body: 'Something important' });
 
 
     // populate drive settings toggles
