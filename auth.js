@@ -668,16 +668,16 @@ function renderSalesChart(series, period = 'lifetime') {
     dashboardChart = null;
   }
 
-  // ensure arrays
+  // normalize series
   series = series || { labels: [], data: [] };
   series.labels = Array.isArray(series.labels) ? series.labels : [];
   series.data = Array.isArray(series.data) ? series.data.map(v => Number(v) || 0) : [];
 
-  // compute max & empty state
+  // max + empty detection
   const maxData = series.data.length ? Math.max(...series.data) : 0;
   const allZero = maxData === 0;
 
-  // choose step & max for non-zero values (keeps y-axis "nice")
+  // step chooser for non-zero values
   const candidateSteps = [1,5,10,50,100,500,1000,5000,10000,50000,100000,500000,1000000];
   function chooseStepAndMax(val) {
     if (!isFinite(val) || val <= 0) return { step: 1, max: 1 };
@@ -700,7 +700,7 @@ function renderSalesChart(series, period = 'lifetime') {
   const stepSize = allZero ? 1 : autoStep;
   const niceMax = allZero ? 1 : autoMax;
 
-  // sensible aspect ratio - when empty keep it compact
+  // aspect ratio: compact when empty, flexible otherwise
   const aspectRatio = allZero ? 2.6 : Math.min(4, Math.max(1.2, (series.labels.length || 1) / 6));
 
   dashboardChart = new Chart(ctx, {
@@ -715,7 +715,6 @@ function renderSalesChart(series, period = 'lifetime') {
         barPercentage: 0.75,
         categoryPercentage: 0.85,
         maxBarThickness: 60,
-        // subtle color when empty so UI looks muted
         backgroundColor: allZero ? 'rgba(15,23,42,0.06)' : undefined
       }]
     },
@@ -756,15 +755,13 @@ function renderSalesChart(series, period = 'lifetime') {
     }
   });
 
-  // make sure the canvas container isn't huge when there is no data
+  // adjust wrapper height a little when empty to keep UI compact
   try {
-    const parent = canvas.parentElement;
-    if (parent) {
-      if (allZero) parent.style.maxHeight = '220px';
-      else parent.style.maxHeight = '';
-    }
+    const wrapper = canvas.closest('.chart-canvas-wrap') || canvas.parentElement;
+    if (wrapper) wrapper.style.height = allZero ? '180px' : '220px';
   } catch (e) {}
 }
+
 
 
 
@@ -1145,83 +1142,97 @@ items.forEach((p, idx) => {
 
 /* ---------- Helper: set amountPaid readonly when status==paid + live status sync ---------- */
 /* ---------- Helper: manage status/amount sync ---------- */
-function applyStatusPaidBehavior(invoiceModal, total) {
-  if (!invoiceModal) return;
-  const amountPaidInput = invoiceModal.querySelector('#amountPaid');
-  const statusSelect = invoiceModal.querySelector('#status');
-  const totalEl = invoiceModal.querySelector('#invoiceTotal');
+function applyStatusPaidBehavior(container, total) {
+  if (!container) return;
+  // support either #amountPaid or #paid
+  const amountPaidInput = container.querySelector('#amountPaid') || container.querySelector('#paid');
+  const statusSelect = container.querySelector('#status');
+  const totalEl = container.querySelector('#invoiceTotal') || container.querySelector('#amount') || null;
 
-  const ttl = Number(total || 0);
+  const ttl = Number(total || (totalEl ? Number(totalEl.textContent || totalEl.value || 0) : 0));
   let lastStatus = 'unpaid';
 
-  // show total
-  if (totalEl) totalEl.textContent = fmtMoney(ttl);
+  // show total if element available
+  if (totalEl && totalEl.tagName.toLowerCase() !== 'input') {
+    totalEl.textContent = fmtMoney(ttl);
+  } else if (totalEl && totalEl.tagName.toLowerCase() === 'input') {
+    // keep input formatted (amountInput typically)
+    totalEl.value = fmtMoney(ttl);
+  }
 
   // ensure partial option exists
   if (statusSelect && !Array.from(statusSelect.options).some(o => o.value === 'partial')) {
     const opt = document.createElement('option');
     opt.value = 'partial';
-    opt.textContent = 'partial paid';
-    statusSelect.add(opt, statusSelect.options[1] || null);
+    opt.textContent = 'partial';
+    // put partial before paid/unpaid for clarity
+    try { statusSelect.add(opt, statusSelect.options[1] || null); } catch (e) { statusSelect.appendChild(opt); }
   }
 
-  // validate + sync from amount input
+  // sync amount -> status
   function syncFromAmount() {
     if (!amountPaidInput || !statusSelect) return;
-    let val = Number(amountPaidInput.value || 0);
-    if (isNaN(val)) val = 0;
+    let val = Number((amountPaidInput.value || '').replace(/[^0-9.]/g, '')) || 0;
 
     if (val <= 0) {
       statusSelect.value = 'unpaid';
       lastStatus = 'unpaid';
     } else if (val >= ttl) {
       val = ttl; // clamp
-      amountPaidInput.value = val.toFixed(2);
+      amountPaidInput.value = fmtMoney(val);
       statusSelect.value = 'paid';
       lastStatus = 'paid';
     } else {
-      amountPaidInput.value = val.toFixed(2);
+      amountPaidInput.value = fmtMoney(val);
       statusSelect.value = 'partial';
       lastStatus = 'partial';
     }
   }
 
-  // validate + sync from status dropdown
+  // sync status -> amount
   function syncFromStatus() {
     if (!statusSelect || !amountPaidInput) return;
     const cur = statusSelect.value;
 
     if (cur === 'paid') {
-      amountPaidInput.value = ttl.toFixed(2);
+      amountPaidInput.value = fmtMoney(ttl);
       lastStatus = 'paid';
     } else if (cur === 'unpaid') {
       amountPaidInput.value = '';
       lastStatus = 'unpaid';
     } else if (cur === 'partial') {
-      // prevent manual partial selection
-      toast('Please enter an amount paid to set partial status.', 'warning');
-      statusSelect.value = lastStatus; // revert
+      // user should enter partial value manually — we don't auto-set a number
+      if ((Number(amountPaidInput.value) || 0) <= 0) {
+        // nothing entered yet — prompt user
+        toast('Enter partial amount to set partial status.', 'warning');
+        // revert selection to last status
+        statusSelect.value = lastStatus || 'unpaid';
+      } else {
+        // keep lastStatus as partial
+        lastStatus = 'partial';
+      }
     }
   }
 
-  // listeners
-  if (amountPaidInput && !amountPaidInput._listenerBound) {
+  // listeners (bind only once)
+  if (amountPaidInput && !amountPaidInput._statusBound) {
     amountPaidInput.addEventListener('input', () => {
-      let raw = amountPaidInput.value.replace(/[^0-9.]/g, '');
-      amountPaidInput.value = raw;
+      // allow only numbers and dot
+      amountPaidInput.value = (amountPaidInput.value || '').replace(/[^0-9.]/g, '');
       syncFromAmount();
     });
-    amountPaidInput._listenerBound = true;
+    amountPaidInput._statusBound = true;
   }
 
-  if (statusSelect && !statusSelect._listenerBound) {
+  if (statusSelect && !statusSelect._statusBound) {
     statusSelect.addEventListener('change', syncFromStatus);
-    statusSelect._listenerBound = true;
+    statusSelect._statusBound = true;
   }
 
-  // initial run
+  // run initial sync
   syncFromAmount();
 }
+
 
 
 
@@ -1499,24 +1510,32 @@ buyOnlyBtn?.addEventListener('click', () => {
       const name = customerNameInput?.value.trim();
       const phone = customerPhoneInput?.value.trim();
       const date = invoiceDateInput?.value || fmtDate(new Date());
-      // collect items robustly
+      // collect items
       const items = invoiceItemsContainer ? Array.from(invoiceItemsContainer.querySelectorAll('.grid')).map(r => {
         const nm = r.querySelector('.item-name')?.value.trim() || '';
         const price = parseFloat(r.querySelector('.item-price')?.value) || 0;
-        return { name: nm, price, total: price, qty: 1 };
+        const qty = parseInt(r.querySelector('.item-qty')?.value) || 1;
+        const total = price * (qty || 1);
+        return { name: nm, price, total, qty: qty || 1 };
       }).filter(it => it.name && it.price > 0) : [];
-  
+    
       if (!items.length) { showFormError('Add at least one item with name and price.'); return; }
       const amount = Number(amountInput?.value) || 0;
       const paid = Number(paidInput?.value) || 0;
-      const status = statusSelect?.value || 'unpaid';
-  
+      // compute status automatically
+      let status = 'unpaid';
+      if (paid <= 0) status = 'unpaid';
+      else if (paid >= amount) status = 'paid';
+      else status = 'partial';
+    
       if (!name) { showFormError('Customer name required'); return; }
       if (!phone) { showFormError('Customer phone required'); return; }
-  
+    
       const all = getAllInvoices();
       const id = editingInvoiceId?.value || `INV-${Date.now()}`;
+      // keep prevPaid if partial to support toggling back
       const payload = { id, store: user.name, date, customer: name, phone, items, amount, paid, status };
+      if (status === 'partial') payload.prevPaid = payload.paid; // store prevPaid for possible toggling
       const idx = all.findIndex(x => x.id === id);
       if (idx >= 0) all[idx] = payload; else all.push(payload);
       saveAllInvoices(all);
@@ -1526,6 +1545,7 @@ buyOnlyBtn?.addEventListener('click', () => {
       window.dispatchEvent(new Event('dataUpdated'));
       toast('Invoice saved', 'success');
     });
+    
   
     function showFormError(msg) { formMsg && (formMsg.textContent = msg, formMsg.classList.remove('hidden')); toast(msg, 'error'); }
   
@@ -1547,15 +1567,36 @@ buyOnlyBtn?.addEventListener('click', () => {
       const list = filteredInvoicesForUI();
       invoiceRows.innerHTML = '';
       if (!list.length) {
-        emptyStateInv && emptyStateInv.classList.remove('hidden'); return;
+        emptyStateInv && emptyStateInv.classList.remove('hidden');
+        return;
       } else {
         emptyStateInv && emptyStateInv.classList.add('hidden');
       }
+    
       const mobile = window.matchMedia('(max-width:640px)').matches;
       const storeName = getCurrentUser()?.name || '';
+    
       list.forEach((invObj, idx) => {
+        // compute balance & classes earlier
         const balance = Math.max(0, (Number(invObj.amount) || 0) - (Number(invObj.paid) || 0));
         const balanceColorClass = balance <= 0 ? 'text-emerald-600' : 'text-rose-600';
+    
+        // badge classes
+        let badgeClass = 'bg-amber-100 text-amber-700'; // default for unpaid-ish
+        let badgeText = escapeHtml(invObj.status || '');
+        if (invObj.status === 'paid') {
+          badgeClass = 'bg-emerald-100 text-emerald-700';
+        } else if (invObj.status === 'partial') {
+          badgeClass = 'bg-yellow-100 text-yellow-800';
+        } else if (invObj.status === 'unpaid') {
+          badgeClass = 'bg-rose-100 text-rose-700';
+        }
+    
+        // toggle icon: paid -> check, partial -> hourglass, unpaid -> xmark
+        const toggleIcon = invObj.status === 'paid'
+          ? '<i class="fas fa-check"></i>'
+          : (invObj.status === 'partial' ? '<i class="fas fa-hourglass-half"></i>' : '<i class="fas fa-xmark"></i>');
+    
         if (mobile) {
           const tr = document.createElement('tr');
           tr.className = 'border-b';
@@ -1573,12 +1614,15 @@ buyOnlyBtn?.addEventListener('click', () => {
                   <div class="text-sm">${escapeHtml(invObj.phone || '')}</div>
                   <div class="text-right">
                     <div class="font-semibold">${fmtMoney(invObj.amount)}</div>
-                    <div class="text-xs ${balanceColorClass}">${escapeHtml(invObj.status)} • ${fmtMoney(balance)}</div>
+                    <div class="text-xs ${balanceColorClass}">
+                      <span class="${badgeClass} px-2 py-1 rounded text-xs">${badgeText}</span>
+                      &nbsp;•&nbsp;${fmtMoney(balance)}
+                    </div>
                   </div>
                 </div>
                 <div class="mt-3 flex items-center gap-2 flex-wrap">
                   <button class="action-icon" data-action="edit" data-id="${invObj.id}" title="Edit"><i class="fas fa-edit"></i></button>
-                  <button class="action-icon" data-action="toggle" data-id="${invObj.id}" title="Toggle">${invObj.status === 'paid' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-xmark"></i>'}</button>
+                  <button class="action-icon" data-action="toggle" data-id="${invObj.id}" title="Toggle">${toggleIcon}</button>
                   <button class="action-icon" data-action="wa" data-id="${invObj.id}" title="WhatsApp"><i class="fab fa-whatsapp"></i></button>
                   <button class="action-icon" data-action="sms" data-id="${invObj.id}" title="SMS"><i class="fas fa-sms"></i></button>
                   <button class="action-icon" data-action="call" data-id="${invObj.id}" title="Call"><i class="fas fa-phone"></i></button>
@@ -1602,11 +1646,11 @@ buyOnlyBtn?.addEventListener('click', () => {
             <td class="p-2 text-right">${fmtMoney(invObj.amount)}</td>
             <td class="p-2 text-right">${fmtMoney(invObj.paid)}</td>
             <td class="p-2 text-right ${balanceColorClass}">${fmtMoney(balance)}</td>
-            <td class="p-2"><span class="${invObj.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'} px-2 py-1 rounded text-xs">${escapeHtml(invObj.status)}</span></td>
+            <td class="p-2"><span class="${badgeClass} px-2 py-1 rounded text-xs">${badgeText}</span></td>
             <td class="p-2 no-print">
               <div class="flex gap-2">
                 <button class="action-icon" data-action="edit" data-id="${invObj.id}" title="Edit"><i class="fas fa-edit"></i></button>
-                <button class="action-icon" data-action="toggle" data-id="${invObj.id}" title="Toggle">${invObj.status === 'paid' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-xmark"></i>'}</button>
+                <button class="action-icon" data-action="toggle" data-id="${invObj.id}" title="Toggle">${toggleIcon}</button>
                 <button class="action-icon" data-action="wa" data-id="${invObj.id}" title="WhatsApp"><i class="fab fa-whatsapp"></i></button>
                 <button class="action-icon" data-action="sms" data-id="${invObj.id}" title="SMS"><i class="fas fa-sms"></i></button>
                 <button class="action-icon" data-action="call" data-id="${invObj.id}" title="Call"><i class="fas fa-phone"></i></button>
@@ -1620,6 +1664,7 @@ buyOnlyBtn?.addEventListener('click', () => {
         }
       });
     }
+    
   
     // invoice action listener
     invoiceRows?.addEventListener('click', async (e) => {
@@ -1638,16 +1683,33 @@ buyOnlyBtn?.addEventListener('click', () => {
           all.splice(idx, 1); saveAllInvoices(all); renderInvoiceTable(); window.dispatchEvent(new Event('dataUpdated')); toast('Invoice deleted', 'success');
         }
       } else if (action === 'toggle') {
-        if (all[idx].status === 'unpaid') {
-          all[idx].prevPaid = all[idx].paid;
-          all[idx].status = 'paid';
-          all[idx].paid = Number(all[idx].amount) || 0;
+        const inv = all[idx];
+        // toggling behavior:
+        // - if not paid => mark paid (store prevPaid)
+        // - if paid => restore prevPaid or set to unpaid
+        if (inv.status !== 'paid') {
+          // store previous paid state for undo
+          inv.prevPaid = Number(inv.paid) || 0;
+          inv.paid = Number(inv.amount) || 0;
+          inv.status = 'paid';
         } else {
-          all[idx].status = 'unpaid';
-          all[idx].paid = all[idx].prevPaid || 0;
+          // currently paid -> revert
+          const prev = Number(inv.prevPaid) || 0;
+          if (prev > 0 && prev < Number(inv.amount || 0)) {
+            inv.paid = prev;
+            inv.status = 'partial';
+          } else {
+            inv.paid = 0;
+            inv.status = 'unpaid';
+          }
+          delete inv.prevPaid;
         }
-        saveAllInvoices(all); renderInvoiceTable(); window.dispatchEvent(new Event('dataUpdated'));
-      } else if (action === 'edit') {
+        saveAllInvoices(all);
+        renderInvoiceTable();
+        window.dispatchEvent(new Event('dataUpdated'));
+      }
+      
+       if (action === 'edit') {
         const invObj = all[idx];
         createInvoiceSection?.classList.remove('hidden', 'hidden-section');
         editingInvoiceId && (editingInvoiceId.value = invObj.id);
