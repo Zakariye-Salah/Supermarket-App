@@ -1,0 +1,644 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supermarket Auth & Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-KtH6cL3sV+2F/..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="style.css">
+<style>
+  /* Smooth modal show/hide */
+  .modal-enter { opacity: 0; transform: translateY(-10px) scale(0.98); }
+  .modal-enter-active { opacity: 1; transform: translateY(0) scale(1); transition: all 220ms cubic-bezier(.2,.8,.2,1); }
+  .modal-exit { opacity: 1; transform: translateY(0) scale(1); }
+  .modal-exit-active { opacity: 0; transform: translateY(-8px) scale(0.98); transition: all 180ms ease; }
+
+  /* small utilities */
+  .action-icon { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:transparent; border:none; cursor:pointer; transition:transform .12s; }
+  .action-icon:hover { transform:translateY(-2px); background: rgba(15,23,42,0.04); }
+  .action-btn { display:inline-flex; align-items:center; justify-content:center; border-radius:8px; border:none; cursor:pointer; }
+  .no-print { -webkit-print-color-adjust: exact; }
+  @media print {
+    .no-print, footer, .navBtn { display:none !important; }
+  }
+
+  /* ensure auth controls are above footer/nav */
+  #authSection { z-index: 40; position: relative; }
+  .storeSettingsBtn { display:inline-flex; gap:6px; align-items:center; padding:6px; border-radius:8px; cursor:pointer; }
+
+  /* ===== Reports Table Mobile Styling ===== */
+
+/* Hide table header on small screens */
+@media (max-width: 640px) {
+  #reportsTableHead {
+    display: none !important;
+  }
+
+  /* Prevent horizontal scrollbars */
+  #reportsTableWrapper {
+    overflow-x: hidden !important;
+  }
+
+  /* Ensure table rows display as blocks/cards */
+  #reportsTable tr td {
+    display: block;
+    width: 100%;
+  }
+
+  /* Add spacing between mobile report cards */
+  #reportsTable tr {
+    margin-bottom: 1rem;
+    display: block;
+    border: none;
+  }
+}
+/* Hide reports table header and scrollbars on small screens for safety.
+   JS will also toggle .hidden on thead for extra safety.
+*/
+@media (max-width: 640px) {
+  /* hide the header row visually but keep table semantics */
+  #reportsReportContent table thead,
+  #reportsReportContent table thead tr,
+  #reportsReportContent table thead th {
+    display: none !important;
+    visibility: collapse !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  /* hide horizontal scrollbar on small screens */
+  #reportsReportContent .overflow-x-auto {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;     /* Firefox */
+  }
+  #reportsReportContent .overflow-x-auto::-webkit-scrollbar {
+    display: none;             /* Safari and Chrome */
+  }
+}
+
+/* Simple toast style helper */
+#app-toast {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  transform-origin: right bottom;
+  opacity: 1;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+#app-toast.opacity-0 { opacity: 0; transform: translateY(6px); }
+
+</style>
+</head>
+<body class="bg-gray-100">
+
+<!-- ================= AUTH SECTION ================= -->
+<div id="authSection" class="max-w-lg mx-auto p-6 bg-white shadow-md mt-10 rounded-lg">
+  <!-- Registration -->
+  <div id="registrationForm">
+    <h1 class="text-2xl font-bold mb-4">Supermarket Registration</h1>
+    <input id="regName" placeholder="Supermarket Name" class="w-full p-2 mb-2 border rounded">
+    <input id="regAddress" placeholder="Address" class="w-full p-2 mb-2 border rounded">
+    <input id="regPhone" placeholder="Phone" class="w-full p-2 mb-2 border rounded">
+    <input id="regEmail" placeholder="Email" class="w-full p-2 mb-2 border rounded">
+    <input id="regPassword" type="password" placeholder="Password" class="w-full p-2 mb-2 border rounded">
+    <input id="regConfirm" type="password" placeholder="Confirm Password" class="w-full p-2 mb-4 border rounded">
+    <button id="registerBtn" class="w-full bg-blue-600 text-white p-2 rounded mb-6 hover:bg-blue-700">Register</button>
+    <p class="text-center text-sm">Already have an account?
+      <button id="showLogin" type="button" class="text-blue-600 underline ml-1">Login here</button>
+    </p>
+  </div>
+
+  <!-- Login -->
+  <div id="loginForm" class="hidden">
+    <h1 class="text-2xl font-bold mb-4">Supermarket Login</h1>
+    <input id="loginName" placeholder="Supermarket Name" class="w-full p-2 mb-2 border rounded">
+    <input id="loginPassword" type="password" placeholder="Password" class="w-full p-2 mb-4 border rounded">
+    <button id="loginBtn" class="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700">Login</button>
+    <p class="text-center text-sm">Don't have an account?
+      <button id="showRegister" type="button" class="text-blue-600 underline ml-1">Register here</button>
+    </p>
+  </div>
+</div>
+
+<!-- ================= DASHBOARD SECTION ================= -->
+<div id="dashboardSection" class="hidden max-w-6xl mx-auto p-6 bg-white shadow-md mt-10 rounded-lg">
+  <div class="flex justify-between items-center mb-6">
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-bold "><span id="storeDisplayDesktop"></span></h1>
+      <!-- settings placeholder (JS will show/hide .storeSettingsBtn) -->
+       <!-- Optional: hidden settings cog placed next to store name (will be unhidden after login by JS) -->
+<button id="storeSettingsBtn" class="storeSettingsBtn hidden inline-flex items-center gap-2 ml-2 px-2 py-1 rounded bg-emerald-600 text-white" title="Settings" aria-label="Open settings">
+  <i class="fa-solid fa-cog"></i>
+</button>
+      </button>
+    </div>
+    <button id="logoutBtn" class="bg-red-600 text-white p-2 rounded hover:bg-red-700">Logout</button>
+  </div>
+
+ <!-- ================= DASHBOARD CONTENT ================= -->
+ <div id="dashboardContent" class="mt-6 pb-20">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-bold">Reports Summary</h2>
+
+    <!-- Filter -->
+    <div class="flex items-center gap-3">
+      <label class="text-sm text-gray-600">View:</label>
+      <select id="dashboardPeriod" class="border rounded px-2 py-1 text-sm">
+        <option value="lifetime">Lifetime</option>
+        <option value="today">Today</option>
+        <option value="weekly">Last 7 days</option>
+        <option value="monthly">This month</option>
+        <option value="yearly">This year</option>
+        <option value="live">Live (auto)</option>
+      </select>
+      <button id="dashboardRefresh" class="px-3 py-1 bg-gray-100 rounded text-sm">Refresh</button>
+    </div>
+  </div>
+
+  <!-- Responsive Card Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+    <!-- Invoices Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 flex flex-col items-center justify-center hover:shadow-xl transition">
+      <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-300">Total Invoices</h3>
+      <p id="totalInvoices" class="text-3xl font-bold text-blue-600 mt-2">0</p>
+    </div>
+
+    <!-- Products Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 flex flex-col items-center justify-center hover:shadow-xl transition">
+      <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-300">Total Products</h3>
+      <p id="totalProducts" class="text-3xl font-bold text-green-600 mt-2">0</p>
+      <div class="text-xs text-gray-400 mt-1">Products are global (no created date)</div>
+    </div>
+
+    <!-- Sales (Paid) Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 flex flex-col items-center justify-center hover:shadow-xl transition">
+      <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-300">Total Sales (Paid)</h3>
+      <p id="totalSales" class="text-3xl font-bold text-purple-600 mt-2">0</p>
+    </div>
+
+    <!-- Revenue Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 flex flex-col items-center justify-center hover:shadow-xl transition">
+      <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-300">Total Revenue</h3>
+      <p id="totalRevenue" class="text-3xl font-bold text-amber-600 mt-2">0</p>
+      <div class="text-xs text-gray-400 mt-1">Sum of invoice totals (amount)</div>
+    </div>
+
+  </div>
+
+  <!-- Chart -->
+  <div class="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Sales chart</h3>
+      <div class="text-sm text-gray-500">Based on selected period</div>
+    </div>
+    <canvas id="salesChart" height="120"></canvas>
+  </div>
+</div>
+
+
+  <!-- ================= INVOICES SECTION ================= -->
+  <div id="invoicesSection" class="hidden max-w-5xl mx-auto p-4 sm:p-6 pb-20">
+
+    <!-- CREATE INVOICE BUTTON -->
+    <div class="mb-4 flex items-center justify-between flex-wrap gap-2">
+      <button id="createInvoiceBtn"
+              class="rounded-xl bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 shadow transition-all duration-200 flex items-center gap-2">
+        + Create Invoice
+      </button>
+      <span id="currentTime" class="text-sm text-red-500 font-semibold"></span>
+    </div>
+
+    <!-- CREATE INVOICE FORM -->
+    <section id="createInvoiceSection" class="bg-white rounded-2xl shadow p-4 sm:p-6 mb-6 hidden-section">
+      <input type="hidden" id="editingInvoiceId" />
+      <h2 class="text-lg font-semibold mb-3">Create Invoice</h2>
+
+      <!-- Customer Info -->
+      <div class="grid sm:grid-cols-5 gap-3 mb-4">
+        <label class="block sm:col-span-2">
+          <span class="text-sm">Customer Name</span>
+          <input id="customerName" class="mt-1 w-full rounded-xl border px-3 py-2" placeholder="e.g. Zakariye Salah" />
+        </label>
+        <label class="block sm:col-span-2">
+          <span class="text-sm">Customer Phone</span>
+          <input id="customerPhone" class="mt-1 w-full rounded-xl border px-3 py-2" placeholder="e.g. 617125558" />
+        </label>
+        <label class="block">
+          <span class="text-sm">Invoice Date</span>
+          <input id="invoiceDate" type="date" class="mt-1 w-full rounded-xl border px-3 py-2" />
+        </label>
+      </div>
+
+      <!-- Invoice Items -->
+      <div id="invoiceItemsContainer" class="mb-3"></div>
+      <button id="addItemBtn" class="mb-3 inline-block rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">+ Add Item</button>
+
+      <div class="grid sm:grid-cols-3 gap-3 mb-3">
+        <label>
+          <span class="text-sm">Total Amount</span>
+          <input id="amount" type="number" step="0.01" class="mt-1 w-full rounded-xl border px-3 py-2" placeholder="0" readonly />
+        </label>
+        <label>
+          <span class="text-sm">Amount Paid</span>
+          <input id="paid" type="number" step="0.01" class="mt-1 w-full rounded-xl border px-3 py-2" placeholder="0" />
+        </label>
+        <label>
+          <span class="text-sm">Status</span>
+          <select id="status" class="mt-1 w-full rounded-xl border px-3 py-2">
+            <option value="unpaid">Unpaid</option>
+            <option value="paid">Paid</option>
+          </select>
+        </label>
+      </div>
+
+      <button id="saveInvoiceBtn" class="rounded-xl bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 w-full">Save Invoice</button>
+      <p id="formMsg" class="hidden mt-3 text-red-600 text-sm"></p>
+    </section>
+
+    <!-- INVOICES LIST -->
+    <section class="bg-white rounded-2xl shadow p-4 sm:p-6">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <h2 id="invoicesTitle" class="text-lg font-semibold mr-3">Invoices</h2>
+
+        <div class="flex flex-wrap items-center gap-2 flex-1 min-w-[250px]">
+          <button id="clearPaidBtn" class="bg-red-600 text-white px-3 py-2 rounded whitespace-nowrap">Clear Paid</button>
+          <select id="filterStatus" class="rounded-xl border px-3 py-2 whitespace-nowrap">
+            <option value="all">All</option>
+            <option value="paid">Paid</option>
+            <option value="unpaid">Unpaid</option>
+          </select>
+          <input id="searchName" class="rounded-xl border px-3 py-2 flex-1 min-w-[120px]" placeholder="Search by name..." />
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 mb-4">
+        <select id="reminderMethod" class="border rounded px-2 py-1 whitespace-nowrap">
+          <option value="wa">WhatsApp</option>
+          <option value="sms">SMS</option>
+        </select>
+        <button id="sendAllReminders" class="bg-purple-600 text-white px-3 py-2 rounded whitespace-nowrap">Send All Reminders</button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead class="hidden sm:table-header-group">
+            <tr>
+              <th class="p-2 font-medium text-blue-600">No</th>
+              <th class="p-2 font-medium text-blue-600">Invoice</th>
+              <th class="p-2 font-medium text-blue-600">Date</th>
+              <th class="p-2 font-medium text-blue-600">Customer</th>
+              <th class="p-2 font-medium text-blue-600">Phone</th>
+              <th class="p-2 font-medium text-blue-600 text-right">Amount</th>
+              <th class="p-2 font-medium text-blue-600 text-right">Paid</th>
+              <th class="p-2 font-medium text-blue-600 text-right">Balance</th>
+              <th class="p-2 font-medium text-blue-600">Status</th>
+              <th class="p-2 font-medium text-blue-600 no-print">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="invoiceRows" class="block sm:table-row-group"></tbody>
+        </table>
+      </div>
+
+      <p id="emptyState" class="hidden text-center text-gray-500 py-6">No invoices yet.</p>
+    </section>
+  </div>
+
+  <!-- ================= PRODUCTS SECTION ================= -->
+  <div id="productsSection" class="hidden max-w-5xl mx-auto p-4 sm:p-6 pb-20">
+    <!-- Page container -->
+    <div class="min-h-screen flex flex-col pb-24">
+
+      <!-- Top bar -->
+      <header class="bg-white/90 dark:bg-gray-800/90 backdrop-blur border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+          
+          <!-- Left: Title -->
+          <div class="flex items-center gap-3 shrink-0">
+            <i class="fa-solid fa-boxes-stacked text-xl text-blue-600"></i>
+          </div>
+      
+          <!-- Right: search + add -->
+          <div class="flex items-center gap-2 flex-1 max-w-full">
+            <!-- Search input grows -->
+            <div class="relative flex-1">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+              <input
+                id="searchInput"
+                type="search"
+                class="w-full pl-9 pr-3 py-2 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Search products..."
+              />
+            </div>
+      
+            <!-- Add product -->
+            <button id="addProductBtn"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow transition flex items-center justify-center">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+      
+            <!-- Cart -->
+            <button id="openCartHeader"
+              class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1">
+              <i class="fa-solid fa-cart-shopping"></i>
+              <span id="cartCountHeader">0</span>
+            </button>
+          </div>
+        </div>
+      </header>
+      
+
+      <!-- Shop Modal -->
+      <div id="shopModal" class="hidden fixed inset-0 z-50">
+        <div id="shopBackdrop" class="absolute inset-0 bg-black/40"></div>
+        <div class="relative max-w-lg mx-auto mt-20 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-5">
+          <h3 class="text-lg font-semibold mb-3">Shopping Cart</h3>
+          <div id="cartItems" class="space-y-3 max-h-60 overflow-y-auto"></div>
+          <div class="flex justify-between mt-4">
+            <button id="clearCart" class="px-4 py-2 rounded-lg bg-red-500 text-white">Cancel All</button>
+            <button id="closeCart" class="px-4 py-2 rounded-lg bg-gray-300">Cancel</button>
+            <button id="sellCart" class="px-4 py-2 rounded-lg bg-green-600 text-white">Sell</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Invoice Modal -->
+      <div id="invoiceModal" class="hidden fixed inset-0 z-50">
+        <div class="absolute inset-0 bg-black/40"></div>
+        <div class="relative max-w-lg mx-auto mt-20 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-5">
+          <h3 class="text-lg font-semibold mb-3">Invoice</h3>
+          <form id="invoiceForm" class="space-y-3">
+            <input type="text" id="customerName" placeholder="Customer name" class="w-full border p-2 rounded" required>
+            <input type="tel" id="customerPhone" value="+252" class="w-full border p-2 rounded" required>
+            <input type="date" id="invoiceDate" class="w-full border p-2 rounded" required>
+            <div>Total: <span id="invoiceTotal">$0.00</span></div>
+            <input type="number" id="amountPaid" placeholder="Amount paid" class="w-full border p-2 rounded">
+            <select id="status" class="w-full border p-2 rounded">
+              <option value="unpaid">Unpaid</option>
+              <option value="paid">Paid</option>
+            </select>
+            <div class="flex justify-between mt-4">
+              <button type="button" id="backToCart" class="px-4 py-2 bg-gray-300 rounded">Back</button>
+              <button type="button" id="buyRecord" class="px-4 py-2 bg-blue-600 text-white rounded">Buy & Record Invoice</button>
+              <button type="button" id="buyOnly" class="px-4 py-2 bg-green-600 text-white rounded">Buy Only</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <main class="max-w-6xl mx-auto w-full px-4 pt-4 flex-1">
+
+        <!-- Empty state -->
+        <div id="emptyState" class="hidden text-center py-16">
+          <div class="text-5xl mb-4">🗃️</div>
+          <p id="emptyTitle" class="text-lg font-semibold mb-1">No products yet</p>
+          <p id="emptyDesc" class="text-gray-500 mb-4">Click “Add Product” to create your first one.</p>
+          <button id="emptyAddBtn"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl shadow transition">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </div>
+
+        <!-- Product table (desktop) -->
+        <div class="hidden md:block">
+          <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-xl shadow">
+            <table class="min-w-full">
+              <thead>
+                <tr class="text-left text-sm uppercase tracking-wide text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
+                  <th class="px-4 py-3">#</th>
+                  <th class="px-4 py-3" id="thName">Product</th>
+                  <th class="px-4 py-3" id="thCost">Original Price</th>
+                  <th class="px-4 py-3" id="thPrice">Price</th>
+                  <th class="px-4 py-3" id="thQty">Qty</th>
+                  <th class="px-4 py-3" id="thActions">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="productRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Product cards (mobile) -->
+        <div id="productCards" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mt-4"></div>
+      </main>
+
+      <!-- Add some padding at the bottom so content isn't hidden -->
+      <div class="pb-16"></div>
+
+    </div>
+
+    <!-- Add Product Modal -->
+    <div id="productModal" class="hidden fixed inset-0 z-50">
+      <div id="productModalBackdrop" class="absolute inset-0 bg-black/40"></div>
+      <div id="productDialog"
+           class="relative max-w-md w-[92%] sm:w-[420px] mx-auto mt-20 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 id="modalTitle" class="text-lg font-semibold"></h3>
+          <button id="closeModal" class="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">
+            <i class="fa-solid fa-xmark text-xl"></i>
+          </button>
+        </div>
+
+        <form id="productForm" class="space-y-3">
+          <label class="block">
+            <span id="lblName" class="text-sm text-gray-600 dark:text-gray-300">Product Name *</span>
+            <input id="productName" class="mt-1 w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. Rice 25kg" required />
+          </label>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <label class="block">
+              <span id="lblCost" class="text-sm text-gray-600 dark:text-gray-300">Original Price</span>
+              <input id="productCost" type="number" step="0.01" min="0"
+                     class="mt-1 w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00" />
+            </label>
+            <label class="block">
+              <span id="lblPrice" class="text-sm text-gray-600 dark:text-gray-300">Price *</span>
+              <input id="productPrice" type="number" step="0.01" min="0"
+                     class="mt-1 w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00" required />
+            </label>
+            <label class="block">
+              <span id="lblQty" class="text-sm text-gray-600 dark:text-gray-300">Quantity *</span>
+              <input id="productQty" type="number" step="1" min="0"
+                     class="mt-1 w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0" required />
+            </label>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" id="cancelModal"
+                    class="px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">
+              Cancel
+            </button>
+            <button type="submit" id="saveProductBtn"
+                    class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white">
+              Save Product
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div> <!-- end productsSection -->
+
+  <!-- ================= REPORTS SECTION ================= -->
+  <div id="reportsSection" class="hidden max-w-5xl mx-auto p-4 sm:p-6 pb-20">    <div class="max-w-6xl mx-auto p-6">
+      <header class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-bold">Reports</h1>
+          <p class="text-sm text-gray-600">Centralized sales records — live & exportable</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="reportsExportPdf" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            <i class="fa-solid fa-file-pdf"></i> Export PDF
+          </button>
+          <button id="reportsDeleteAll" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+            <i class="fa-solid fa-trash"></i> Delete All
+          </button>
+        </div>
+      </header>
+
+      <!-- controls -->
+      <div class="bg-white p-4 rounded-lg shadow mb-4">
+        <div class="flex flex-wrap gap-3 items-center">
+          <label class="flex items-center gap-2">
+            <span class="text-sm font-medium">Filter:</span>
+            <select id="reportsPeriod" class="border rounded px-3 py-2">
+              <option value="lifetime">All time</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly (7 days)</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </label>
+
+          <label class="flex items-center gap-2">
+            <span class="text-sm font-medium">Date:</span>
+            <input id="reportsDate" type="date" class="border rounded px-3 py-2" />
+          </label>
+
+          <label class="flex items-center gap-2">
+            <span class="text-sm font-medium">Search:</span>
+            <input id="reportsSearchInput" type="search" placeholder="Product or customer..." class="border rounded px-3 py-2" />
+          </label>
+
+          <div class="ml-auto flex items-center gap-4">
+            <div class="text-sm">
+              <div>Total Items: <span id="reportsTotalItems" class="font-semibold">0</span></div>
+              <div>Total Sales: <span id="reportsTotalSales" class="font-semibold">0.00</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+   <!-- report content (export target) -->
+<div id="reportsReportContent" class="bg-white rounded-lg shadow p-4">
+
+  <!-- Table wrapper for desktop -->
+  <div id="reportsTableWrapper" class="overflow-x-auto">
+    <table class="w-full table-auto" id="reportsTable">
+      <thead id="reportsTableHead">
+        <tr class="text-left text-sm text-gray-600 border-b">
+          <th class="p-2">#</th>
+          <th class="p-2">Products</th>
+          <th class="p-2">Qty</th>
+          <th class="p-2">Total</th>
+          <th class="p-2">Paid</th>
+          <th class="p-2">Due</th>
+          <th class="p-2">Status</th>
+          <th class="p-2">Customer</th>
+          <th class="p-2">Phone</th>
+          <th class="p-2">Timestamp</th>
+          <th class="p-2 no-print">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="reportsRows"></tbody>
+    </table>
+  </div>
+
+  <!-- Empty message -->
+  <p id="reportsEmptyMsg" class="text-center text-gray-500 mt-4 hidden">
+    No reports to show.
+  </p>
+</div>
+
+
+    <!-- confirm delete all modal (simple) -->
+    <div id="reportsConfirmDeleteAll" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/50"></div>
+      <div class="bg-white p-6 rounded shadow z-10 w-96">
+        <h3 class="text-lg font-semibold mb-3">Delete all reports?</h3>
+        <p class="mb-4">This will permanently remove all report records for this store.</p>
+        <div class="flex justify-end gap-2">
+          <button id="reportsCancelDeleteAll" class="px-3 py-2 rounded bg-gray-200">Cancel</button>
+          <button id="reportsConfirmDeleteAllBtn" class="px-3 py-2 rounded bg-red-600 text-white">Delete All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> <!-- end dashboardSection -->
+
+
+
+<!-- ================= FOOTER ================= -->
+<div class="pb-7"> 
+<footer class="bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-200 px-6 py-6 mt-8 border-t border-gray-300 dark:border-gray-700">
+  <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+    <div class="text-sm text-gray-600 dark:text-gray-400">
+      &copy; 2025 <span class="font-semibold">Zakariye</span>. All rights reserved.
+    </div>
+    <div class="flex gap-4 items-center">
+      <a href="mailto:engzaki410@gmail.com" target="_blank" class="hover:text-red-600 transition-colors" title="Email">
+        <i class="fa-solid fa-envelope fa-lg"></i>
+      </a>
+      <a href="https://wa.me/252617125558" target="_blank" class="hover:text-green-500 transition-colors" title="WhatsApp">
+        <i class="fa-brands fa-whatsapp fa-lg"></i>
+      </a>
+      <a href="https://www.facebook.com/share/19ayTrQCzP/" target="_blank" class="hover:text-blue-800 transition-colors" title="Facebook">
+        <i class="fa-brands fa-facebook fa-lg"></i>
+      </a>
+      <a href="https://github.com/Zakariye-Salah/" target="_blank" class="hover:text-gray-900 dark:hover:text-white transition-colors" title="GitHub">
+        <i class="fa-brands fa-github fa-lg"></i>
+      </a>
+    </div>
+  </div>
+</footer>
+</div>
+<!-- ================= Bottom Navigation ================= -->
+<nav id="bottomNav" 
+  class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 
+         flex justify-around py-2 z-50 text-gray-600 dark:text-gray-300">
+  
+  <button class="navBtn flex flex-col items-center text-sm transition-colors hover:text-emerald-500" data-target="dashboardContent">
+    <i class="fas fa-home text-lg"></i>
+    <span>Dashboard</span>
+  </button>
+
+  <button class="navBtn flex flex-col items-center text-sm transition-colors hover:text-emerald-500" data-target="invoicesSection">
+    <i class="fas fa-file-invoice text-lg"></i>
+    <span>Invoices</span>
+  </button>
+
+  <button class="navBtn flex flex-col items-center text-sm transition-colors hover:text-emerald-500" data-target="productsSection">
+    <i class="fas fa-box text-lg"></i>
+    <span>Products</span>
+  </button>
+
+  <button class="navBtn flex flex-col items-center text-sm transition-colors hover:text-emerald-500" data-target="reportsSection">
+    <i class="fas fa-chart-bar text-lg"></i>
+    <span>Reports</span>
+  </button>
+</nav>
+
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js" async defer></script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="auth.js"></script>
+</body>
+</html>
