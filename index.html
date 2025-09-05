@@ -151,7 +151,13 @@
 <button id="storeSettingsBtn" class="storeSettingsBtn hidden inline-flex items-center gap-2 ml-2 px-2 py-1 rounded bg-emerald-600 text-white" title="Settings" aria-label="Open settings">
   <i class="fa-solid fa-cog"></i>
 </button>
+
       </button>
+      
+<!-- Recycle Bin Button (place next to filters or header) -->
+<button id="btnRecycleBinTop" class="ml-2 p-2 bg-gray-100 dark:bg-gray-700 rounded text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition" title="Recycle Bin">
+  <i class="fa-solid fa-trash"></i>
+</button>
     </div>
     <button id="logoutBtn" class="bg-red-600 text-white p-2 rounded hover:bg-red-700">Logout</button>
   </div>
@@ -173,6 +179,7 @@
         <option value="live">Live (auto)</option>
       </select>
       <button id="dashboardRefresh" class="px-3 py-1 bg-gray-100 rounded text-sm">Refresh</button>
+        <button id="btnManageExpenses" class="px-3 py-1 bg-gray-100 rounded text-sm">Manage Expenses</button>
     </div>
   </div>
 
@@ -205,7 +212,67 @@
       <div class="text-xs text-gray-400 mt-1">Sum of invoice totals (amount)</div>
     </div>
 
+   
+    
+        <!-- Total Profit Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 flex flex-col items-center justify-center hover:shadow-xl transition">
+          <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-300">Total Profit</h3>
+          <p id="totalProfit" class="text-3xl font-bold text-emerald-600 mt-2">0</p>
+          <div class="text-xs text-gray-400 mt-1">Revenue minus expenses</div>
+        </div>
+    
+    <!-- Total Expenses Card -->
+<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 flex flex-col items-center justify-center hover:shadow-xl transition">
+  <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-300">Total Expenses</h3>
+  <p id="totalExpenses" class="text-3xl font-bold text-red-600 mt-2">0</p>
+
+  <div class="text-xs text-gray-400 mt-2">Total of saved expenses</div>
+</div>
+
+
+
   </div>
+
+  <!-- Manage Expenses Modal (hidden by default) -->
+<div id="manageExpensesModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/40"></div>
+  <div class="relative bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl p-5 z-10">
+    <div class="flex items-center justify-between mb-4">
+      <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Manage Expenses</h4>
+      <button id="closeExpensesModal" class="text-gray-500 hover:text-gray-900">✕</button>
+    </div>
+
+    <!-- initial action buttons -->
+    <div id="expensesActions" class="mb-4">
+      <button id="openAddExpense" class="px-3 py-1 bg-blue-500 text-white rounded mr-2">Add Expense</button>
+      <button id="showAllExpenses" class="px-3 py-1 bg-gray-100 rounded ml-2">Manage Saved Expenses</button>
+    </div>
+
+    <!-- Add/Edit form container -->
+    <div id="expensesFormWrap" class="hidden">
+      <form id="expensesForm" class="space-y-3">
+        <div id="expenseRows" class="space-y-2"></div>
+
+        <div class="flex flex-wrap gap-2">
+          <button id="addExpenseRowBtn" type="button" class="px-3 py-1 bg-green-500 text-white rounded">+ Add More</button>
+          <button id="saveExpensesBtn" type="button" class="px-3 py-1 bg-blue-600 text-white rounded">Save</button>
+          <button id="cancelExpensesBtn" type="button" class="px-3 py-1 bg-gray-200 rounded">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Saved expenses list -->
+    <div id="savedExpensesListWrap" class="hidden">
+      <div id="savedExpensesList" class="space-y-2 max-h-64 overflow-y-auto"></div>
+      <div class="mt-3 flex gap-2">
+        <button id="closeSavedExpenses" class="px-3 py-1 bg-gray-200 rounded">Close</button>
+      </div>
+    </div>
+
+    <!-- small status -->
+    <div id="expensesStatus" class="text-sm text-gray-500 mt-3"></div>
+  </div>
+</div>
 
   <!-- Chart -->
   <div class="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow">
@@ -601,6 +668,51 @@
 </div> <!-- end dashboardSection -->
 
 
+<!-- Recycle Bin Modal -->
+<div id="recycleBinModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+  <!-- Overlay -->
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+
+  <!-- Modal content -->
+  <div class="relative bg-white rounded-xl w-full max-w-3xl p-6 z-10 overflow-auto max-h-[80vh] shadow-xl">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
+      <h4 class="text-lg font-semibold text-gray-800">Recycle Bin</h4>
+      <div class="flex flex-wrap gap-2">
+        <button id="rbRestoreAll" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md transition">Restore All</button>
+        <button id="rbDeleteAll" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md transition">Delete All</button>
+        <button id="closeRecycleBin" class="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 rounded-md transition">Close</button>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div id="rbStatus" class="text-sm text-gray-500 mb-4"></div>
+
+    <!-- Content Sections -->
+    <div id="rbContent" class="space-y-6">
+      <!-- Invoices Section -->
+      <div id="rbInvoicesWrap">
+        <h5 class="font-semibold text-gray-800 mb-2">Invoices</h5>
+        <div id="rbInvoices" class="space-y-2"></div>
+      </div>
+
+      <!-- Products Section -->
+      <div id="rbProductsWrap">
+        <h5 class="font-semibold text-gray-800 mb-2">Products</h5>
+        <div id="rbProducts" class="space-y-2"></div>
+      </div>
+
+      <!-- Reports Section -->
+      <div id="rbReportsWrap">
+        <h5 class="font-semibold text-gray-800 mb-2">Reports</h5>
+        <div id="rbReports" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
 
 <!-- ================= FOOTER ================= -->
 <div class="pb-7"> 
@@ -660,7 +772,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script src="auth.js"></script>
+
 </body>
 </html>
