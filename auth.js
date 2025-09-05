@@ -1328,48 +1328,92 @@ window.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem(`reports_v1_${storeName}`, JSON.stringify(Array.isArray(arr) ? arr : []));
   }
      // restore a trash item back into proper storage
+// Robust restore that matches the app's storage conventions
 function restoreFromTrash(storeName, trashId) {
   const trash = getStoreTrash(storeName);
   const idx = trash.findIndex(t => t.id === trashId);
   if (idx === -1) return false;
 
   const item = trash.splice(idx, 1)[0];
-  const type = item.type;
+  const type = (item.type || '').toLowerCase();
   const payload = item.payload;
 
   try {
-    if (type === 'product' && typeof getStoreProducts === 'function' && typeof saveStoreProducts === 'function') {
-      const arr = getStoreProducts(storeName) || [];
-      arr.push(payload);
-      saveStoreProducts(storeName, arr);
-    } else if (type === 'invoice' && typeof getStoreInvoices === 'function' && typeof saveStoreInvoices === 'function') {
-      const arr = getStoreInvoices(storeName) || [];
-      arr.push(payload);
-      saveStoreInvoices(storeName, arr);
-    } else if (type === 'report') {
-      const k = `reports_v1_${storeName}`;
-      const arr = JSON.parse(localStorage.getItem(k) || '[]');
-      arr.push(payload);
-      localStorage.setItem(k, JSON.stringify(arr));
+    if (type === 'invoice') {
+      // Preferred helpers (most apps use these)
+      if (typeof getAllInvoices === 'function' && typeof saveAllInvoices === 'function') {
+        const arr = Array.isArray(getAllInvoices()) ? getAllInvoices() : [];
+        const i = arr.findIndex(x => String(x.id) === String(payload.id));
+        if (i >= 0) arr.splice(i, 1); // remove duplicate
+        arr.push(payload);
+        saveAllInvoices(arr);
+      }
+      // Alternate per-store helpers
+      else if (typeof getStoreInvoices === 'function' && typeof saveStoreInvoices === 'function') {
+        const arr = Array.isArray(getStoreInvoices(storeName)) ? getStoreInvoices(storeName) : [];
+        const i = arr.findIndex(x => String(x.id) === String(payload.id));
+        if (i >= 0) arr.splice(i, 1);
+        arr.push(payload);
+        saveStoreInvoices(storeName, arr);
+      }
+      // Final fallback: use likely localStorage key `invoices_v1_${storeName}`
+      else {
+        const key = `invoices_v1_${storeName}`;
+        const arr = JSON.parse(localStorage.getItem(key) || '[]');
+        const i = arr.findIndex(x => String(x.id) === String(payload.id));
+        if (i >= 0) arr.splice(i, 1);
+        arr.push(payload);
+        localStorage.setItem(key, JSON.stringify(arr));
+      }
 
-      // <== NEW: immediately refresh reports list
-      if (typeof renderReports === 'function') renderReports();
-    } else {
-      const k = `restored_${type}_${storeName}`;
-      const arr = JSON.parse(localStorage.getItem(k) || '[]');
+      // immediate UI refresh
+      if (typeof renderInvoiceTable === 'function') renderInvoiceTable();
+    }
+    else if (type === 'product') {
+      if (typeof getStoreProducts === 'function' && typeof saveStoreProducts === 'function') {
+        const arr = Array.isArray(getStoreProducts(storeName)) ? getStoreProducts(storeName) : [];
+        const i = arr.findIndex(x => String(x.id) === String(payload.id));
+        if (i >= 0) arr.splice(i, 1);
+        arr.push(payload);
+        saveStoreProducts(storeName, arr);
+      } else {
+        const key = `products_v1_${storeName}`;
+        const arr = JSON.parse(localStorage.getItem(key) || '[]');
+        const i = arr.findIndex(x => String(x.id) === String(payload.id));
+        if (i >= 0) arr.splice(i, 1);
+        arr.push(payload);
+        localStorage.setItem(key, JSON.stringify(arr));
+      }
+      if (typeof renderProducts === 'function') renderProducts();
+    }
+    else if (type === 'report') {
+      const key = `reports_v1_${storeName}`;
+      const arr = JSON.parse(localStorage.getItem(key) || '[]');
+      const i = arr.findIndex(x => String(x.id) === String(payload.id));
+      if (i >= 0) arr.splice(i, 1);
       arr.push(payload);
-      localStorage.setItem(k, JSON.stringify(arr));
+      localStorage.setItem(key, JSON.stringify(arr));
+      if (typeof renderReports === 'function') renderReports();
+    }
+    else {
+      // Generic fallback: restore to a "restored_{type}_{store}" key so data isn't lost
+      const key = `restored_${type}_${storeName}`;
+      const arr = JSON.parse(localStorage.getItem(key) || '[]');
+      const i = arr.findIndex(x => String(x.id) === String(payload.id));
+      if (i >= 0) arr.splice(i, 1);
+      arr.push(payload);
+      localStorage.setItem(key, JSON.stringify(arr));
     }
   } catch (e) {
     console.warn('restoreFromTrash error', e);
   }
 
+  // Save updated trash and refresh UI
   saveStoreTrash(storeName, trash);
-
-  // refresh recycle bin UI
   window.dispatchEvent(new Event('dataUpdated'));
   return true;
 }
+
 
 
    
@@ -1498,33 +1542,51 @@ function restoreFromTrash(storeName, trashId) {
    
      // helper to build item node
      function makeTrashRow(t) {
-       const div = document.createElement('div');
-       div.className = 'flex items-center justify-between gap-2 p-2 border rounded';
-       const shortInfo = `${t.type} • ${t.payload?.id ?? ''} • ${fmtDateTime(t.deletedAt)}`;
-       div.innerHTML = `
-         <div class="truncate" title="${escapeHtml(JSON.stringify(t.payload || {}))}">
-           <div class="font-semibold">${escapeHtml(t.payload?.name || t.payload?.id || t.type)}</div>
-           <div class="text-xs text-gray-500">${escapeHtml(shortInfo)}</div>
-         </div>
-         <div class="flex gap-2">
-           <button class="px-2 py-1 bg-emerald-500 text-white rounded rb-restore" data-id="${t.id}">Restore</button>
-           <button class="px-2 py-1 bg-red-600 text-white rounded rb-delete" data-id="${t.id}">Delete</button>
-         </div>
-       `;
-       // wire actions
-       div.querySelector('.rb-restore').addEventListener('click', () => {
-         if (!confirm('Restore this item?')) return;
-         restoreFromTrash(getCurrentUser().name, t.id);
-         renderRecycleBin();
-       });
-       div.querySelector('.rb-delete').addEventListener('click', () => {
-         if (!confirm('Permanently delete this item? This cannot be undone.')) return;
-         permanentlyDeleteFromTrash(getCurrentUser().name, t.id);
-         renderRecycleBin();
-       });
-   
-       return div;
-     }
+      const div = document.createElement('div');
+      div.className = 'flex items-center justify-between gap-2 p-2 border rounded';
+    
+      // 🔹 Choose display name based on type
+      let displayName = '';
+      if (t.type === 'invoice') {
+        displayName = t.payload?.customer || "Invoice";   // show customer name
+      } else if (t.type === 'report') {
+        displayName = t.payload?.title || "Report";       // show report title
+      } else {
+        displayName = t.payload?.name || t.payload?.id || t.type;
+      }
+    
+      // 🔹 Build short info (you can remove ID if you don’t want to show it)
+      let shortInfo = `${t.type} • ${fmtDateTime(t.deletedAt)}`;
+      if (t.type === 'product') {
+        shortInfo = `${t.type} • ${t.payload?.id ?? ''} • ${fmtDateTime(t.deletedAt)}`;
+      }
+    
+      div.innerHTML = `
+        <div class="truncate" title="${escapeHtml(JSON.stringify(t.payload || {}))}">
+          <div class="font-semibold">${escapeHtml(displayName)}</div>
+          <div class="text-xs text-gray-500">${escapeHtml(shortInfo)}</div>
+        </div>
+        <div class="flex gap-2">
+          <button class="px-2 py-1 bg-emerald-500 text-white rounded rb-restore" data-id="${t.id}">Restore</button>
+          <button class="px-2 py-1 bg-red-600 text-white rounded rb-delete" data-id="${t.id}">Delete</button>
+        </div>
+      `;
+    
+      // wire actions
+      div.querySelector('.rb-restore').addEventListener('click', () => {
+        if (!confirm('Restore this item?')) return;
+        restoreFromTrash(getCurrentUser().name, t.id);
+        renderRecycleBin();
+      });
+      div.querySelector('.rb-delete').addEventListener('click', () => {
+        if (!confirm('Permanently delete this item? This cannot be undone.')) return;
+        permanentlyDeleteFromTrash(getCurrentUser().name, t.id);
+        renderRecycleBin();
+      });
+    
+      return div;
+    }
+    
    
      // populate each section sorted newest-first
      (byType.invoice || []).sort((a,b)=>Date.parse(b.deletedAt)-Date.parse(a.deletedAt)).forEach(t => invoicesWrap.appendChild(makeTrashRow(t)));
@@ -2311,7 +2373,7 @@ buyOnlyBtn?.addEventListener('click', () => {
           tr.className = 'border-b';
           tr.innerHTML = `
             <td colspan="10" class="p-2">
-              <div class="sm-card p-3 bg-white rounded-xl shadow-sm">
+<div class="sm-card p-3 bg-gray-50 rounded-xl shadow-md">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-semibold">
                     ${(storeName || 'S').slice(0, 2).toUpperCase()}
@@ -2392,11 +2454,19 @@ buyOnlyBtn?.addEventListener('click', () => {
   
       if (action === 'delete') {
         if (confirm('Move this invoice to recycle bin?')) {
-          moveToTrash(user.name, 'invoice', all[idx]); // recycle-bin
+          // move a copy to recycle bin
+          moveToTrash(user.name, 'invoice', all[idx]);
+      
+          // remove from the invoices array and save
+          all.splice(idx, 1);
+          saveAllInvoices(all);
+      
+          // update UI + global listeners
           renderInvoiceTable();
           window.dispatchEvent(new Event('dataUpdated'));
           toast('Invoice moved to recycle bin', 'success');
-        }
+              }
+      
       }
        else if (action === 'toggle') {
         const inv = all[idx];
@@ -3433,7 +3503,7 @@ function sendReminderFor(target, method) {
 
 (function setupSettingsModuleWithDrive_v2(){
 
-  const DRIVE_CLIENT_ID = '246612771655-cehl69jg1g3hj5u0mjouuum3pvu0cc1t.apps.googleusercontent.com';
+  const DRIVE_CLIENT_ID = '1030812046213-qtq456lnvrdavrgu4gbaa8ksqb6tr489.apps.googleusercontent.com';
   const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.file';
   const LS_MSG_TPL = 'msg_templates_v1';
   const LS_NOTICES = 'notices_v1';
@@ -3580,7 +3650,6 @@ function sendReminderFor(target, method) {
           <div class="md:flex md:gap-4">
             <nav id="settingsNav" class="md:w-56 p-3 border-r hidden md:block">
               <ul class="space-y-2 text-sm">
-                <li><button class="settings-tab w-full text-left px-2 py-2 rounded" data-tab="messages"><i class="fa-solid fa-message mr-2"></i> Messages</button></li>
                 <li><button class="settings-tab w-full text-left px-2 py-2 rounded" data-tab="helpNav"><i class="fa-solid fa-circle-info mr-2"></i> Help</button></li>
                 <li><button class="settings-tab w-full text-left px-2 py-2 rounded" data-tab="notices"><i class="fa-solid fa-bell mr-2"></i> Notices</button></li>
                 <li><button class="settings-tab w-full text-left px-2 py-2 rounded" data-tab="export"><i class="fa-solid fa-download mr-2"></i> Export</button></li>
@@ -3590,146 +3659,154 @@ function sendReminderFor(target, method) {
 
             <div id="settingsContent" class="p-3 md:flex-1">
               <!-- Panels stack for mobile -->
-              <div class="settings-panel" data-panel="messages" style="display:none">
-                <h4 class="font-semibold mb-2">WhatsApp / SMS Templates</h4>
-                <div class="text-sm mb-2">Placeholders: <code>{customer}</code> <code>{id}</code> <code>{balance}</code> <code>{store}</code></div>
-                <div class="space-y-2">
-                  <textarea id="settingsWaTpl" rows="3" class="w-full border rounded p-2"></textarea>
-                  <textarea id="settingsSmsTpl" rows="3" class="w-full border rounded p-2"></textarea>
-                  <div class="flex gap-2 mt-2">
-                    <button id="settingsSaveMsgBtn" class="px-3 py-2 bg-blue-600 text-white rounded">Save</button>
-                    <button id="settingsResetMsgBtn" class="px-3 py-2 bg-gray-200 rounded">Reset</button>
-                    <div id="settingsMsgStatus" class="text-sm text-green-600 hidden ml-2">Saved</div>
-                  </div>
-                </div>
-              </div>
+              
 
-           <div class="settings-panel" data-panel="helpNav" style="display:none">
-  <h4 class="font-semibold mb-2">Help & Full Guide (All Buttons)</h4>
-  <div class="space-y-3 text-sm">
+          <div class="settings-panel" data-panel="helpNav" style="display:none">
+  <h4 class="font-semibold mb-3 text-gray-800 dark:text-gray-200">📘 Help & Full Guide</h4>
+  <div class="space-y-5 text-sm leading-relaxed">
 
-    <div>
-      <i class="fa-solid fa-plus mr-2"></i>
-      <b>Add Product</b> — Click <span class="px-2 bg-gray-100 rounded text-xs">Add Product</span> to open the product form. Fill:
-      <ul class="ml-5 list-disc mt-1">
-        <li><b>Product Name</b> — readable name (e.g. Rice 25kg)</li>
-        <li><b>Original Price/Cost</b> — optional, for margins</li>
-        <li><b>Price</b> — selling price (required)</li>
-        <li><b>Quantity</b> — current stock (required)</li>
-      </ul>
-      After filling press <b>Save Product</b>. The product will show in the list and be available when creating invoices.
+    <!-- Add Product -->
+    <div class="flex items-start gap-2">
+      <i class="fa-solid fa-plus text-green-600 mt-1"></i>
+      <div>
+        <b>Add Product</b> — Click 
+        <span class="px-2 bg-gray-100 dark:bg-gray-700 rounded text-xs">Add Product</span> to open the product form.
+        <ul class="ml-5 list-disc mt-1">
+          <li><b>Product Name</b> — readable name (e.g. Rice 25kg)</li>
+          <li><b>Original Price/Cost</b> — optional, for margins</li>
+          <li><b>Price</b> — selling price (required)</li>
+          <li><b>Quantity</b> — current stock (required)</li>
+        </ul>
+        After filling press <b>Save Product</b>.
+      </div>
     </div>
 
-    <div>
-      <i class="fa-solid fa-file-invoice-dollar mr-2"></i>
-      <b>Create Invoice</b> — Click <span class="px-2 bg-gray-100 rounded text-xs">Create Invoice</span>.
-      <ol class="ml-5 list-decimal mt-1">
-        <li>Add customer name and phone (phone cleans to +252 format automatically).</li>
-        <li>Add items: choose a product or type name, set quantity and price.</li>
-        <li>Amount (total) is calculated automatically. Enter amount paid and set status (Paid/Unpaid).</li>
-        <li>Click <b>Save Invoice</b> to record the sale into Reports & localStorage.</li>
-      </ol>
+    <!-- Create Invoice -->
+    <div class="flex items-start gap-2">
+      <i class="fa-solid fa-file-invoice-dollar text-blue-600 mt-1"></i>
+      <div>
+        <b>Create Invoice</b> — Click 
+        <span class="px-2 bg-gray-100 dark:bg-gray-700 rounded text-xs">Create Invoice</span>.
+        <ol class="ml-5 list-decimal mt-1">
+          <li>Enter customer name and phone (phone auto-formats to +252).</li>
+          <li>Add items: select product or type name, set quantity & price.</li>
+          <li>Total is auto-calculated. Enter amount paid and set status (Paid/Unpaid).</li>
+          <li>Click <b>Save Invoice</b> to record sale in Reports.</li>
+        </ol>
+      </div>
     </div>
 
-    <div>
-      <i class="fa-solid fa-pen mr-2"></i>
-      <b>Edit Invoice / Product</b> — Use the Edit icon on the invoice or product row. Update fields and click Save. Edits change localStorage immediately and update totals/charts.
+    <!-- Adding Expense -->
+    <div class="flex items-start gap-2">
+      <i class="fa-solid fa-wallet text-purple-600 mt-1"></i>
+      <div>
+        <b>Adding Expense</b> — Open 
+        <span class="px-2 bg-gray-100 dark:bg-gray-700 rounded text-xs">Manage Expenses</span>.
+        <ol class="ml-5 list-decimal mt-1">
+          <li>Click <b>Add Expense</b> to open the expense form.</li>
+          <li>Fill details: <b>Name</b>, <b>Amount</b>, <b>Date</b>, <b>Category</b>.</li>
+          <li>Use <i class="fa-solid fa-plus-circle text-green-600"></i> <b>Add More</b> to insert extra rows.</li>
+          <li>Click <b>Save</b> — your expenses are stored in localStorage & shown in reports.</li>
+        </ol>
+      </div>
     </div>
 
-    <div>
-      <i class="fa-solid fa-trash mr-2"></i>
-      <b>Delete</b> — Use Delete action on products or reports. Deletions remove the item from localStorage on this device. ⚠️ Deletion is permanent unless you have a backup that contains the deleted item.
+    <!-- Edit -->
+    <div class="flex items-start gap-2">
+      <i class="fa-solid fa-pen text-yellow-600 mt-1"></i>
+      <div>
+        <b>Edit Invoice / Product</b> — Use the edit icon, update fields, and click Save. Changes update immediately.
+      </div>
     </div>
 
-    <div>
-      <i class="fa-solid fa-file-export mr-2"></i>
-      <b>Export / Print</b> — Use the Settings → Export options:
-      <ul class="ml-5 list-disc mt-1">
-        <li><b>PDF</b> — exports invoices to PDF using jsPDF.</li>
-        <li><b>CSV</b> — CSV/Excel style export for spreadsheets.</li>
-        <li><b>Print</b> — Use the print icon on invoice cards to print a single invoice.</li>
-      </ul>
+    <!-- Delete -->
+    <div class="flex items-start gap-2">
+      <i class="fa-solid fa-trash text-red-600 mt-1"></i>
+      <div>
+        <b>Delete</b> — Use delete action on products or invoices. ⚠️ Deletion is permanent.
+      </div>
     </div>
 
-    <div>
-      <i class="fa-brands fa-google-drive mr-2"></i>
-      <b>Backup & Restore (Google Drive)</b> —
-      <ul class="ml-5 list-disc mt-1">
-        <li><b>Backup</b> saves a full snapshot of your <code>localStorage</code> as a JSON file to your Google Drive (filename starts with <code>supermarket_backup_</code>).</li>
-        <li><b>Restore</b> downloads a snapshot and <b>overwrites localStorage</b> on this browser/device — that means all invoices, products, reports, users, and app settings will be replaced by what's in the backup file.</li>
-        <li><b>What is restored?</b> — everything stored in localStorage keys (invoices, products, reports, users, templates, notices, settings). If a report/product was deleted after the backup was made, and the backup still contains it, that deleted item will reappear after restoring.</li>
-        <li><b>What is not restored?</b> — anything stored elsewhere (server-side, other browser profiles) or outside localStorage on this browser.</li>
-        <li><b>Tip</b>: Before restoring, export current data (Settings → Export) so you have a fallback copy in case you want to return to the current state.</li>
-      </ul>
+    <!-- Export -->
+    <div class="flex items-start gap-2">
+      <i class="fa-solid fa-file-export text-indigo-600 mt-1"></i>
+      <div>
+        <b>Export / Print</b> — Found under <b>Settings → Export</b>:
+        <ul class="ml-5 list-disc mt-1">
+          <li>PDF — invoices in PDF format</li>
+          <li>CSV — spreadsheet exports</li>
+          <li>Print — single invoice print layout</li>
+        </ul>
+      </div>
     </div>
 
-    <div>
-      <i class="fa-solid fa-clock-rotate-left mr-2"></i>
-      <b>Auto backup & Auto-restore</b> —
-      <ul class="ml-5 list-disc mt-1">
-        <li><b>Auto backup every X days</b> (opt-in) — runs while the app is open and saves a Drive snapshot.</li>
-        <li><b>Auto-restore on login</b> (opt-in) — on login the app will check Drive for the latest backup and ask if you'd like to restore it.</li>
-        <li><b>Scheduling note</b> — auto-backups are triggered by timers in the browser; they run only while the app page is open in a tab.</li>
-      </ul>
+    <!-- Backup -->
+    <div class="flex items-start gap-2">
+      <i class="fa-brands fa-google-drive text-green-500 mt-1"></i>
+      <div>
+        <b>Backup & Restore</b> — Save and restore data with Google Drive.
+        <ul class="ml-5 list-disc mt-1">
+          <li><b>Backup</b> — saves snapshot of localStorage.</li>
+          <li><b>Restore</b> — replaces current data with backup.</li>
+          <li>Export first for safety before restoring.</li>
+        </ul>
+      </div>
     </div>
 
-    <div>
-      <i class="fa-solid fa-chart-line mr-2"></i>
-      <b>Sales / Revenue / Totals (Dashboard)</b> —
-      <ul class="ml-5 list-disc mt-1">
-        <li><b>Sales (Paid)</b> — sum of the <code>paid</code> values from invoices (what customers already paid).</li>
-        <li><b>Revenue</b> — sum of invoice totals (<code>amount</code> or <code>total</code>) regardless of paid/unpaid.</li>
-        <li><b>Period filter</b> — choose Live/Today/Weekly/Monthly/Yearly to change buckets used in the chart and totals. If chart looks empty, check invoice dates / timezone / malformed dates.</li>
-      </ul>
+    <!-- Auto Backup -->
+    <div class="flex items-start gap-2">
+      <i class="fa-solid fa-clock-rotate-left text-orange-500 mt-1"></i>
+      <div>
+        <b>Auto Backup / Restore</b> — Schedule Drive backups & restore on login.
+      </div>
     </div>
 
-    <div>
-      <i class="fa-solid fa-print mr-2"></i>
-      <b>Printing & Layout Tips</b> —
-      <ul class="ml-5 list-disc mt-1">
-        <li>Use the print icon on invoices for a concise print layout.</li>
-        <li>On mobile, rotate to landscape for wider tables or export Reports and open on desktop for printing.</li>
-      </ul>
+    <!-- Dashboard -->
+    <div class="flex items-start gap-2">
+      <i class="fa-solid fa-chart-line text-emerald-600 mt-1"></i>
+      <div>
+        <b>Dashboard (Sales / Revenue)</b> — Choose period filters (Today/Weekly/Monthly).
+      </div>
     </div>
 
-    <div>
-      <i class="fa-solid fa-lightbulb mr-2"></i>
-      <b>Troubleshooting</b> —
-      <ul class="ml-5 list-disc mt-1">
-        <li>If charts are wrong: ensure invoices have valid <code>date</code> fields (ISO or timestamp). Wrong date formats can push data out of the selected period.</li>
-        <li>If a button is missing: refresh the page. If the settings cog disappears on mobile ensure you are logged in (the cog only shows when a user is logged in).</li>
-        <li>If Drive backups fail: verify your Google OAuth client, add the test user on the OAuth consent screen, and allow the Drive scope. Check browser popup blockers.</li>
-        <li>If data seems lost: do not overwrite with a new restore — export current state first, then try to restore older backup.</li>
-      </ul>
-    </div>
-    <div>
-      <i class="fa-solid fa-shield-halved mr-2"></i>
-      <b>Security & Privacy</b> —
-      <ul class="ml-5 list-disc mt-1">
-        <li>Backups are stored in your Google Drive under your account — the app does not send data to any third-party server.</li>
-        <li>Be careful with shared Drive accounts. If multiple people use the same Drive account they can access the backups.</li>
-        <li>Treat your OAuth client secret and Drive access carefully — keep them private.</li>
-      </ul>
+    <!-- Print -->
+    <div class="flex items-start gap-2">
+      <i class="fa-solid fa-print text-gray-600 mt-1"></i>
+      <div>
+        <b>Printing & Layout</b> — Use print icons on invoices or export reports for desktop printing.
+      </div>
     </div>
 
-    <div>
-      <i class="fa-solid fa-headset mr-2"></i>
-      <b>If something still fails</b> —
-      <ol class="ml-5 list-decimal mt-1">
-        <li>Refresh the page, and test on desktop (browser devtools console may show errors).</li>
-        <li>Export your current invoices (Settings → Export) to keep a copy.</li>
-        <li>Check that your Google test user is added under OAuth consent screen (for Drive access during testing).</li>
-        <li>Contact support with a screenshot of console errors and steps to reproduce.</li>
-      </ol>
+    <!-- Troubleshooting -->
+    <div class="flex items-start gap-2">
+      <i class="fa-solid fa-lightbulb text-yellow-500 mt-1"></i>
+      <div>
+        <b>Troubleshooting</b> — If charts look wrong, check invoice dates. If Drive fails, verify OAuth setup.
+      </div>
+    </div>
+
+    <!-- Security -->
+    <div class="flex items-start gap-2">
+      <i class="fa-solid fa-shield-halved text-blue-600 mt-1"></i>
+      <div>
+        <b>Security & Privacy</b> — Backups stay in your Google Drive only. Keep OAuth secrets private.
+      </div>
+    </div>
+
+    <!-- Support -->
+    <div class="flex items-start gap-2">
+      <i class="fa-solid fa-headset text-pink-600 mt-1"></i>
+      <div>
+        <b>Need More Help?</b> — Export data first, then contact support with error screenshots.
+      </div>
     </div>
 
   </div>
 
-  <div class="mt-3 text-xs text-gray-500">
-    Tip: On mobile, use the <b>Help</b> button in the settings modal (top-right) for quick access. Rotate to landscape for wider tables.
+  <div class="mt-4 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-3">
+    💡 Tip: On mobile, open <b>Help</b> from the settings (top-right). Rotate to landscape for better tables.
   </div>
 </div>
-
 
               <div class="settings-panel" data-panel="notices" style="display:none">
                 <h4 class="font-semibold mb-2">Notices</h4>
