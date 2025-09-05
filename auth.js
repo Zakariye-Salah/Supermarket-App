@@ -763,6 +763,367 @@ function renderSalesChart(series, period = 'lifetime') {
 }
 
 
+/* =========================
+   Expenses: storage keys & helpers (time-scoped)
+   ========================= */
+
+   const LS_EXPENSES_PREFIX = 'store_expenses_v1_'; // will append store name
+
+   function getExpensesKey(storeName) { return LS_EXPENSES_PREFIX + storeName; }
+   
+   function getStoreExpenses(storeName) {
+     try {
+       const arr = JSON.parse(localStorage.getItem(getExpensesKey(storeName)) || '[]');
+       return Array.isArray(arr) ? arr : [];
+     } catch (e) { return []; }
+   }
+   function saveStoreExpenses(storeName, arr) {
+     localStorage.setItem(getExpensesKey(storeName), JSON.stringify(Array.isArray(arr) ? arr : []));
+   }
+   
+   /* ------ Date helpers ------ */
+   
+   // reuse parseInvoiceDate (exists in your code) if available, otherwise lightweight parser:
+   function parseAnyDate(d) {
+     if (d == null) return null;
+     if (typeof d === 'number') return new Date(d);
+     if (typeof d === 'string') {
+       // try numeric string
+       const n = Number(d);
+       if (isFinite(n)) return new Date(n);
+       // try ISO or yyyy-mm-dd
+       const s = d.replace(' ', 'T');
+       const dt = new Date(s);
+       if (!isNaN(dt.getTime())) return dt;
+       // fallback
+       return new Date(d);
+     }
+     return new Date(d);
+   }
+   
+   function formatDateForInput(d) {
+     const dt = d ? parseAnyDate(d) : new Date();
+     const y = dt.getFullYear();
+     const m = String(dt.getMonth() + 1).padStart(2, '0');
+     const day = String(dt.getDate()).padStart(2, '0');
+     return `${y}-${m}-${day}`;
+   }
+   
+   /* -------------------------
+      Period filtering for expenses
+      ------------------------- */
+   
+   function getExpensesByPeriod(period = 'lifetime', storeName) {
+     const all = getStoreExpenses(storeName) || [];
+     if (period === 'lifetime') return all.slice();
+   
+     const now = new Date();
+     let start = null;
+     if (period === 'today' || period === 'live') {
+       start = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // midnight today
+     } else if (period === 'weekly') {
+       start = new Date(now);
+       start.setDate(now.getDate() - 6); // last 7 days including today
+       start.setHours(0,0,0,0);
+     } else if (period === 'monthly') {
+       start = new Date(now.getFullYear(), now.getMonth(), 1);
+     } else if (period === 'yearly') {
+       start = new Date(now.getFullYear(), 0, 1);
+     } else {
+       return all.slice();
+     }
+   
+     const end = now;
+     return all.filter(exp => {
+       const dt = parseAnyDate(exp.date);
+       if (!dt) return false;
+       return dt.getTime() >= start.getTime() && dt.getTime() <= end.getTime();
+     });
+   }
+   
+   /* -------------------------
+      Render + UI wiring
+      ------------------------- */
+   
+   function initExpensesFeature() {
+     // top and card buttons both open modal
+     const btnTop = document.getElementById('btnManageExpensesTop');
+     const btn = document.getElementById('btnManageExpenses');
+     const modal = document.getElementById('manageExpensesModal');
+     const close = document.getElementById('closeExpensesModal');
+     const openAdd = document.getElementById('openAddExpense');
+     const showAllBtn = document.getElementById('showAllExpenses');
+   
+     if (!modal) return;
+   
+     if (btnTop) btnTop.addEventListener('click', () => openExpensesModal());
+     if (btn) btn.addEventListener('click', () => openExpensesModal());
+     close.addEventListener('click', () => closeExpensesModal());
+     openAdd.addEventListener('click', () => showAddExpenseForm());
+     showAllBtn.addEventListener('click', () => showSavedExpenses());
+   
+     // form controls
+     document.getElementById('addExpenseRowBtn').addEventListener('click', () => addExpenseRow());
+     document.getElementById('saveExpensesBtn').addEventListener('click', () => saveExpensesFromForm());
+     document.getElementById('cancelExpensesBtn').addEventListener('click', () => {
+       window.__editingExpenseId = null; // clear editing state if cancelled
+       hideElement('expensesFormWrap'); showElement('expensesActions');
+     });
+   
+     document.getElementById('closeSavedExpenses').addEventListener('click', () => {
+       hideElement('savedExpensesListWrap'); showElement('expensesActions');
+     });
+   
+     // close on backdrop click
+     modal.addEventListener('click', (e) => {
+       if (e.target === modal) closeExpensesModal();
+     });
+   
+     // initial render of totals (if any)
+     updateExpensesDisplay();
+   }
+   
+   /* UI helpers */
+   function showElement(id) { const el = document.getElementById(id); if (el) el.classList.remove('hidden'); }
+   function hideElement(id) { const el = document.getElementById(id); if (el) el.classList.add('hidden'); }
+   
+   /* open/close modal */
+   function openExpensesModal() {
+     const modal = document.getElementById('manageExpensesModal');
+     if (!modal) return;
+     modal.classList.remove('hidden');
+     // show action buttons by default
+     showElement('expensesActions');
+     hideElement('expensesFormWrap');
+     hideElement('savedExpensesListWrap');
+     updateExpensesModalStatus();
+   }
+   
+   function closeExpensesModal() {
+     const modal = document.getElementById('manageExpensesModal');
+     if (!modal) return;
+     modal.classList.add('hidden');
+     // clear editing state when modal closes
+     window.__editingExpenseId = null;
+   }
+   
+   /* Add Expense form handling */
+   function showAddExpenseForm(prefillRows = []) {
+     hideElement('expensesActions');
+     showElement('expensesFormWrap');
+     const rowsWrap = document.getElementById('expenseRows');
+     rowsWrap.innerHTML = '';
+   
+     if (Array.isArray(prefillRows) && prefillRows.length) {
+       prefillRows.forEach(r => createExpenseRow(r.name, r.total, r.id || null, r.date || null));
+     } else {
+       addExpenseRow();
+     }
+   }
+   
+   function addExpenseRow(name = '', total = '') {
+     const idx = Date.now() + Math.floor(Math.random()*1000);
+     createExpenseRow(name, total, idx, formatDateForInput(new Date()));
+   }
+   
+   function createExpenseRow(name = '', total = '', idx = null, dateVal = null) {
+     idx = idx || Date.now() + Math.floor(Math.random()*1000);
+     const rowsWrap = document.getElementById('expenseRows');
+     const row = document.createElement('div');
+     // responsive: stack on mobile, grid on sm+
+     row.className = 'grid grid-cols-12 gap-2 items-center';
+     row.dataset.idx = idx;
+   
+     const dateValue = dateVal ? formatDateForInput(dateVal) : formatDateForInput(new Date());
+   
+     row.innerHTML = `
+       <input type="text" name="expense_name" placeholder="Expense name" value="${escapeHtml(name)}"
+         class="col-span-12 sm:col-span-5 px-2 py-1 border rounded" />
+       <input type="number" min="0" step="0.01" name="expense_total" placeholder="Total" value="${escapeHtml(total)}"
+         class="col-span-12 sm:col-span-3 px-2 py-1 border rounded" />
+       <input type="date" name="expense_date" value="${escapeHtml(dateValue)}"
+         class="col-span-12 sm:col-span-3 px-2 py-1 border rounded" />
+       <button type="button" class="col-span-12 sm:col-span-1 px-2 py-1 bg-red-500 text-white rounded remove-expense-row">Remove</button>
+     `;
+     rowsWrap.appendChild(row);
+   
+     row.querySelector('.remove-expense-row').addEventListener('click', () => row.remove());
+   }
+   
+   /* Save expenses from form */
+   /* Handles both append (new) and edit (if window.__editingExpenseId is set) */
+   function saveExpensesFromForm() {
+     const user = getCurrentUser(); if (!user) return alert('Not logged in');
+     const rowsWrap = document.getElementById('expenseRows');
+     const rows = Array.from(rowsWrap.children);
+     if (!rows.length) { alert('Add at least one expense row'); return; }
+   
+     const editingId = window.__editingExpenseId || null;
+   
+     // load existing
+     const arr = getStoreExpenses(user.name) || [];
+   
+     if (editingId) {
+       // editing mode - we expect a single row (we prefilled single row on edit)
+       const r = rows[0];
+       const name = (r.querySelector('input[name="expense_name"]')?.value || '').trim();
+       const totRaw = (r.querySelector('input[name="expense_total"]')?.value || '').trim();
+       const dateVal = (r.querySelector('input[name="expense_date"]')?.value || '').trim();
+       const total = parseFloat(totRaw || '0') || 0;
+       if (!name) { alert('Name required'); return; }
+   
+       const idx = arr.findIndex(x => x.id === editingId);
+       if (idx === -1) { alert('Original expense not found (it may have been deleted)'); window.__editingExpenseId = null; return; }
+   
+       arr[idx].name = name;
+       arr[idx].total = total;
+       // store date as ISO string (store yyyy-mm-dd as ISO for safe parsing)
+       arr[idx].date = (dateVal ? new Date(dateVal).toISOString() : new Date().toISOString());
+       saveStoreExpenses(user.name, arr);
+   
+       // clear editing state
+       window.__editingExpenseId = null;
+       document.getElementById('expensesStatus').textContent = `Expense updated.`;
+     } else {
+       // append mode - can save multiple rows
+       let added = 0;
+       for (const r of rows) {
+         const name = (r.querySelector('input[name="expense_name"]')?.value || '').trim();
+         const totRaw = (r.querySelector('input[name="expense_total"]')?.value || '').trim();
+         const dateVal = (r.querySelector('input[name="expense_date"]')?.value || '').trim();
+         const total = parseFloat(totRaw || '0') || 0;
+         if (!name) continue; // skip empty name
+         arr.push({
+           id: Date.now() + Math.floor(Math.random()*1000),
+           name,
+           total,
+           date: (dateVal ? new Date(dateVal).toISOString() : new Date().toISOString())
+         });
+         added++;
+       }
+   
+       if (!added) { alert('Please fill at least one valid expense (name + total)'); return; }
+       saveStoreExpenses(user.name, arr);
+       document.getElementById('expensesStatus').textContent = `${added} expense(s) saved.`;
+     }
+   
+     // hide form, show actions
+     hideElement('expensesFormWrap'); showElement('expensesActions');
+     updateExpensesModalStatus();
+     updateExpensesDisplay();
+   
+     // notify app
+     window.dispatchEvent(new Event('dataUpdated'));
+   }
+   
+   /* Render saved expenses list (manage) */
+   function showSavedExpenses() {
+     const user = getCurrentUser(); if (!user) return alert('Not logged in');
+     hideElement('expensesFormWrap'); hideElement('expensesActions');
+     showElement('savedExpensesListWrap');
+   
+     const listWrap = document.getElementById('savedExpensesList');
+     listWrap.innerHTML = '';
+     const arr = getStoreExpenses(user.name);
+     if (!arr.length) { listWrap.innerHTML = '<div class="text-sm text-gray-500">No expenses saved.</div>'; return; }
+   
+     // sort descending by date (newest first)
+     arr.sort((a,b) => (parseAnyDate(b.date)?.getTime() || 0) - (parseAnyDate(a.date)?.getTime() || 0));
+   
+     arr.forEach(exp => {
+       const dStr = exp.date ? formatDateForInput(exp.date) : '';
+       const row = document.createElement('div');
+       row.className = 'flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2 border rounded';
+       row.innerHTML = `
+         <div>
+           <div class="font-semibold">${escapeHtml(exp.name)}</div>
+           <div class="text-sm text-gray-500">${fmtMoney(exp.total)} • ${escapeHtml(dStr)}</div>
+         </div>
+         <div class="flex gap-2 mt-2 sm:mt-0">
+           <button class="px-2 py-1 bg-yellow-400 rounded edit-expense">Edit</button>
+           <button class="px-2 py-1 bg-red-500 text-white rounded delete-expense">Delete</button>
+         </div>
+       `;
+       // edit
+       row.querySelector('.edit-expense').addEventListener('click', () => {
+         // open form prefilled with this expense as single row for update
+         showAddExpenseForm([{ name: exp.name, total: exp.total, id: exp.id, date: exp.date }]);
+         // set editing id so save path updates the item instead of appending
+         window.__editingExpenseId = exp.id;
+       });
+       // delete
+       row.querySelector('.delete-expense').addEventListener('click', () => {
+         if (!confirm('Delete this expense?')) return;
+         deleteExpenseById(user.name, exp.id);
+         showSavedExpenses(); // refresh list
+         updateExpensesDisplay();
+         window.dispatchEvent(new Event('dataUpdated'));
+       });
+   
+       listWrap.appendChild(row);
+     });
+   }
+   
+   /* delete helper */
+   function deleteExpenseById(storeName, id) {
+     const arr = getStoreExpenses(storeName).filter(x => x.id !== id);
+     saveStoreExpenses(storeName, arr);
+   }
+   
+   /* Update modal status text */
+   function updateExpensesModalStatus() {
+     const user = getCurrentUser(); if (!user) return;
+     const status = document.getElementById('expensesStatus');
+     const arr = getStoreExpenses(user.name);
+     const total = arr.reduce((s,x)=> s + (Number(x.total)||0), 0);
+     status.textContent = `Saved expenses: ${arr.length} • Total (all time): ${fmtMoney(total)}`;
+   }
+   
+ /* Update the dashboard TotalExpenses & TotalProfit cards (period aware) */
+function updateExpensesDisplay() {
+  const user = getCurrentUser();
+  if (!user) return;
+
+  const period = document.getElementById('dashboardPeriod')?.value || 'lifetime';
+
+  // period-scoped expenses (uses the helper you already added)
+  const expensesForPeriod = getExpensesByPeriod(period, user.name) || [];
+  const totalExpenses = expensesForPeriod.reduce((s, x) => s + (Number(x.total) || 0), 0);
+
+  // compute revenue for the same period (do locally to avoid recursion)
+  const invoices = getInvoicesByPeriod(period) || [];
+  // invoice total: prefer amount -> total -> fallback paid
+  const totalRevenue = invoices.reduce((s, inv) => {
+    return s + (Number(inv.amount) || Number(inv.total) || Number(inv.paid) || 0);
+  }, 0);
+
+  // update DOM
+  const totalEl = document.getElementById('totalExpenses');
+  if (totalEl) totalEl.textContent = fmtMoney(totalExpenses);
+
+  const revEl = document.getElementById('totalRevenue');
+  if (revEl) revEl.textContent = fmtMoney(totalRevenue);
+
+  const profitEl = document.getElementById('totalProfit');
+  if (profitEl) profitEl.textContent = fmtMoney(totalRevenue - totalExpenses);
+
+  // update modal status if open
+  updateExpensesModalStatus();
+}
+
+   /* helper to escape html inserted values */
+   function escapeHtml(str) {
+     if (str === null || str === undefined) return '';
+     return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'", '&#39;');
+   }
+   
+   /* wire init on DOM loaded */
+   window.addEventListener('DOMContentLoaded', () => {
+     try { initExpensesFeature(); } catch (e) { console.warn('Expenses init failed', e); }
+   });
+   
+   
+
 
 
 /* updateDashboardTotals now accepts a period filter */
@@ -782,11 +1143,24 @@ function updateDashboardTotals(period = document.getElementById('dashboardPeriod
   const totalSalesPaid = invoices.reduce((s, inv) => s + (Number(inv.paid) || 0), 0);      // paid amounts
   const totalRevenue = invoices.reduce((s, inv) => s + (Number(inv.amount) || Number(inv.total) || 0), 0); // invoice totals
 
+    // compute total expenses for current store and period (expenses are global / lifetime for now)
+    const expensesArr = getStoreExpenses(user.name) || [];
+    const totalExpenses = expensesArr.reduce((s, e) => s + (Number(e.total) || 0), 0);
+  
+    // update revenue DOM (unchanged — revenue is invoice sum)
+    document.getElementById('totalRevenue') && (document.getElementById('totalRevenue').textContent = fmtMoney(totalRevenue));
+  
+    // update total expenses card
+    document.getElementById('totalExpenses') && (document.getElementById('totalExpenses').textContent = fmtMoney(totalExpenses));
+  
+    // total profit = revenue - expenses (not lower than negative number allowed)
+    const profit = totalRevenue - totalExpenses;
+    document.getElementById('totalProfit') && (document.getElementById('totalProfit').textContent = fmtMoney(profit));
+  
   // update DOM
   document.getElementById('totalInvoices') && (document.getElementById('totalInvoices').textContent = totalInvoicesCount);
   document.getElementById('totalProducts') && (document.getElementById('totalProducts').textContent = totalProductsCount);
   document.getElementById('totalSales') && (document.getElementById('totalSales').textContent = fmtMoney(totalSalesPaid));
-  document.getElementById('totalRevenue') && (document.getElementById('totalRevenue').textContent = fmtMoney(totalRevenue));
 
   // chart
   const series = buildSalesSeries(invoices, period);
@@ -811,11 +1185,19 @@ function loadDashboard() {
   function applyPeriodChange() {
     const p = periodSel?.value || 'lifetime';
     // clear any existing live interval
-    if (dashboardLiveInterval) { clearInterval(dashboardLiveInterval); dashboardLiveInterval = null; }
-    updateDashboardTotals(p);
+    if (dashboardLiveInterval) { 
+      clearInterval(dashboardLiveInterval); 
+      dashboardLiveInterval = null; 
+    }
+    updateDashboardTotals(p);      // update chart + invoices
+    updateExpensesDisplay();       // update expenses + profit
+
     // if live, auto-refresh every 5 seconds
     if (p === 'live') {
-      dashboardLiveInterval = setInterval(() => updateDashboardTotals('today'), 5000);
+      dashboardLiveInterval = setInterval(() => {
+        updateDashboardTotals('today');
+        updateExpensesDisplay();
+      }, 5000);
     }
   }
 
@@ -824,8 +1206,12 @@ function loadDashboard() {
   refreshBtn?.addEventListener('click', () => applyPeriodChange());
 
   // when data updates elsewhere, refresh current period
-  window.removeEventListener('dataUpdated', updateDashboardTotals); // avoid duplicate
-  window.addEventListener('dataUpdated', () => updateDashboardTotals(periodSel?.value || 'lifetime'));
+  window.removeEventListener('dataUpdated', updateExpensesDisplay);
+  window.removeEventListener('dataUpdated', updateDashboardTotals);
+  window.addEventListener('dataUpdated', () => {
+    updateDashboardTotals(periodSel?.value || 'lifetime');
+    updateExpensesDisplay();
+  });
 
   // initial apply
   applyPeriodChange();
@@ -837,6 +1223,10 @@ function loadDashboard() {
   try { window.AppSettings.createStoreSettingsBtn(); } catch (e) {}
 }
 
+
+
+ 
+
 // update when page script loads
 window.addEventListener('DOMContentLoaded', () => {
   // create chart placeholder if Chart not loaded yet; chart creation will check Chart availability
@@ -847,6 +1237,311 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+
+/* =========================
+   Recycle Bin (Trash) feature
+   - Soft-delete items to per-store trash
+   - Restore / Permanent delete / Purge older than 60 days
+   ========================= */
+
+   const LS_TRASH_PREFIX = 'store_trash_v1_'; // per-store key
+   const TRASH_RETENTION_DAYS = 60;
+   
+   function getTrashKey(storeName) { return LS_TRASH_PREFIX + storeName; }
+   
+   function getStoreTrash(storeName) {
+     try {
+       const arr = JSON.parse(localStorage.getItem(getTrashKey(storeName)) || '[]');
+       return Array.isArray(arr) ? arr : [];
+     } catch (e) { return []; }
+   }
+   function saveStoreTrash(storeName, arr) {
+     localStorage.setItem(getTrashKey(storeName), JSON.stringify(Array.isArray(arr) ? arr : []));
+   }
+   
+   // move an item into trash. `type` = 'product' | 'invoice' | 'report' (free-form allowed)
+   function moveToTrash(storeName, type, payload) {
+     const trash = getStoreTrash(storeName);
+     const id = payload?.id || (`trash_${Date.now()}_${Math.floor(Math.random()*1000)}`);
+     const item = {
+       id,                 // unique id (original id if present)
+       type,
+       payload,
+       deletedAt: new Date().toISOString()
+     };
+     trash.push(item);
+     saveStoreTrash(storeName, trash);
+     // remove from original storage (best-effort)
+     try {
+       if (type === 'product' && typeof deleteProductById === 'function') {
+         deleteProductById(storeName, payload.id);
+       } else if (type === 'invoice' && typeof deleteInvoiceById === 'function') {
+         deleteInvoiceById(storeName, payload.id);
+       } else if (type === 'report' && typeof deleteReportById === 'function') {
+         deleteReportById(storeName, payload.id);
+       } else {
+         // generic removal fallback: try common store functions
+         tryRemoveOriginal(storeName, type, payload);
+       }
+     } catch(e) { console.warn('moveToTrash remove original error', e); }
+     window.dispatchEvent(new Event('dataUpdated'));
+   }
+   
+   // helper fallback to remove original item if specific delete functions not present
+   function tryRemoveOriginal(storeName, type, payload) {
+     if (!payload || !payload.id) return;
+     // products
+     if (type === 'product') {
+       if (typeof getStoreProducts === 'function' && typeof saveStoreProducts === 'function') {
+         const arr = getStoreProducts(storeName).filter(p => p.id !== payload.id);
+         saveStoreProducts(storeName, arr);
+         return;
+       }
+     }
+     // invoices
+     if (type === 'invoice') {
+       if (typeof getStoreInvoices === 'function' && typeof saveStoreInvoices === 'function') {
+         const arr = getStoreInvoices(storeName).filter(i => i.id !== payload.id);
+         saveStoreInvoices(storeName, arr);
+         return;
+       }
+     }
+     // reports fallback (try 'reports_v1' localStorage)
+     if (type === 'report') {
+       try {
+         const k = `reports_v1_${storeName}`;
+         const arr = JSON.parse(localStorage.getItem(k) || '[]').filter(r => r.id !== payload.id);
+         localStorage.setItem(k, JSON.stringify(arr));
+       } catch (e) {}
+     }
+   }
+   
+   function getAllReports() {
+    const storeName = getCurrentUser()?.name;
+    if (!storeName) return [];
+    return JSON.parse(localStorage.getItem(`reports_v1_${storeName}`) || '[]');
+  }
+  
+  function saveAllReports(arr) {
+    const storeName = getCurrentUser()?.name;
+    if (!storeName) return;
+    localStorage.setItem(`reports_v1_${storeName}`, JSON.stringify(Array.isArray(arr) ? arr : []));
+  }
+     // restore a trash item back into proper storage
+function restoreFromTrash(storeName, trashId) {
+  const trash = getStoreTrash(storeName);
+  const idx = trash.findIndex(t => t.id === trashId);
+  if (idx === -1) return false;
+
+  const item = trash.splice(idx, 1)[0];
+  const type = item.type;
+  const payload = item.payload;
+
+  try {
+    if (type === 'product' && typeof getStoreProducts === 'function' && typeof saveStoreProducts === 'function') {
+      const arr = getStoreProducts(storeName) || [];
+      arr.push(payload);
+      saveStoreProducts(storeName, arr);
+    } else if (type === 'invoice' && typeof getStoreInvoices === 'function' && typeof saveStoreInvoices === 'function') {
+      const arr = getStoreInvoices(storeName) || [];
+      arr.push(payload);
+      saveStoreInvoices(storeName, arr);
+    } else if (type === 'report') {
+      const k = `reports_v1_${storeName}`;
+      const arr = JSON.parse(localStorage.getItem(k) || '[]');
+      arr.push(payload);
+      localStorage.setItem(k, JSON.stringify(arr));
+
+      // <== NEW: immediately refresh reports list
+      if (typeof renderReports === 'function') renderReports();
+    } else {
+      const k = `restored_${type}_${storeName}`;
+      const arr = JSON.parse(localStorage.getItem(k) || '[]');
+      arr.push(payload);
+      localStorage.setItem(k, JSON.stringify(arr));
+    }
+  } catch (e) {
+    console.warn('restoreFromTrash error', e);
+  }
+
+  saveStoreTrash(storeName, trash);
+
+  // refresh recycle bin UI
+  window.dispatchEvent(new Event('dataUpdated'));
+  return true;
+}
+
+
+   
+   // permanently delete a specific trash item
+   function permanentlyDeleteFromTrash(storeName, trashId) {
+     const trash = getStoreTrash(storeName);
+     const idx = trash.findIndex(t => t.id === trashId);
+     if (idx === -1) return false;
+     trash.splice(idx,1);
+     saveStoreTrash(storeName, trash);
+     window.dispatchEvent(new Event('dataUpdated'));
+     return true;
+   }
+   
+   // delete all trash items permanently
+   function permanentlyDeleteAllTrash(storeName) {
+     saveStoreTrash(storeName, []);
+     window.dispatchEvent(new Event('dataUpdated'));
+   }
+   
+   // restore all trash items (attempt best-effort)
+   function restoreAllTrash(storeName) {
+     const trash = getStoreTrash(storeName);
+     // iterate copy since restoreFromTrash mutates storage
+     const ids = trash.map(t => t.id);
+     ids.forEach(id => restoreFromTrash(storeName, id));
+     window.dispatchEvent(new Event('dataUpdated'));
+   }
+   
+   // purge old items older than retention (run on load)
+   function purgeOldTrash(storeName) {
+     const trash = getStoreTrash(storeName);
+     const now = Date.now();
+     const cutoff = now - (TRASH_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+     const remaining = trash.filter(t => {
+       const dt = Date.parse(t.deletedAt || '') || 0;
+       return dt >= cutoff;
+     });
+     if (remaining.length !== trash.length) {
+       saveStoreTrash(storeName, remaining);
+       window.dispatchEvent(new Event('dataUpdated'));
+     }
+   }
+   
+   /* ========== UI for Recycle Bin ========== */
+   
+   function initRecycleBinUI() {
+     const openBtn = document.getElementById('btnRecycleBinTop');
+     const modal = document.getElementById('recycleBinModal');
+     const closeBtn = document.getElementById('closeRecycleBin');
+     const restoreAllBtn = document.getElementById('rbRestoreAll');
+     const deleteAllBtn = document.getElementById('rbDeleteAll');
+   
+     if (openBtn) openBtn.addEventListener('click', openRecycleBin);
+     if (closeBtn) closeBtn.addEventListener('click', closeRecycleBin);
+     if (restoreAllBtn) restoreAllBtn.addEventListener('click', () => {
+       const user = getCurrentUser(); if (!user) return;
+       if (!confirm('Restore ALL items from recycle bin?')) return;
+       restoreAllTrash(user.name);
+       renderRecycleBin();
+     });
+     if (deleteAllBtn) deleteAllBtn.addEventListener('click', () => {
+       const user = getCurrentUser(); if (!user) return;
+       if (!confirm('Permanently DELETE ALL items? This cannot be undone.')) return;
+       permanentlyDeleteAllTrash(user.name);
+       renderRecycleBin();
+     });
+   
+     // close on backdrop
+     modal?.addEventListener('click', (e) => { if (e.target === modal) closeRecycleBin(); });
+   
+     // initial purge & render (when app loads)
+     window.addEventListener('DOMContentLoaded', () => {
+       const user = getCurrentUser();
+       if (user) {
+         purgeOldTrash(user.name);
+       }
+     });
+   
+     // re-render when data updates
+     window.addEventListener('dataUpdated', () => renderRecycleBin());
+   }
+   
+   function openRecycleBin() {
+     const modal = document.getElementById('recycleBinModal');
+     if (!modal) return;
+     modal.classList.remove('hidden');
+     renderRecycleBin();
+   }
+   
+   function closeRecycleBin() {
+     const modal = document.getElementById('recycleBinModal');
+     if (!modal) return;
+     modal.classList.add('hidden');
+   }
+   
+   // render recycle bin contents
+   function renderRecycleBin() {
+     const user = getCurrentUser(); if (!user) return;
+     const trash = getStoreTrash(user.name);
+   
+     const invoicesWrap = document.getElementById('rbInvoices');
+     const productsWrap = document.getElementById('rbProducts');
+     const reportsWrap = document.getElementById('rbReports');
+     const statusEl = document.getElementById('rbStatus');
+   
+     invoicesWrap && (invoicesWrap.innerHTML = '');
+     productsWrap && (productsWrap.innerHTML = '');
+     reportsWrap && (reportsWrap.innerHTML = '');
+     statusEl && (statusEl.textContent = `Items in bin: ${trash.length} • Auto-permanent delete after ${TRASH_RETENTION_DAYS} days.`);
+   
+     if (!trash.length) {
+       const emptyMsg = `<div class="text-sm text-gray-500">Recycle bin is empty.</div>`;
+       invoicesWrap && (invoicesWrap.innerHTML = emptyMsg);
+       productsWrap && (productsWrap.innerHTML = emptyMsg);
+       reportsWrap && (reportsWrap.innerHTML = emptyMsg);
+       return;
+     }
+   
+     // grouping
+     const byType = { invoice: [], product: [], report: [], other: [] };
+     trash.forEach(t => {
+       const key = (t.type || 'other').toLowerCase();
+       if (byType[key]) byType[key].push(t); else byType.other.push(t);
+     });
+   
+     // helper to build item node
+     function makeTrashRow(t) {
+       const div = document.createElement('div');
+       div.className = 'flex items-center justify-between gap-2 p-2 border rounded';
+       const shortInfo = `${t.type} • ${t.payload?.id ?? ''} • ${fmtDateTime(t.deletedAt)}`;
+       div.innerHTML = `
+         <div class="truncate" title="${escapeHtml(JSON.stringify(t.payload || {}))}">
+           <div class="font-semibold">${escapeHtml(t.payload?.name || t.payload?.id || t.type)}</div>
+           <div class="text-xs text-gray-500">${escapeHtml(shortInfo)}</div>
+         </div>
+         <div class="flex gap-2">
+           <button class="px-2 py-1 bg-emerald-500 text-white rounded rb-restore" data-id="${t.id}">Restore</button>
+           <button class="px-2 py-1 bg-red-600 text-white rounded rb-delete" data-id="${t.id}">Delete</button>
+         </div>
+       `;
+       // wire actions
+       div.querySelector('.rb-restore').addEventListener('click', () => {
+         if (!confirm('Restore this item?')) return;
+         restoreFromTrash(getCurrentUser().name, t.id);
+         renderRecycleBin();
+       });
+       div.querySelector('.rb-delete').addEventListener('click', () => {
+         if (!confirm('Permanently delete this item? This cannot be undone.')) return;
+         permanentlyDeleteFromTrash(getCurrentUser().name, t.id);
+         renderRecycleBin();
+       });
+   
+       return div;
+     }
+   
+     // populate each section sorted newest-first
+     (byType.invoice || []).sort((a,b)=>Date.parse(b.deletedAt)-Date.parse(a.deletedAt)).forEach(t => invoicesWrap.appendChild(makeTrashRow(t)));
+     (byType.product || []).sort((a,b)=>Date.parse(b.deletedAt)-Date.parse(a.deletedAt)).forEach(t => productsWrap.appendChild(makeTrashRow(t)));
+     (byType.report || []).sort((a,b)=>Date.parse(b.deletedAt)-Date.parse(a.deletedAt)).forEach(t => reportsWrap.appendChild(makeTrashRow(t)));
+     (byType.other || []).sort((a,b)=>Date.parse(b.deletedAt)-Date.parse(a.deletedAt)).forEach(t => {
+       // append to reportsWrap as generic
+       reportsWrap.appendChild(makeTrashRow(t));
+     });
+   }
+   
+   /* Initialize recycle bin UI */
+   window.addEventListener('DOMContentLoaded', () => {
+     try { initRecycleBinUI(); } catch (e) { console.warn('Recycle init failed', e); }
+   });
+
+   
   /* =========================
     /* =========================
    NAV / showSection (single consolidated version)
@@ -975,9 +1670,19 @@ function showRegisterForm() {
     const user = getCurrentUser();
     if (!user) return;
   
-    const all = getStoreProducts(user.name);
+    // Get all products
+    const all = getStoreProducts(user.name) || [];
+  
+    // Get trashed products IDs
+    const trash = getStoreTrash(user.name);
+    const trashedIds = trash.filter(t => t.type === 'product').map(t => t.payload?.id);
+  
+    // filter out trashed products
+    const allActive = all.filter(p => !trashedIds.includes(p.id));
+  
+    // apply search filter
     const q = (filter || '').toString().toLowerCase().trim();
-    const items = q ? all.filter(p => (p.name || '').toString().toLowerCase().includes(q)) : all;
+    const items = q ? allActive.filter(p => (p.name || '').toString().toLowerCase().includes(q)) : allActive;
   
     if (!productRows || !productCards) return;
     productRows.innerHTML = '';
@@ -1008,50 +1713,58 @@ function showRegisterForm() {
             <div class="flex gap-2">
               <button class="action-icon" data-action="buy" data-id="${p.id}" title="Add to cart"><i class="fa-solid fa-cart-shopping"></i></button>
               <button class="action-icon" data-action="edit" data-id="${p.id}" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
-              <button class="action-icon text-red-600" data-action="delete" data-id="${p.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+              <button class="action-icon text-red-600 rb-delete-product" data-id="${p.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
             </div>
           </td>
         `;
         productRows.appendChild(tr);
+  
+        tr.querySelector('.rb-delete-product').addEventListener('click', () => {
+          if (!confirm('Move product to recycle bin?')) return;
+          moveToTrash(user.name, 'product', p);
+          renderProductList(filter);
+        });
       });
     }
-// Mobile Cards - Icons Only
-items.forEach((p, idx) => {
-  const card = document.createElement('div');
-  card.className = 'bg-white dark:bg-gray-800 rounded-2xl p-4 shadow hover:shadow-lg transition flex flex-col gap-3 w-full';
-  card.innerHTML = `
-    <!-- Product Name + Price -->
-    <div class="flex justify-between items-center">
-      <h4 class="font-semibold text-gray-800 dark:text-gray-100 truncate">${escapeHtml(p.name)}</h4>
-      <div class="text-emerald-600 font-semibold">$${Number(p.price||0).toFixed(2)}</div>
-    </div>
-
-    <!-- Cost + Quantity -->
-    <div class="flex justify-between text-sm text-gray-600 dark:text-gray-300">
-      <div>Cost: $${Number(p.cost||0).toFixed(2)}</div>
-      <div>Qty: ${p.qty}</div>
-    </div>
-
-    <!-- Actions (Icons only) -->
-    <div class="flex justify-start gap-2 mt-2">
-      <button class="action-icon bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition" data-action="buy" data-id="${p.id}" title="Add to cart">
-        <i class="fa-solid fa-cart-shopping"></i>
-      </button>
-      <button class="action-icon bg-yellow-400 hover:bg-yellow-500 text-white p-2 rounded-lg transition" data-action="edit" data-id="${p.id}" title="Edit">
-        <i class="fa-solid fa-pen-to-square"></i>
-      </button>
-      <button class="action-icon bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition" data-action="delete" data-id="${p.id}" title="Delete">
-        <i class="fa-solid fa-trash"></i>
-      </button>
-    </div>
-  `;
-  productCards.appendChild(card);
-});
-
-
-
-
+  
+    // Mobile Cards
+    items.forEach((p, idx) => {
+      const card = document.createElement('div');
+      card.className = 'bg-white dark:bg-gray-800 rounded-2xl p-4 shadow hover:shadow-lg transition flex flex-col gap-3 w-full';
+      card.innerHTML = `
+        <div class="flex justify-between items-center">
+          <h4 class="font-semibold text-gray-800 dark:text-gray-100 truncate">${escapeHtml(p.name)}</h4>
+          <div class="text-emerald-600 font-semibold">$${Number(p.price||0).toFixed(2)}</div>
+        </div>
+  
+        <div class="flex justify-between text-sm text-gray-600 dark:text-gray-300">
+          <div>Cost: $${Number(p.cost||0).toFixed(2)}</div>
+          <div>Qty: ${p.qty}</div>
+        </div>
+  
+        <div class="flex justify-start gap-2 mt-2">
+          <button class="action-icon bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition" data-action="buy" data-id="${p.id}" title="Add to cart">
+            <i class="fa-solid fa-cart-shopping"></i>
+          </button>
+          <button class="action-icon bg-yellow-400 hover:bg-yellow-500 text-white p-2 rounded-lg transition" data-action="edit" data-id="${p.id}" title="Edit">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button class="action-icon bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition rb-delete-product-mobile" data-id="${p.id}" title="Delete">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      `;
+      productCards.appendChild(card);
+  
+      card.querySelector('.rb-delete-product-mobile').addEventListener('click', () => {
+        if (!confirm('Move product to recycle bin?')) return;
+        moveToTrash(user.name, 'product', p);
+        renderProductList(filter);
+      });
+    });
   }
+  
+  
   
 
   // search
@@ -1561,7 +2274,6 @@ buyOnlyBtn?.addEventListener('click', () => {
         return statusOk && searchOk;
       }).sort((a, b) => new Date(b.date) - new Date(a.date));
     }
-  
     function renderInvoiceTable() {
       if (!invoiceRows) return;
       const list = filteredInvoicesForUI();
@@ -1577,12 +2289,10 @@ buyOnlyBtn?.addEventListener('click', () => {
       const storeName = getCurrentUser()?.name || '';
     
       list.forEach((invObj, idx) => {
-        // compute balance & classes earlier
         const balance = Math.max(0, (Number(invObj.amount) || 0) - (Number(invObj.paid) || 0));
         const balanceColorClass = balance <= 0 ? 'text-emerald-600' : 'text-rose-600';
     
-        // badge classes
-        let badgeClass = 'bg-amber-100 text-amber-700'; // default for unpaid-ish
+        let badgeClass = 'bg-amber-100 text-amber-700';
         let badgeText = escapeHtml(invObj.status || '');
         if (invObj.status === 'paid') {
           badgeClass = 'bg-emerald-100 text-emerald-700';
@@ -1592,7 +2302,6 @@ buyOnlyBtn?.addEventListener('click', () => {
           badgeClass = 'bg-rose-100 text-rose-700';
         }
     
-        // toggle icon: paid -> check, partial -> hourglass, unpaid -> xmark
         const toggleIcon = invObj.status === 'paid'
           ? '<i class="fas fa-check"></i>'
           : (invObj.status === 'partial' ? '<i class="fas fa-hourglass-half"></i>' : '<i class="fas fa-xmark"></i>');
@@ -1604,7 +2313,9 @@ buyOnlyBtn?.addEventListener('click', () => {
             <td colspan="10" class="p-2">
               <div class="sm-card p-3 bg-white rounded-xl shadow-sm">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-semibold">${(storeName || 'S').slice(0, 2).toUpperCase()}</div>
+                  <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-semibold">
+                    ${(storeName || 'S').slice(0, 2).toUpperCase()}
+                  </div>
                   <div style="flex:1;">
                     <div class="font-semibold">Invoice ${escapeHtml(invObj.id)}</div>
                     <div class="text-sm text-gray-500">${fmtDate(invObj.date)} • ${escapeHtml(invObj.customer || '')}</div>
@@ -1665,6 +2376,7 @@ buyOnlyBtn?.addEventListener('click', () => {
       });
     }
     
+
   
     // invoice action listener
     invoiceRows?.addEventListener('click', async (e) => {
@@ -1679,10 +2391,14 @@ buyOnlyBtn?.addEventListener('click', () => {
       if (!user || String(all[idx].store || '').toLowerCase() !== String(user.name || '').toLowerCase()) { toast('Not allowed', 'error'); return; }
   
       if (action === 'delete') {
-        if (confirm('Delete this invoice?')) {
-          all.splice(idx, 1); saveAllInvoices(all); renderInvoiceTable(); window.dispatchEvent(new Event('dataUpdated')); toast('Invoice deleted', 'success');
+        if (confirm('Move this invoice to recycle bin?')) {
+          moveToTrash(user.name, 'invoice', all[idx]); // recycle-bin
+          renderInvoiceTable();
+          window.dispatchEvent(new Event('dataUpdated'));
+          toast('Invoice moved to recycle bin', 'success');
         }
-      } else if (action === 'toggle') {
+      }
+       else if (action === 'toggle') {
         const inv = all[idx];
         // toggling behavior:
         // - if not paid => mark paid (store prevPaid)
@@ -1812,152 +2528,372 @@ buyOnlyBtn?.addEventListener('click', () => {
       saveAllInvoices(all); renderInvoiceTable(); window.dispatchEvent(new Event('dataUpdated')); toast('Paid invoices removed', 'success');
     });
   
+
+/* =========================
+   REMINDERS / MESSAGING (status-aware, single-send immediate)
+   ========================= */
+
+/**
+ * Build status-aware line for an invoice (Somali)
+ * Example lines:
+ *  - "Mahadsanid Zakariye, lacagtadii hore ee lagugu lahaay waa 100.00. Haraaga hadda waa 0.00. (Inv: I-1)"
+ *  - "Zakariye, waxaa wali kugu dhiman 25.00. Lacagta guud ee lagu leeyahay waa 125.00. (Inv: I-2)"
+ *  - "Zakariye, lacagta laguugu leeyahay waa 200.00. (Inv: I-3)"
+ */
     /* =========================
-       REMINDERS / MESSAGING
-       ========================= */
-    function sendReminderForSingle(invObj, method) {
-      if (!invObj) return;
-      const phone = cleanPhone(invObj.phone || '');
-      if (!phone) return toast('No phone number for this invoice.', 'error');
-      const balance = Math.max(0, (Number(invObj.amount) || 0) - (Number(invObj.paid) || 0));
-      const tpl = lsGet(LS_MSG_TPL, {});
-      const defaultWa = tpl.reminder_wa || "Xasuusin: {customer}, lacagta lagugu leeyahay waa: {balance}. Fadlan iska bixi dukaanka {store} ({phone}).";
-      const defaultSms = tpl.reminder_sms || defaultWa;
-      const template = method === 'wa' ? defaultWa : defaultSms;
-      const storeName = getCurrentUser()?.name || '';
-      const storePhone = (getCurrentUser()?.phone) || '';
-      const msg = template.replace(/\{customer\}/gi, invObj.customer || '')
-        .replace(/\{id\}/gi, invObj.id || '')
-        .replace(/\{balance\}/gi, fmtMoney(balance))
-        .replace(/\{store\}/gi, storeName)
-        .replace(/\{phone\}/gi, storePhone);
-      if (method === 'wa') {
-        window.open(`https://wa.me/${phone.replace('+', '')}?text=${encodeURIComponent(msg)}`, '_blank');
-      } else {
-        window.open(`sms:+${phone}?&body=${encodeURIComponent(msg)}`, '_blank');
-      }
-    }
-  
-    function sendReminderForGrouped(group, method) {
-      const phone = cleanPhone(group.phone || '');
-      if (!phone) return toast('No phone for group.', 'error');
-      const tpl = lsGet(LS_MSG_TPL, {});
-      const defaultWa = tpl.reminder_wa || "Xasuusin: {customer}, lacagta lagugu leeyahay waa: {balance}. Fadlan iska bixi dukaanka {store} ({phone}).";
-      const defaultSms = tpl.reminder_sms || defaultWa;
-      const template = method === 'wa' ? defaultWa : defaultSms;
-      const storeName = getCurrentUser()?.name || '';
-      const storePhone = (getCurrentUser()?.phone) || '';
-      const ids = group.invoices.map(i => i.id).join(',');
-      const msg = template.replace(/\{customer\}/gi, group.customer || '')
-        .replace(/\{id\}/gi, ids)
-        .replace(/\{balance\}/gi, fmtMoney(group.totalBalance || 0))
-        .replace(/\{store\}/gi, storeName)
-        .replace(/\{phone\}/gi, storePhone);
-      if (method === 'wa') {
-        window.open(`https://wa.me/${phone.replace('+', '')}?text=${encodeURIComponent(msg)}`, '_blank');
-      } else {
-        window.open(`sms:+${phone}?&body=${encodeURIComponent(msg)}`, '_blank');
-      }
-    }
-  
-    /* confirmation modal for reminders */
-    function createReminderConfirmModal() {
-      let modal = document.getElementById('reminderConfirmModal');
-      if (modal) return modal;
-      const html = `
-        <div id="reminderConfirmModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-4">
-          <div class="absolute inset-0 bg-black/50"></div>
-          <div class="relative max-w-lg w-full bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-            <h3 id="reminderConfirmHeader" class="text-lg font-semibold mb-2"></h3>
-            <div id="reminderConfirmBody" class="mb-4 whitespace-pre-line"></div>
-            <div class="flex justify-end gap-2">
-              <button id="reminderCancelBtn" class="px-3 py-2 rounded bg-gray-200">Cancel</button>
-              <button id="reminderOkBtn" class="px-3 py-2 rounded bg-emerald-600 text-white">OK</button>
-            </div>
-          </div>
+   REMINDERS / MESSAGING (status-aware, grouped send fix)
+   ========================= */
+
+/* helper: build a status-aware line for a single invoice */
+function buildInvoiceStatusLine(inv) {
+  const customer = inv.customer || '';
+  const amount = Number(inv.amount) || 0;
+  const paid = Number(inv.paid) || 0;
+  const balance = Math.max(0, amount - paid);
+  const id = inv.id || '';
+
+  if (inv.status === 'paid') {
+    return `Mahadsanid ${customer}, lacagtadii hore ee lagugu lahaay waa ${fmtMoney(amount)}. Haraaga hadda waa ${fmtMoney(balance)}. (Inv: ${id})`;
+  }
+  if (inv.status === 'partial') {
+    return `${customer}, waxaa wali kugu dhiman lacag dhan ${fmtMoney(balance)}. Lacagta guud ee lagu leeyahay waa ${fmtMoney(amount)}. (Inv: ${id})`;
+  }
+  return `${customer}, lacagta laguugu leeyahay waa ${fmtMoney(amount)}. (Inv: ${id})`;
+}
+
+/* single invoice message (unchanged behaviour: immediate send) */
+function buildSingleReminderMessage(inv) {
+  const storeName = getCurrentUser()?.name || '';
+  const storePhone = getCurrentUser()?.phone || '';
+  const line = buildInvoiceStatusLine(inv);
+  const body = `${line}\nDukaanka: ${storeName} (${storePhone}).`;
+  return `Xasuusin: ${body}`;
+}
+/* =========================
+   REMINDERS: short grouped message + skip in bulk flow
+   ========================= */
+
+/* Short grouped message (summary) */
+function buildGroupedReminderMessage(group) {
+  const storeName = getCurrentUser()?.name || '';
+  const storePhone = getCurrentUser()?.phone || '';
+  const customer = group.customer || '';
+  const invoices = Array.isArray(group.invoices) ? group.invoices : [];
+
+  // compute total balance (sum of remaining balances)
+  const totalBalance = invoices.reduce((acc, inv) => {
+    const a = Number(inv.amount) || 0;
+    const p = Number(inv.paid) || 0;
+    return acc + Math.max(0, a - p);
+  }, 0);
+
+  const ids = invoices.map(i => i.id).join(',') || '';
+
+  // concise summary message (Somali)
+  return `Xasuusin: ${customer}, lacagta guud ee laguugu leeyahay waa ${fmtMoney(totalBalance)}. Invoices: ${ids}. Dukaanka: ${storeName} (${storePhone}). Mahadsanid.`;
+}
+
+/* Keep the modal builder (for other code) but bulk flow uses native confirm for reliability */
+function createReminderConfirmModal() {
+  let modal = document.getElementById('reminderConfirmModal');
+  if (modal) return modal;
+  const html = `
+    <div id="reminderConfirmModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/50"></div>
+      <div class="relative max-w-lg w-full bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        <h3 id="reminderConfirmHeader" class="text-lg font-semibold mb-2"></h3>
+        <div id="reminderConfirmBody" class="mb-4 whitespace-pre-line"></div>
+        <div class="flex justify-end gap-2">
+          <button id="reminderCancelBtn" class="px-3 py-2 rounded bg-gray-200">Cancel</button>
+          <button id="reminderOkBtn" class="px-3 py-2 rounded bg-emerald-600 text-white">OK</button>
         </div>
-      `;
-      const wrapper = document.createElement('div');
-      wrapper.innerHTML = html;
-      document.body.appendChild(wrapper);
-      return document.getElementById('reminderConfirmModal');
+      </div>
+    </div>
+  `;
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = html;
+  document.body.appendChild(wrapper);
+  return document.getElementById('reminderConfirmModal');
+}
+
+/* keep modal async confirm (used elsewhere) */
+function showReminderConfirmCompatModal(group, progressStr, messageText) {
+  return new Promise((resolve) => {
+    const modal = createReminderConfirmModal();
+    const header = modal.querySelector('#reminderConfirmHeader');
+    const body = modal.querySelector('#reminderConfirmBody');
+    const okBtn = modal.querySelector('#reminderOkBtn');
+    const cancelBtn = modal.querySelector('#reminderCancelBtn');
+
+    header.textContent = `${progressStr} Xasuusin ${group.customer || ''}`;
+    body.textContent = messageText;
+
+    function cleanup() {
+      modal.classList.add('hidden');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
     }
-  
-    function showReminderConfirm(group, progressStr, messageText) {
-      return new Promise((resolve) => {
-        const modal = createReminderConfirmModal();
-        const header = modal.querySelector('#reminderConfirmHeader');
-        const body = modal.querySelector('#reminderConfirmBody');
-        const okBtn = modal.querySelector('#reminderOkBtn');
-        const cancelBtn = modal.querySelector('#reminderCancelBtn');
-        header.textContent = `${progressStr} Xasuusin ${group.customer || ''}`;
-        body.textContent = messageText;
-        function cleanup() { modal.classList.add('hidden'); okBtn.removeEventListener('click', onOk); cancelBtn.removeEventListener('click', onCancel); }
-        function onOk() { cleanup(); resolve(true); }
-        function onCancel() { cleanup(); resolve(false); }
-        okBtn.addEventListener('click', onOk);
-        cancelBtn.addEventListener('click', onCancel);
-        modal.classList.remove('hidden');
-        okBtn.focus();
-      });
+    function onOk() { cleanup(); resolve(true); }
+    function onCancel() { cleanup(); resolve(false); }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    modal.classList.remove('hidden');
+    okBtn.focus();
+  });
+}
+
+/* ---------- BULK FLOW: native-confirm + Skip option (preserves user gesture) ---------- */
+/**
+ * For each group:
+ * 1) show native confirm with preview (OK = Send)
+ * 2) if Cancel -> show second native confirm (OK = Skip this customer, Cancel = Stop all)
+ */
+async function sendAllRemindersFlow(method) {
+  const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+  if (!user) return toast('Login required', 'error');
+
+  // collect invoices that owe money
+  const invoices = filteredInvoicesForUI().filter(inv => {
+    const bal = (Number(inv.amount) || 0) - (Number(inv.paid) || 0);
+    return bal > 0;
+  });
+  if (!invoices.length) return toast('No customers need reminders based on current filter/search.', 'info');
+
+  // group by cleaned phone + customer
+  const groupsMap = new Map();
+  invoices.forEach(inv => {
+    const rawPhone = inv.phone || '';
+    const phoneKey = cleanPhone(rawPhone) || rawPhone || '';
+    const customer = (inv.customer || '').trim();
+    const key = `${phoneKey}||${customer}`;
+    if (!groupsMap.has(key)) groupsMap.set(key, { customer, phone: phoneKey, totalBalance: 0, invoices: [] });
+    const g = groupsMap.get(key);
+    const bal = Math.max(0, (Number(inv.amount) || 0) - (Number(inv.paid) || 0));
+    g.totalBalance += bal;
+    g.invoices.push(inv);
+  });
+
+  const groups = Array.from(groupsMap.values());
+  if (!groups.length) return toast('No groups to remind', 'info');
+
+  for (let i = 0; i < groups.length; i++) {
+    const g = groups[i];
+    const progressStr = `${i+1}/${groups.length}`;
+
+    // build short preview
+    const preview = buildGroupedReminderMessage(g);
+
+    // find effective phone (cleaned), fallback to first invoice phone
+    const effectivePhone = cleanPhone(g.phone || '') || (g.invoices[0] && cleanPhone(g.invoices[0].phone || '')) || '';
+    if (!effectivePhone) {
+      console.warn('Skipping group (no phone):', g);
+      toast(`Skipping ${g.customer || 'unknown'} - no phone number`, 'warn');
+      continue;
     }
-  
-    async function sendAllRemindersFlow(method) {
-      const user = getCurrentUser();
-      if (!user) return toast('Login required', 'error');
-  
-      // gather invoices that owe money and have phone
-      const invoices = filteredInvoicesForUI().filter(inv => {
-        const bal = (Number(inv.amount) || 0) - (Number(inv.paid) || 0);
-        return inv.phone && bal > 0;
-      });
-      if (!invoices.length) return toast('No customers need reminders based on current filter/search.', 'info');
-  
-      // group by phone + customer
-      const groupsMap = new Map();
-      invoices.forEach(inv => {
-        const phone = cleanPhone(inv.phone || '');
-        const customer = (inv.customer || '').trim();
-        const key = `${phone}||${customer}`;
-        const bal = Math.max(0, (Number(inv.amount) || 0) - (Number(inv.paid) || 0));
-        if (!groupsMap.has(key)) groupsMap.set(key, { customer, phone, totalBalance: 0, invoices: [] });
-        const g = groupsMap.get(key);
-        g.totalBalance += bal;
-        g.invoices.push(inv);
-      });
-  
-      const groups = Array.from(groupsMap.values());
-      for (let i = 0; i < groups.length; i++) {
-        const g = groups[i];
-        const progressStr = `${i + 1}/${groups.length}`;
-        const storeName = user.name || '';
-        const storePhone = user.phone || '';
-        const preview = `Xasuusin: ${g.customer}\nLacagta lagugu leeyahay waa: ${fmtMoney(g.totalBalance)}\nFadlan iska bixi dukaanka ${storeName} (${storePhone})`;
-        const confirmed = await showReminderConfirm(g, progressStr, preview);
-        if (!confirmed) return;
+
+    // Native confirm 1: OK = SEND
+    const sendLabel = `${progressStr} - ${g.customer || ''}\n\n${preview}\n\nOK = Send    Cancel = More options`;
+    const firstOk = window.confirm(sendLabel);
+
+    if (firstOk) {
+      // Send immediately (allowed because confirm is synchronous in user gesture)
+      try {
         sendReminderForGrouped(g, method);
-        await new Promise(res => setTimeout(res, 300));
+      } catch (err) {
+        console.error('Error sending grouped reminder', err, g);
+        toast(`Failed to send reminder for ${g.customer || ''}`, 'error');
       }
+      // small polite delay
+      await new Promise(r => setTimeout(r, 300));
+      continue;
     }
-  
-    sendAllRemindersBtn?.addEventListener('click', async () => {
-      const method = (reminderMethod?.value) || 'wa';
-      await sendAllRemindersFlow(method);
+
+    // If user clicked Cancel -> offer Skip or Stop
+    const skipLabel = `Skip ${g.customer || ''} and continue? \n\nOK = Skip this customer (continue to next). \nCancel = Stop sending reminders.`;
+    const skipOk = window.confirm(skipLabel);
+
+    if (skipOk) {
+      // Skip this customer and continue
+      toast(`Skipped ${g.customer || ''}`, 'info');
+      continue;
+    } else {
+      // Stop the whole bulk flow
+      toast('Bulk reminders cancelled', 'info');
+      return;
+    }
+  }
+
+  toast('Bulk reminders processed (completed or skipped some)', 'success');
+}
+
+/* test helper */
+window.testSendAllReminders = window.testSendAllReminders || function(method = 'wa') {
+  console.log('[reminders] manual test start (method=%s)', method);
+  return sendAllRemindersFlow(method).then(() => console.log('[reminders] manual test complete')).catch(e => console.error('[reminders] manual test failed', e));
+};
+
+
+/* Send functions --------------------------------------------------------- */
+
+/* immediate single send (no confirmation modal) */
+function sendReminderForSingle(invObj, method) {
+  if (!invObj) return;
+  const phone = cleanPhone(invObj.phone || '');
+  if (!phone) {
+    toast('No phone number for this invoice.', 'error');
+    console.warn('sendReminderForSingle: missing phone', invObj);
+    return;
+  }
+  const msg = buildSingleReminderMessage(invObj);
+  if (method === 'wa') {
+    window.open(`https://wa.me/${phone.replace('+','')}?text=${encodeURIComponent(msg)}`, '_blank');
+  } else {
+    window.open(`sms:+${phone}?&body=${encodeURIComponent(msg)}`, '_blank');
+  }
+}
+
+/* grouped send (called after confirmation) */
+function sendReminderForGrouped(group, method) {
+  if (!group) {
+    console.warn('sendReminderForGrouped: invalid group', group);
+    return;
+  }
+
+  // ensure we have a fallback phone if group.phone missing
+  let phone = cleanPhone(group.phone || '');
+  if (!phone && Array.isArray(group.invoices) && group.invoices.length) {
+    phone = cleanPhone(group.invoices[0].phone || '');
+    console.debug('sendReminderForGrouped: falling back to first invoice phone', phone);
+  }
+  if (!phone) {
+    toast('No phone available for this group.', 'error');
+    console.warn('sendReminderForGrouped: no phone for group', group);
+    return;
+  }
+
+  const msg = buildGroupedReminderMessage(group);
+  if (method === 'wa') {
+    window.open(`https://wa.me/${phone.replace('+','')}?text=${encodeURIComponent(msg)}`, '_blank');
+  } else {
+    window.open(`sms:+${phone}?&body=${encodeURIComponent(msg)}`, '_blank');
+  }
+}
+
+
+
+
+
+// ------------------- Wire "Send All Reminders" button -------------------
+// Place this AFTER sendAllRemindersFlow / sendReminderForGrouped / sendReminderForSingle
+
+(function wireSendAllReminders() {
+  const BUTTON_ID = 'sendAllReminders'; // your button id
+  // possible method selector ids you might have in your UI (adjust if different)
+  const METHOD_IDS = ['reminderMethod', 'reminderMethodSelect', 'reminder-method', 'reminderMethodBtn'];
+
+  // find method input (first existing)
+  function getMethodElement() {
+    for (const id of METHOD_IDS) {
+      const el = document.getElementById(id);
+      if (el) return el;
+    }
+    // fallback: any select with name 'reminderMethod'
+    const sel = document.querySelector('select[name="reminderMethod"]');
+    if (sel) return sel;
+    return null;
+  }
+
+  function getSelectedMethod() {
+    const el = getMethodElement();
+    if (!el) return 'wa';
+    // if it's a select/input with .value
+    return (el.value || 'wa').toLowerCase();
+  }
+
+  // safe attach (avoid duplicate listeners)
+  function attach() {
+    const btn = document.getElementById(BUTTON_ID);
+    if (!btn) {
+      console.warn(`[reminders] Button #${BUTTON_ID} not found — bulk reminders unavailable.`);
+      return;
+    }
+
+    // guard: if already wired, skip
+    if (btn.dataset.remindersWired === '1') {
+      console.debug('[reminders] sendAllReminders is already wired.');
+      return;
+    }
+
+    btn.addEventListener('click', async (ev) => {
+      ev.preventDefault();
+      const method = getSelectedMethod();
+      try {
+        // call the grouped flow
+        await sendAllRemindersFlow(method);
+      } catch (err) {
+        console.error('[reminders] sendAllRemindersFlow error', err);
+        toast('Failed to send all reminders', 'error');
+      }
     });
-  
-    /* single invoice reminder */
-    function sendReminderFor(invObj, method) {
-      const phone = cleanPhone(invObj.phone || '');
-      if (!phone) return toast('No phone provided', 'error');
-      const storeName = getCurrentUser()?.name || '';
-      const storePhone = getCurrentUser()?.phone || '';
-      const balance = Math.max(0, (Number(invObj.amount) || 0) - (Number(invObj.paid) || 0));
-      const preview = `Xasuusin: ${invObj.customer}\nLacagta lagugu leeyahay waa: ${fmtMoney(balance)}\nFadlan iska bixi dukaanka ${storeName} (${storePhone})`;
-      showReminderConfirm({ customer: invObj.customer, phone: invObj.phone, invoices: [invObj], totalBalance: balance }, `1/1`, preview).then(ok => {
-        if (ok) sendReminderForSingle(invObj, method);
-      });
-    }
-  /* =========================
+
+    btn.dataset.remindersWired = '1';
+    console.log('[reminders] Wired #sendAllReminders button (method element: %s)', getMethodElement() ? getMethodElement().id || getMethodElement().name : 'none');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attach);
+  } else {
+    attach();
+  }
+
+  // small test helper usable from console:
+  window.testSendAllReminders = window.testSendAllReminders || function(method = 'wa') {
+    console.log('[reminders] manual test start (method=%s)', method);
+    return sendAllRemindersFlow(method).then(() => console.log('[reminders] manual test complete')).catch(e => console.error('[reminders] manual test failed', e));
+  };
+})();
+
+
+
+
+// Dispatcher: call single or grouped send
+function sendReminderFor(target, method) {
+  if (!target) return toast('Invalid reminder target', 'error');
+
+  // single invoice object (has id) -> send immediately (no confirmation)
+  if (target.id) {
+    sendReminderForSingle(target, method);
+    return;
+  }
+
+  // group object (has invoices array) -> show preview confirmation then send
+  if (Array.isArray(target.invoices)) {
+    const preview = buildGroupedReminderMessage(target);
+    // showReminderConfirm returns a Promise<boolean>
+    showReminderConfirm(target, `1/1`, preview).then(ok => {
+      if (ok) sendReminderForGrouped(target, method);
+    }).catch(err => {
+      console.error('showReminderConfirm failed', err);
+      toast('Could not show confirmation', 'error');
+    });
+    return;
+  }
+
+  // fallback: maybe an array passed directly (rare) — treat as group
+  if (Array.isArray(target)) {
+    const group = { customer: '', phone: '', invoices: target, totalBalance: target.reduce((s,i)=> s + Math.max(0,(Number(i.amount)||0)-(Number(i.paid)||0)),0) };
+    const preview = buildGroupedReminderMessage(group);
+    showReminderConfirm(group, `1/1`, preview).then(ok => {
+      if (ok) sendReminderForGrouped(group, method);
+    });
+    return;
+  }
+
+  toast('Invalid reminder target', 'error');
+}
+
+/* =========================
      REPORTS: filters, rendering, export, delete
      ========================= */
 
@@ -2118,11 +3054,53 @@ buyOnlyBtn?.addEventListener('click', () => {
     }
   }
 
+
   // hook search input so it updates results live
   reportsSearchInput?.addEventListener('input', renderReports);
   reportsPeriod?.addEventListener('change', renderReports);
   reportsDate?.addEventListener('change', renderReports);
 
+  function renderReportsTrash() {
+    const storeName = getCurrentUser()?.name;
+    if (!storeName || !reportsTrashRows) return;
+  
+    const trash = JSON.parse(localStorage.getItem(`${storeName}_trash_report`) || "[]");
+    reportsTrashRows.innerHTML = '';
+  
+    if (!trash.length) {
+      document.getElementById('reportsTrashEmpty')?.classList.remove('hidden');
+      return;
+    } else {
+      document.getElementById('reportsTrashEmpty')?.classList.add('hidden');
+    }
+  
+    trash.forEach((rpt, idx) => {
+      const tr = document.createElement('tr');
+      const products = (rpt.items || []).map(it => escapeHtml(it.name || '')).join(', ');
+      tr.innerHTML = `
+        <td class="p-2">${idx + 1}</td>
+        <td class="p-2">${products}</td>
+        <td class="p-2">${fmtMoney(rpt.amount)}</td>
+        <td class="p-2">${fmtMoney(rpt.paid)}</td>
+        <td class="p-2">${fmtMoney(rpt.due || 0)}</td>
+        <td class="p-2">${escapeHtml(rpt.status)}</td>
+        <td class="p-2">${escapeHtml(rpt.customer || '')}</td>
+        <td class="p-2 no-print">
+          <div class="flex gap-2">
+            <button class="action-icon text-green-600" data-action="restore-report" data-id="${rpt.id}" title="Restore">
+              <i class="fas fa-undo"></i>
+            </button>
+            <button class="action-icon text-red-600" data-action="permanent-delete-report" data-id="${rpt.id}" title="Delete Permanently">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </td>
+      `;
+      reportsTrashRows.appendChild(tr);
+    });
+  }
+
+  
   // reports action delegation (print/delete)
   reportsRows?.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-action]');
@@ -2132,10 +3110,26 @@ buyOnlyBtn?.addEventListener('click', () => {
     const reports = getAllReports() || [];
     const idx = reports.findIndex(r => r.id === id);
     if (idx < 0) return;
+  
     if (action === 'delete-report') {
-      if (!confirm('Delete this report?')) return;
-      reports.splice(idx, 1); saveAllReports(reports); renderReports(); toast('Report deleted', 'success');
-    } else if (action === 'print-report') {
+      if (!confirm('Move this report to recycle bin?')) return;
+      const rpt = reports[idx];
+  
+      // use helper (like invoices) to move to trash
+      moveToTrash(getCurrentUser().name, 'report', rpt);
+  
+      // remove from active reports list
+      reports.splice(idx, 1);
+      saveAllReports(reports);
+  
+      renderReports();
+      toast('Report moved to recycle bin', 'success');
+    } 
+    else if (action === 'print-report') {
+      const rpt = reports[idx];
+      // … keep your print logic here (unchanged)
+    }
+     else if (action === 'print-report') {
       const rpt = reports[idx];
     
       // open print window
@@ -3427,468 +4421,3 @@ buyOnlyBtn?.addEventListener('click', () => {
   };
 
 })(); // end auth.js
- /* =========================
-     INVOICES UI (create/edit/list/actions)
-     ========================= */
-
-  function makeItemRow(data = {}) {
-    const row = document.createElement('div');
-    row.className = 'grid sm:grid-cols-4 gap-2 mb-2 items-end';
-    const safeName = (data.name || data.product || '').toString().replace(/"/g, '&quot;');
-    const safePrice = Number(data.price ?? data.total ?? 0);
-    row.innerHTML = `
-      <input class="col-span-2 item-name border rounded-xl px-3 py-2" placeholder="Item name" value="${escapeHtml(safeName)}">
-      <input type="number" min="0" step="0.01" class="item-price border rounded-xl px-3 py-2" placeholder="Price" value="${safePrice}">
-      <div class="flex items-center gap-2">
-        <input readonly class="item-total flex-1 border rounded-xl px-3 py-2 bg-gray-50" value="${fmtMoney(safePrice)}">
-        <button type="button" class="remove-item px-3 py-2 rounded bg-red-500 text-white">✕</button>
-      </div>
-    `;
-    const priceEl = row.querySelector('.item-price');
-    const totalEl = row.querySelector('.item-total');
-    function recalc() { const p = parseFloat(priceEl.value) || 0; totalEl.value = fmtMoney(p); recalcInvoiceTotals(); }
-    priceEl.addEventListener('input', recalc);
-    row.querySelector('.remove-item').addEventListener('click', () => { row.remove(); recalcInvoiceTotals(); });
-    return row;
-  }
-
-  function recalcInvoiceTotals() {
-    if (!invoiceItemsContainer) return;
-    const rows = Array.from(invoiceItemsContainer.querySelectorAll('.item-total'));
-    const total = rows.reduce((s, el) => s + (Number(el.value) || 0), 0);
-    amountInput && (amountInput.value = fmtMoney(total));
-    const paid = Number(paidInput?.value) || 0;
-    if (statusSelect) statusSelect.value = paid >= total && total > 0 ? 'paid' : 'unpaid';
-  }
-  // paidInput?.addEventListener('input', recalcInvoiceTotals);
-
-  function resetInvoiceForm() {
-    if (!editingInvoiceId) return;
-    editingInvoiceId.value = '';
-    customerNameInput.value = '';
-    customerPhoneInput.value = '';
-    invoiceDateInput.value = fmtDate(new Date());
-    amountInput && (amountInput.value = '0.00');
-    paidInput && (paidInput.value = '');
-    if (statusSelect) statusSelect.value = 'unpaid';
-    invoiceItemsContainer && (invoiceItemsContainer.innerHTML = '');
-    invoiceItemsContainer && invoiceItemsContainer.appendChild(makeItemRow());
-    formMsg && formMsg.classList.add('hidden');
-    formMsg && (formMsg.textContent = '');
-  }
-
-  // create/open invoice toggle - hidden until clicked; createInvoiceSection has hidden-section default
-  createInvoiceBtn?.addEventListener('click', () => {
-    if (!createInvoiceSection) return;
-    if (createInvoiceSection.classList.contains('hidden') || createInvoiceSection.classList.contains('hidden-section')) {
-      resetInvoiceForm();
-      createInvoiceSection.classList.remove('hidden', 'hidden-section');
-    } else {
-      createInvoiceSection.classList.add('hidden-section');
-    }
-  });
-
-  addItemBtn?.addEventListener('click', () => { invoiceItemsContainer && invoiceItemsContainer.appendChild(makeItemRow()); recalcInvoiceTotals(); });
-
-  saveInvoiceBtn?.addEventListener('click', () => {
-    const user = getCurrentUser();
-    if (!user) { toast('You must be logged in.', 'error'); return; }
-    const name = customerNameInput?.value.trim();
-    const phone = customerPhoneInput?.value.trim();
-    const date = invoiceDateInput?.value || fmtDate(new Date());
-    // collect items robustly
-    const items = invoiceItemsContainer ? Array.from(invoiceItemsContainer.querySelectorAll('.grid')).map(r => {
-      const nm = r.querySelector('.item-name')?.value.trim() || '';
-      const price = parseFloat(r.querySelector('.item-price')?.value) || 0;
-      return { name: nm, price, total: price, qty: 1 };
-    }).filter(it => it.name && it.price > 0) : [];
-
-    if (!items.length) { showFormError('Add at least one item with name and price.'); return; }
-    const amount = Number(amountInput?.value) || 0;
-    const paid = Number(paidInput?.value) || 0;
-    const status = statusSelect?.value || 'unpaid';
-
-    if (!name) { showFormError('Customer name required'); return; }
-    if (!phone) { showFormError('Customer phone required'); return; }
-
-    const all = getAllInvoices();
-    const id = editingInvoiceId?.value || `INV-${Date.now()}`;
-    const payload = { id, store: user.name, date, customer: name, phone, items, amount, paid, status };
-    const idx = all.findIndex(x => x.id === id);
-    if (idx >= 0) all[idx] = payload; else all.push(payload);
-    saveAllInvoices(all);
-    resetInvoiceForm();
-    createInvoiceSection.classList.add('hidden');
-    renderInvoiceTable();
-    window.dispatchEvent(new Event('dataUpdated'));
-    toast('Invoice saved', 'success');
-  });
-
-  function showFormError(msg) { formMsg && (formMsg.textContent = msg, formMsg.classList.remove('hidden')); toast(msg, 'error'); }
-
-  /* ============= INVOICE LIST & ACTIONS ============= */
-  function filteredInvoicesForUI() {
-    const user = getCurrentUser();
-    if (!user) return [];
-    const statusVal = filterStatus?.value || 'all';
-    const searchVal = (searchName?.value || '').toLowerCase();
-    return getStoreInvoices(user.name).filter(inv => {
-      const statusOk = statusVal === 'all' ? true : inv.status === statusVal;
-      const searchOk = !searchVal || (inv.customer && inv.customer.toLowerCase().includes(searchVal)) || (inv.phone && String(inv.phone).includes(searchVal)) || (inv.id && inv.id.toLowerCase().includes(searchVal));
-      return statusOk && searchOk;
-    }).sort((a, b) => new Date(b.date) - new Date(a.date));
-  }
-
-  function renderInvoiceTable() {
-    if (!invoiceRows) return;
-    const list = filteredInvoicesForUI();
-    invoiceRows.innerHTML = '';
-    if (!list.length) {
-      emptyStateInv && emptyStateInv.classList.remove('hidden'); return;
-    } else {
-      emptyStateInv && emptyStateInv.classList.add('hidden');
-    }
-    const mobile = window.matchMedia('(max-width:640px)').matches;
-    const storeName = getCurrentUser()?.name || '';
-    list.forEach((invObj, idx) => {
-      const balance = Math.max(0, (Number(invObj.amount) || 0) - (Number(invObj.paid) || 0));
-      const balanceColorClass = balance <= 0 ? 'text-emerald-600' : 'text-rose-600';
-      if (mobile) {
-        const tr = document.createElement('tr');
-        tr.className = 'border-b';
-        tr.innerHTML = `
-          <td colspan="10" class="p-2">
-            <div class="sm-card p-3 bg-white rounded-xl shadow-sm">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-semibold">${(storeName || 'S').slice(0, 2).toUpperCase()}</div>
-                <div style="flex:1;">
-                  <div class="font-semibold">Invoice ${escapeHtml(invObj.id)}</div>
-                  <div class="text-sm text-gray-500">${fmtDate(invObj.date)} • ${escapeHtml(invObj.customer || '')}</div>
-                </div>
-              </div>
-              <div class="mt-3 flex items-center justify-between">
-                <div class="text-sm">${escapeHtml(invObj.phone || '')}</div>
-                <div class="text-right">
-                  <div class="font-semibold">${fmtMoney(invObj.amount)}</div>
-                  <div class="text-xs ${balanceColorClass}">${escapeHtml(invObj.status)} • ${fmtMoney(balance)}</div>
-                </div>
-              </div>
-              <div class="mt-3 flex items-center gap-2 flex-wrap">
-                <button class="action-icon" data-action="edit" data-id="${invObj.id}" title="Edit"><i class="fas fa-edit"></i></button>
-                <button class="action-icon" data-action="toggle" data-id="${invObj.id}" title="Toggle">${invObj.status === 'paid' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-xmark"></i>'}</button>
-                <button class="action-icon" data-action="wa" data-id="${invObj.id}" title="WhatsApp"><i class="fab fa-whatsapp"></i></button>
-                <button class="action-icon" data-action="sms" data-id="${invObj.id}" title="SMS"><i class="fas fa-sms"></i></button>
-                <button class="action-icon" data-action="call" data-id="${invObj.id}" title="Call"><i class="fas fa-phone"></i></button>
-                <button class="action-icon" data-action="print" data-id="${invObj.id}" title="Print"><i class="fas fa-print"></i></button>
-                <button class="action-icon text-red-600" data-action="delete" data-id="${invObj.id}" title="Delete"><i class="fas fa-trash"></i></button>
-                <button class="action-icon share-btn" data-action="share" data-id="${invObj.id}" title="Share"><i class="fas fa-share-nodes"></i></button>
-              </div>
-            </div>
-          </td>
-        `;
-        invoiceRows.appendChild(tr);
-      } else {
-        const tr = document.createElement('tr');
-        tr.className = 'border-b';
-        tr.innerHTML = `
-          <td class="p-2">${idx + 1}</td>
-          <td class="p-2">${escapeHtml(invObj.id)}</td>
-          <td class="p-2">${fmtDate(invObj.date)}</td>
-          <td class="p-2">${escapeHtml(invObj.customer || '')}</td>
-          <td class="p-2">${escapeHtml(invObj.phone || '')}</td>
-          <td class="p-2 text-right">${fmtMoney(invObj.amount)}</td>
-          <td class="p-2 text-right">${fmtMoney(invObj.paid)}</td>
-          <td class="p-2 text-right ${balanceColorClass}">${fmtMoney(balance)}</td>
-          <td class="p-2"><span class="${invObj.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'} px-2 py-1 rounded text-xs">${escapeHtml(invObj.status)}</span></td>
-          <td class="p-2 no-print">
-            <div class="flex gap-2">
-              <button class="action-icon" data-action="edit" data-id="${invObj.id}" title="Edit"><i class="fas fa-edit"></i></button>
-              <button class="action-icon" data-action="toggle" data-id="${invObj.id}" title="Toggle">${invObj.status === 'paid' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-xmark"></i>'}</button>
-              <button class="action-icon" data-action="wa" data-id="${invObj.id}" title="WhatsApp"><i class="fab fa-whatsapp"></i></button>
-              <button class="action-icon" data-action="sms" data-id="${invObj.id}" title="SMS"><i class="fas fa-sms"></i></button>
-              <button class="action-icon" data-action="call" data-id="${invObj.id}" title="Call"><i class="fas fa-phone"></i></button>
-              <button class="action-icon" data-action="print" data-id="${invObj.id}" title="Print"><i class="fas fa-print"></i></button>
-              <button class="action-icon text-red-600" data-action="delete" data-id="${invObj.id}" title="Delete"><i class="fas fa-trash"></i></button>
-              <button class="action-icon share-btn" data-action="share" data-id="${invObj.id}" title="Share"><i class="fas fa-share-nodes"></i></button>
-            </div>
-          </td>
-        `;
-        invoiceRows.appendChild(tr);
-      }
-    });
-  }
-
-  // invoice action listener
-  invoiceRows?.addEventListener('click', async (e) => {
-    const btn = e.target.closest('button[data-action]');
-    if (!btn) return;
-    const id = btn.getAttribute('data-id');
-    const action = btn.getAttribute('data-action');
-    const all = getAllInvoices();
-    const idx = all.findIndex(x => x.id === id);
-    if (idx < 0) return;
-    const user = getCurrentUser();
-    if (!user || String(all[idx].store || '').toLowerCase() !== String(user.name || '').toLowerCase()) { toast('Not allowed', 'error'); return; }
-
-    if (action === 'delete') {
-      if (confirm('Delete this invoice?')) {
-        all.splice(idx, 1); saveAllInvoices(all); renderInvoiceTable(); window.dispatchEvent(new Event('dataUpdated')); toast('Invoice deleted', 'success');
-      }
-    } else if (action === 'toggle') {
-      if (all[idx].status === 'unpaid') {
-        all[idx].prevPaid = all[idx].paid;
-        all[idx].status = 'paid';
-        all[idx].paid = Number(all[idx].amount) || 0;
-      } else {
-        all[idx].status = 'unpaid';
-        all[idx].paid = all[idx].prevPaid || 0;
-      }
-      saveAllInvoices(all); renderInvoiceTable(); window.dispatchEvent(new Event('dataUpdated'));
-    } else if (action === 'edit') {
-      const invObj = all[idx];
-      createInvoiceSection?.classList.remove('hidden', 'hidden-section');
-      editingInvoiceId && (editingInvoiceId.value = invObj.id);
-      customerNameInput && (customerNameInput.value = invObj.customer || '');
-      customerPhoneInput && (customerPhoneInput.value = invObj.phone || '');
-      invoiceDateInput && (invoiceDateInput.value = invObj.date || fmtDate(new Date()));
-      amountInput && (amountInput.value = fmtMoney(invObj.amount || 0));
-      paidInput && (paidInput.value = invObj.paid || 0);
-      statusSelect && (statusSelect.value = invObj.status || 'unpaid');
-      if (invoiceItemsContainer) {
-        invoiceItemsContainer.innerHTML = '';
-        (invObj.items || []).forEach(it => invoiceItemsContainer.appendChild(makeItemRow(it)));
-        if ((invObj.items || []).length === 0) invoiceItemsContainer.appendChild(makeItemRow());
-      }
-    } else if (action === 'wa') {
-      sendReminderFor(all[idx], 'wa');
-    } else if (action === 'sms') {
-      sendReminderFor(all[idx], 'sms');
-    } else if (action === 'call') {
-      const phone = cleanPhone(all[idx].phone || '');
-      if (!phone) return toast('No phone provided', 'error');
-      window.open(`tel:+${phone}`, '_self');
-    } else if (action === 'print') {
-      // print invoice (open printable new window and call print)
-      printInvoice(all[idx]);
-    } else if (action === 'share') {
-      const card = btn.closest('.sm-card') || btn.closest('tr') || btn.parentElement;
-      if (card) captureElementAsImage(card, `${all[idx].id}_${Date.now()}.png`);
-      else toast('Cannot locate card to share.', 'error');
-    }
-  });
-
-  /* =========================
-     PRINT / CAPTURE
-     ========================= */
-  function printInvoice(inv) {
-    const balance = Math.max(0, (Number(inv.amount) || 0) - (Number(inv.paid) || 0));
-    const win = window.open('', 'PRINT', 'height=650,width=900');
-    const store = getCurrentUser() || {};
-    const head = `
-      <html><head><title>Invoice ${escapeHtml(inv.id)}</title>
-      <style>
-        body{font-family:sans-serif;padding:20px;color:#111}
-        table{width:100%;border-collapse:collapse;margin-top:10px}
-        td,th{border:1px solid #ddd;padding:8px}
-        th{background:#f4f4f4}
-      </style>
-      </head><body>`;
-    const footer = `</body></html>`;
-    const content = `
-      <h1>Invoice ${escapeHtml(inv.id)}</h1>
-      <p><strong>Store:</strong> ${escapeHtml(store.name||'Supermarket')}<br/>
-      <strong>Date:</strong> ${fmtDate(inv.date)}<br/>
-      <strong>Customer:</strong> ${escapeHtml(inv.customer||'Walk-in')}<br/>
-      <strong>Phone:</strong> ${escapeHtml(inv.phone||'')}</p>
-      <table><thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
-      <tbody>
-      ${(inv.items||[]).map(it => `<tr><td>${escapeHtml(it.name||it.product||'Item')}</td><td>${it.qty||1}</td><td>${fmtMoney(it.price||0)}</td><td>${fmtMoney(it.total||((it.price||0)*(it.qty||1)))}</td></tr>`).join('')}
-      </tbody></table>
-      <p><strong>Amount:</strong> ${fmtMoney(inv.amount)}<br/>
-      <strong>Paid:</strong> ${fmtMoney(inv.paid)}<br/>
-      <strong>Balance:</strong> ${fmtMoney(balance)}<br/>
-      <strong>Status:</strong> ${escapeHtml(inv.status)}</p>
-    `;
-    win.document.write(head + content + footer);
-    win.document.close();
-    win.focus();
-    // small delay to ensure render
-    setTimeout(() => { try { win.print(); } catch (e) { toast('Print failed', 'error'); } }, 250);
-  }
-
-  function captureElementAsImage(el, filename = 'capture.png') {
-    if (!el) return toast('Nothing to capture', 'error');
-    if (typeof html2canvas === 'undefined') {
-      const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-      s.onload = () => doCapture();
-      s.onerror = () => toast('Failed to load capture library.', 'error');
-      document.head.appendChild(s);
-    } else doCapture();
-    function doCapture() {
-      // use html2canvas to get image
-      html2canvas(el, { scale: 2, useCORS: true }).then(canvas => {
-        const data = canvas.toDataURL('image/png');
-        const a = document.createElement('a'); a.href = data; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
-      }).catch(err => { console.error(err); toast('Capture failed', 'error'); });
-    }
-  }
-
-  /* =========================
-     FILTERS / clear paid
-     ========================= */
-  filterStatus?.addEventListener('change', renderInvoiceTable);
-  searchName?.addEventListener('input', renderInvoiceTable);
-  clearPaidBtn?.addEventListener('click', () => {
-    const user = getCurrentUser(); if (!user) return;
-    if (!confirm('Clear all PAID invoices?')) return;
-    let all = getAllInvoices();
-    all = all.filter(inv => !(String(inv.store || '').toLowerCase() === String(user.name || '').toLowerCase() && inv.status === 'paid'));
-    saveAllInvoices(all); renderInvoiceTable(); window.dispatchEvent(new Event('dataUpdated')); toast('Paid invoices removed', 'success');
-  });
-
-  /* =========================
-     REMINDERS / MESSAGING
-     ========================= */
-  function sendReminderForSingle(invObj, method) {
-    if (!invObj) return;
-    const phone = cleanPhone(invObj.phone || '');
-    if (!phone) return toast('No phone number for this invoice.', 'error');
-    const balance = Math.max(0, (Number(invObj.amount) || 0) - (Number(invObj.paid) || 0));
-    const tpl = lsGet(LS_MSG_TPL, {});
-    const defaultWa = tpl.reminder_wa || "Xasuusin: {customer}, lacagta lagugu leeyahay waa: {balance}. Fadlan iska bixi dukaanka {store} ({phone}).";
-    const defaultSms = tpl.reminder_sms || defaultWa;
-    const template = method === 'wa' ? defaultWa : defaultSms;
-    const storeName = getCurrentUser()?.name || '';
-    const storePhone = (getCurrentUser()?.phone) || '';
-    const msg = template.replace(/\{customer\}/gi, invObj.customer || '')
-      .replace(/\{id\}/gi, invObj.id || '')
-      .replace(/\{balance\}/gi, fmtMoney(balance))
-      .replace(/\{store\}/gi, storeName)
-      .replace(/\{phone\}/gi, storePhone);
-    if (method === 'wa') {
-      window.open(`https://wa.me/${phone.replace('+', '')}?text=${encodeURIComponent(msg)}`, '_blank');
-    } else {
-      window.open(`sms:+${phone}?&body=${encodeURIComponent(msg)}`, '_blank');
-    }
-  }
-
-  function sendReminderForGrouped(group, method) {
-    const phone = cleanPhone(group.phone || '');
-    if (!phone) return toast('No phone for group.', 'error');
-    const tpl = lsGet(LS_MSG_TPL, {});
-    const defaultWa = tpl.reminder_wa || "Xasuusin: {customer}, lacagta lagugu leeyahay waa: {balance}. Fadlan iska bixi dukaanka {store} ({phone}).";
-    const defaultSms = tpl.reminder_sms || defaultWa;
-    const template = method === 'wa' ? defaultWa : defaultSms;
-    const storeName = getCurrentUser()?.name || '';
-    const storePhone = (getCurrentUser()?.phone) || '';
-    const ids = group.invoices.map(i => i.id).join(',');
-    const msg = template.replace(/\{customer\}/gi, group.customer || '')
-      .replace(/\{id\}/gi, ids)
-      .replace(/\{balance\}/gi, fmtMoney(group.totalBalance || 0))
-      .replace(/\{store\}/gi, storeName)
-      .replace(/\{phone\}/gi, storePhone);
-    if (method === 'wa') {
-      window.open(`https://wa.me/${phone.replace('+', '')}?text=${encodeURIComponent(msg)}`, '_blank');
-    } else {
-      window.open(`sms:+${phone}?&body=${encodeURIComponent(msg)}`, '_blank');
-    }
-  }
-
-  /* confirmation modal for reminders */
-  function createReminderConfirmModal() {
-    let modal = document.getElementById('reminderConfirmModal');
-    if (modal) return modal;
-    const html = `
-      <div id="reminderConfirmModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/50"></div>
-        <div class="relative max-w-lg w-full bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <h3 id="reminderConfirmHeader" class="text-lg font-semibold mb-2"></h3>
-          <div id="reminderConfirmBody" class="mb-4 whitespace-pre-line"></div>
-          <div class="flex justify-end gap-2">
-            <button id="reminderCancelBtn" class="px-3 py-2 rounded bg-gray-200">Cancel</button>
-            <button id="reminderOkBtn" class="px-3 py-2 rounded bg-emerald-600 text-white">OK</button>
-          </div>
-        </div>
-      </div>
-    `;
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = html;
-    document.body.appendChild(wrapper);
-    return document.getElementById('reminderConfirmModal');
-  }
-
-  function showReminderConfirm(group, progressStr, messageText) {
-    return new Promise((resolve) => {
-      const modal = createReminderConfirmModal();
-      const header = modal.querySelector('#reminderConfirmHeader');
-      const body = modal.querySelector('#reminderConfirmBody');
-      const okBtn = modal.querySelector('#reminderOkBtn');
-      const cancelBtn = modal.querySelector('#reminderCancelBtn');
-      header.textContent = `${progressStr} Xasuusin ${group.customer || ''}`;
-      body.textContent = messageText;
-      function cleanup() { modal.classList.add('hidden'); okBtn.removeEventListener('click', onOk); cancelBtn.removeEventListener('click', onCancel); }
-      function onOk() { cleanup(); resolve(true); }
-      function onCancel() { cleanup(); resolve(false); }
-      okBtn.addEventListener('click', onOk);
-      cancelBtn.addEventListener('click', onCancel);
-      modal.classList.remove('hidden');
-      okBtn.focus();
-    });
-  }
-
-  async function sendAllRemindersFlow(method) {
-    const user = getCurrentUser();
-    if (!user) return toast('Login required', 'error');
-
-    // gather invoices that owe money and have phone
-    const invoices = filteredInvoicesForUI().filter(inv => {
-      const bal = (Number(inv.amount) || 0) - (Number(inv.paid) || 0);
-      return inv.phone && bal > 0;
-    });
-    if (!invoices.length) return toast('No customers need reminders based on current filter/search.', 'info');
-
-    // group by phone + customer
-    const groupsMap = new Map();
-    invoices.forEach(inv => {
-      const phone = cleanPhone(inv.phone || '');
-      const customer = (inv.customer || '').trim();
-      const key = `${phone}||${customer}`;
-      const bal = Math.max(0, (Number(inv.amount) || 0) - (Number(inv.paid) || 0));
-      if (!groupsMap.has(key)) groupsMap.set(key, { customer, phone, totalBalance: 0, invoices: [] });
-      const g = groupsMap.get(key);
-      g.totalBalance += bal;
-      g.invoices.push(inv);
-    });
-
-    const groups = Array.from(groupsMap.values());
-    for (let i = 0; i < groups.length; i++) {
-      const g = groups[i];
-      const progressStr = `${i + 1}/${groups.length}`;
-      const storeName = user.name || '';
-      const storePhone = user.phone || '';
-      const preview = `Xasuusin: ${g.customer}\nLacagta lagugu leeyahay waa: ${fmtMoney(g.totalBalance)}\nFadlan iska bixi dukaanka ${storeName} (${storePhone})`;
-      const confirmed = await showReminderConfirm(g, progressStr, preview);
-      if (!confirmed) return;
-      sendReminderForGrouped(g, method);
-      await new Promise(res => setTimeout(res, 300));
-    }
-  }
-
-  // sendAllRemindersBtn?.addEventListener('click', async () => {
-  //   const method = (reminderMethod?.value) || 'wa';
-  //   await sendAllRemindersFlow(method);
-  // });
-
-  /* single invoice reminder */
-  function sendReminderFor(invObj, method) {
-    const phone = cleanPhone(invObj.phone || '');
-    if (!phone) return toast('No phone provided', 'error');
-    const storeName = getCurrentUser()?.name || '';
-    const storePhone = getCurrentUser()?.phone || '';
-    const balance = Math.max(0, (Number(invObj.amount) || 0) - (Number(invObj.paid) || 0));
-    const preview = `Xasuusin: ${invObj.customer}\nLacagta lagugu leeyahay waa: ${fmtMoney(balance)}\nFadlan iska bixi dukaanka ${storeName} (${storePhone})`;
-    showReminderConfirm({ customer: invObj.customer, phone: invObj.phone, invoices: [invObj], totalBalance: balance }, `1/1`, preview).then(ok => {
-      if (ok) sendReminderForSingle(invObj, method);
-    });
-  }
