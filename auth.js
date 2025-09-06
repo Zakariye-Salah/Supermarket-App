@@ -504,6 +504,622 @@
   });
   
 
+
+(function(){
+  const LS_KEY = 'preferredLang';
+
+  const translations = {
+    en: {
+      // Auth
+      registrationTitle: "Supermarket Registration",
+      regName: "Supermarket Name",
+      regAddress: "Address",
+      regPhone: "Phone",
+      regEmail: "Email",
+      regPassword: "Password",
+      regConfirm: "Confirm Password",
+      registerBtn: "Register",
+      loginHere: "Login here",
+      loginTitle: "Supermarket Login",
+      loginBtn: "Login",
+      registerHere: "Register here",
+      logoutBtn: "Logout",
+
+      // Dashboard / general
+      viewLabel: "View:",
+      dashboardPeriod: ["Lifetime","Today","Last 7 days","This month","This year","Live (auto)"],
+      refresh: "Refresh",
+      manageExpensesIconTitle: "Manage Expenses",
+      recycleBinTitle: "Recycle Bin",
+
+      totalInvoices: "Total Invoices",
+      totalProducts: "Total Products",
+      productsNote: "Products are global (no created date)",
+      totalSalesPaid: "Total Sales (Paid)",
+      totalRevenue: "Total Revenue",
+      revenueNote: "Sum of invoice totals (amount)",
+      totalProfit: "Total Profit",
+      profitNote: "Revenue minus expenses",
+      totalExpenses: "Total Expenses",
+      expensesNote: "Total of saved expenses",
+
+      manageExpensesTitle: "Manage Expenses",
+      addExpense: "Add Expense",
+      manageSaved: "Manage Saved",
+      expenseNamePH: "Expense Name",
+      expenseAmountPH: "Amount",
+      expenseCategoryDefault: "Category",
+      expenseCategories: ["Utilities","Rent","Supplies","Salary"],
+      addMore: "Add More",
+      saveBtn: "Save",
+      cancelBtn: "Cancel",
+      closeBtn: "Close",
+
+      salesChart: "Sales chart",
+      basedOnPeriod: "Based on selected period",
+
+      // Invoices
+      createInvoice: "+ Create Invoice",
+      createInvoiceTitle: "Create Invoice",
+      customerNameLabel: "Customer Name",
+      customerPhoneLabel: "Customer Phone",
+      invoiceDateLabel: "Invoice Date",
+      customerNamePH: "e.g. Zakariye Salah",
+      customerPhonePH: "e.g. 617125558",
+      addItem: "+ Add Item",
+      totalAmountLabel: "Total Amount",
+      amountPaidLabel: "Amount Paid",
+      statusLabel: "Status",
+      statusOptions: { unpaid: "Unpaid", paid: "Paid" },
+      saveInvoice: "Save Invoice",
+      invoicesTitle: "Invoices",
+      clearPaid: "Clear Paid",
+      filterAll: "All",
+      filterPaid: "Paid",
+      filterUnpaid: "Unpaid",
+      searchByNamePH: "Search by name...",
+      reminderWA: "WhatsApp",
+      reminderSMS: "SMS",
+      sendAllReminders: "Send All Reminders",
+      noInvoicesYet: "No invoices yet.",
+
+      // Products
+      searchProductsPH: "Search products...",
+      addProductBtn: "+ Add Product",
+      shoppingCartTitle: "Shopping Cart",
+      cancelAll: "Cancel All",
+      cancel: "Cancel",
+      sellBtn: "Sell",
+      invoiceModalTitle: "Invoice",
+      backBtn: "Back",
+      buyRecord: "Buy & Record Invoice",
+      buyOnly: "Buy Only",
+      emptyProductsTitle: "No products yet",
+      emptyProductsDesc: 'Click "Add Product" to create your first one.',
+      thName: "Product",
+      thCost: "Original Price",
+      thPrice: "Price",
+      thQty: "Qty",
+      thActions: "Actions",
+      productModalTitle: "Add Product",
+      lblName: "Product Name *",
+      lblCost: "Original Price",
+      lblPrice: "Price *",
+      lblQty: "Quantity *",
+      saveProductBtn: "Save Product",
+      productNamePH: "e.g. Rice 25kg",
+      productCostPH: "0.00",
+      productPricePH: "0.00",
+      productQtyPH: "0",
+
+      // Reports
+      reportsTitle: "Reports",
+      reportsSub: "Centralized sales records — live & exportable",
+      exportPdf: "Export PDF",
+      deleteAllReports: "Delete All",
+      reportsFilterLabel: "Filter:",
+      reportsPeriod: ["All time","Daily","Weekly (7 days)","Monthly","Yearly"],
+      reportsDateLabel: "Date:",
+      reportsSearchPH: "Product or customer...",
+      totalItemsLabel: "Total Items:",
+      totalSalesLabel: "Total Sales:",
+      reportsTable: {
+        no: "#", products: "Products", qty: "Qty", total: "Total",
+        paid: "Paid", due: "Due", status: "Status", customer: "Customer",
+        phone: "Phone", timestamp: "Timestamp", actions: "Actions"
+      },
+      reportsEmpty: "No reports to show.",
+      confirmDeleteReportsTitle: "Delete all reports?",
+      confirmDeleteReportsText: "This will permanently remove all report records for this store.",
+      confirmCancel: "Cancel",
+      confirmDeleteAll: "Delete All",
+
+      // Recycle bin
+      recycleTitle: "Recycle Bin",
+      restoreAll: "Restore All",
+      rbDeleteAll: "Delete All",
+      rbClose: "Close",
+      rbInvoices: "Invoices",
+      rbProducts: "Products",
+      rbReports: "Reports",
+
+      // Footer & bottom nav
+      footerCopy: "All rights reserved.",
+      navDashboard: "Dashboard",
+      navInvoices: "Invoices",
+      navProducts: "Products",
+      navReports: "Reports"
+    },
+
+    so: {
+      // Auth
+      registrationTitle: "Diiwaangelinta Suuqa",
+      regName: "Magaca Suuqa",
+      regAddress: "Cinwaanka",
+      regPhone: "Telefoon",
+      regEmail: "Iimayl",
+      regPassword: "Furaha",
+      regConfirm: "Xaqiiji Furaha",
+      registerBtn: "Diiwaangeli",
+      loginHere: "Halkan Gali",
+      loginTitle: "Geli Dukaan",
+      loginBtn: "Gali",
+      registerHere: "Diiwaangeli halkan",
+      logoutBtn: "Ka Bax",
+
+      // Dashboard / general
+      viewLabel: "Muuqaal:",
+      dashboardPeriod: ["Guud","Maanta","7-kii Maalmood","Bisha","Sannadka","Nool (si toos ah)"],
+      refresh: "Cusboonaysii",
+      manageExpensesIconTitle: "Maamul Kharashyada",
+      recycleBinTitle: "Qashinka Dib-u-celinta",
+
+      totalInvoices: "Wadar Rasiidada",
+      totalProducts: "Wadar Alaabta",
+      productsNote: "Alaabtu guud ayay tahay (ma jiro taariikh abuuris)",
+      totalSalesPaid: "Wadar Iib (La Bixiyay)",
+      totalRevenue: "Wadar Dakhliga",
+      revenueNote: "Wadar qiimaha rasiidyada (lacagta)",
+      totalProfit: "Wadar Faa'iido",
+      profitNote: "Dakhliga ka jar kharashyada",
+      totalExpenses: "Wadar Kharashyada",
+      expensesNote: "Wadar kharashyada la keydiyey",
+
+      manageExpensesTitle: "Maamul Kharashyada",
+      addExpense: "Kudar Kharash",
+      manageSaved: "Maamul kuwa la keydiyey",
+      expenseNamePH: "Magaca Kharashka",
+      expenseAmountPH: "Qadarka",
+      expenseCategoryDefault: "Qaybta",
+      expenseCategories: ["Adeegyo","Kiro","Agabka","Mushahar"],
+      addMore: "Kudar Inta Kale",
+      saveBtn: "Keydi",
+      cancelBtn: "Bax",
+      closeBtn: "Xidh",
+
+      salesChart: "Jaantuska Iibka",
+      basedOnPeriod: "Iyada oo ku salaysan mudada la dooray",
+
+      // Invoices
+      createInvoice: "+ Abuur Rasiid",
+      createInvoiceTitle: "Abuur Rasiid",
+      customerNameLabel: "Magaca Macmiilka",
+      customerPhoneLabel: "Telefoonka Macmiilka",
+      invoiceDateLabel: "Taariikhda Rasiidka",
+      customerNamePH: "tusaale: Zakariye Salah",
+      customerPhonePH: "tusaale: 617125558",
+      addItem: "+ Kudar Shay",
+      totalAmountLabel: "Wadar Lacagta",
+      amountPaidLabel: "Lacagta La Bixiyay",
+      statusLabel: "Xaaladda",
+      statusOptions: { unpaid: "Lacag la'aan", paid: "La Bixiyay" },
+      saveInvoice: "Keydi Rasiidka",
+      invoicesTitle: "Rasiidada",
+      clearPaid: "Nadiifi Ku Bixid",
+      filterAll: "Dhammaan",
+      filterPaid: "La Bixiyay",
+      filterUnpaid: "Lacag La'aan",
+      searchByNamePH: "Ka raadi magaca...",
+      reminderWA: "WhatsApp",
+      reminderSMS: "SMS",
+      sendAllReminders: "Dir Digniinaha oo dhan",
+      noInvoicesYet: "Weli ma jiraan rasiidyo.",
+
+      // Products
+      searchProductsPH: "Raadi alaabta...",
+      addProductBtn: "+ Kudar Alaab",
+      shoppingCartTitle: "Gaadhiga Iibka",
+      cancelAll: "Bixi Dhammaan",
+      cancel: "Bax",
+      sellBtn: "Iibso",
+      invoiceModalTitle: "Rasiid",
+      backBtn: "Dib u noqo",
+      buyRecord: "Iibso & Diiwaangeli Rasiidka",
+      buyOnly: "Iibso Kaliya",
+      emptyProductsTitle: "Weli ma jiraan alaabo",
+      emptyProductsDesc: 'Guji "Kudar Alaab" si aad u abuurto kii ugu horreeyay.',
+      thName: "Alaabta",
+      thCost: "Qiimaha Asalka",
+      thPrice: "Qiimo",
+      thQty: "Tirada",
+      thActions: "Ficillo",
+      productModalTitle: "Kudar Alaab",
+      lblName: "Magaca Alaabta *",
+      lblCost: "Qiimaha Asalka",
+      lblPrice: "Qiimo *",
+      lblQty: "Tirada *",
+      saveProductBtn: "Keydi Alaabta",
+      productNamePH: "tusaale: Bariis 25kg",
+      productCostPH: "0.00",
+      productPricePH: "0.00",
+      productQtyPH: "0",
+
+      // Reports
+      reportsTitle: "Warbixinno",
+      reportsSub: "Diiwaanka iibka oo dhexe — nool & la dhoofin karo",
+      exportPdf: "Dhoofin PDF",
+      deleteAllReports: "Tirtir Dhammaan",
+      reportsFilterLabel: "Sifee:",
+      reportsPeriod: ["Waqtiga oo dhan","Maalinle","Toddobaadle (7 maalmood)","Bishii","Sannadle"],
+      reportsDateLabel: "Taariikh:",
+      reportsSearchPH: "Alaab ama macmiil...",
+      totalItemsLabel: "Wadar Shay:",
+      totalSalesLabel: "Wadar Iib:",
+      reportsTable: {
+        no: "#", products: "Alaabooyinka", qty: "Tirada", total: "Wadar",
+        paid: "La bixiyay", due: "Lacag la bixin", status: "Xaalad", customer: "Macmiil",
+        phone: "Telefoon", timestamp: "Waqtiga", actions: "Ficillo"
+      },
+      reportsEmpty: "Warbixin ma jiro.",
+      confirmDeleteReportsTitle: "Miyaad rabtaa inaad tirtirto dhammaan warbixinada?",
+      confirmDeleteReportsText: "Tani waxay si joogto ah u tirtiri doontaa dhammaan rikoorrada warbixinta ee dukaankan.",
+      confirmCancel: "Bax",
+      confirmDeleteAll: "Tirtir Dhammaan",
+
+      // Recycle bin
+      recycleTitle: "Qashinka Dib-u-celinta",
+      restoreAll: "Soo Celin Dhammaan",
+      rbDeleteAll: "Tirtir Dhammaan",
+      rbClose: "Xidh",
+      rbInvoices: "Rasiidada",
+      rbProducts: "Alaabooyinka",
+      rbReports: "Warbixinada",
+
+      // Footer & bottom nav
+      footerCopy: "Dhammaan xuquuqdu way kaydsan tahay.",
+      navDashboard: "Guddiga",
+      navInvoices: "Rasiidada",
+      navProducts: "Alaabooyinka",
+      navReports: "Warbixinada"
+    }
+  };
+
+  // mapping DOM selectors -> translation keys and where to set
+  const mapping = [
+    // AUTH
+    { sel: '#registrationForm h1', prop: 'text', key: 'registrationTitle' },
+    { sel: '#regName', prop: 'placeholder', key: 'regName' },
+    { sel: '#regAddress', prop: 'placeholder', key: 'regAddress' },
+    { sel: '#regPhone', prop: 'placeholder', key: 'regPhone' },
+    { sel: '#regEmail', prop: 'placeholder', key: 'regEmail' },
+    { sel: '#regPassword', prop: 'placeholder', key: 'regPassword' },
+    { sel: '#regConfirm', prop: 'placeholder', key: 'regConfirm' },
+    { sel: '#registerBtn', prop: 'text', key: 'registerBtn' },
+    { sel: '#registrationForm p .text-blue-600', prop: 'text', key: 'loginHere' }, // small selector for 'Login here'
+
+    { sel: '#loginForm h1', prop: 'text', key: 'loginTitle' },
+    { sel: '#loginName', prop: 'placeholder', key: 'regName' },
+    { sel: '#loginPassword', prop: 'placeholder', key: 'regPassword' },
+    { sel: '#loginBtn', prop: 'text', key: 'loginBtn' },
+    { sel: '#loginForm p .text-blue-600', prop: 'text', key: 'registerHere' },
+
+    // top header / settings / logout
+    { sel: '#logoutBtn', prop: 'text', key: 'logoutBtn' },
+    { sel: '#btnRecycleBinTop', prop: 'title', key: 'recycleBinTitle' },
+
+    // dashboard controls
+    { sel: 'label.text-sm.text-gray-600', prop: 'textExact', key: 'viewLabel' }, // first matching label "View:"
+    { sel: '#dashboardPeriod', prop: 'options', key: 'dashboardPeriod' },
+
+    // cards
+    { sel: '#dashboardContent h3.text-lg', prop: 'textByIndex', key: [
+      { index: 0, key: 'totalInvoices' },
+      { index: 1, key: 'totalProducts' },
+      { index: 2, key: 'totalSalesPaid' },
+      { index: 3, key: 'totalRevenue' }
+    ] },
+    { sel: '#dashboardContent .text-xs.text-gray-400', prop: 'textByOrder', key: [
+      { order: 0, key: 'productsNote' },
+      { order: 1, key: 'revenueNote' },
+      { order: 2, key: 'profitNote' },
+      { order: 3, key: 'expensesNote' }
+    ] },
+
+    // manage expenses
+    { sel: '#manageExpensesModal h4', prop: 'text', key: 'manageExpensesTitle' },
+    { sel: '#openAddExpense', prop: 'text', key: 'addExpense' },
+    { sel: '#showAllExpenses', prop: 'text', key: 'manageSaved' },
+    { sel: '#expensesFormWrap input[type="text"]', prop: 'placeholder', key: 'expenseNamePH' },
+    { sel: '#expensesFormWrap input[type="number"]', prop: 'placeholder', key: 'expenseAmountPH' },
+    { sel: '#expensesFormWrap select option:first-child', prop: 'text', key: 'expenseCategoryDefault' },
+    { sel: '#expensesFormWrap select option[value="utilities"]', prop: 'text', key: 'expenseCategories.0' },
+    { sel: '#expensesFormWrap select option[value="rent"]', prop: 'text', key: 'expenseCategories.1' },
+    { sel: '#expensesFormWrap select option[value="supplies"]', prop: 'text', key: 'expenseCategories.2' },
+    { sel: '#expensesFormWrap select option[value="salary"]', prop: 'text', key: 'expenseCategories.3' },
+    { sel: '#addExpenseRowBtn', prop: 'text', key: 'addMore' },
+    { sel: '#saveExpensesBtn', prop: 'text', key: 'saveBtn' },
+    { sel: '#cancelExpensesBtn', prop: 'text', key: 'cancelBtn' },
+    { sel: '#closeSavedExpenses', prop: 'text', key: 'closeBtn' },
+
+    // chart
+    { sel: '.mt-6 .text-lg.font-semibold', prop: 'text', key: 'salesChart' },
+    { sel: '.mt-6 .text-sm.text-gray-500', prop: 'text', key: 'basedOnPeriod' },
+
+    // invoices UI
+    { sel: '#createInvoiceBtn', prop: 'text', key: 'createInvoice' },
+    { sel: '#createInvoiceSection h2', prop: 'text', key: 'createInvoiceTitle' },
+    { sel: '#customerName', prop: 'placeholder', key: 'customerNamePH' },
+    { sel: '#customerPhone', prop: 'placeholder', key: 'customerPhonePH' },
+    { sel: '#addItemBtn', prop: 'text', key: 'addItem' },
+    { sel: '#amount', prop: 'placeholder', key: 'totalAmountLabel' },
+    { sel: '#paid', prop: 'placeholder', key: 'amountPaidLabel' },
+    { sel: '#saveInvoiceBtn', prop: 'text', key: 'saveInvoice' },
+    { sel: '#invoicesTitle', prop: 'text', key: 'invoicesTitle' },
+    { sel: '#clearPaidBtn', prop: 'text', key: 'clearPaid' },
+    { sel: '#filterStatus option[value="all"]', prop: 'text', key: 'filterAll' },
+    { sel: '#filterStatus option[value="paid"]', prop: 'text', key: 'filterPaid' },
+    { sel: '#filterStatus option[value="unpaid"]', prop: 'text', key: 'filterUnpaid' },
+    { sel: '#searchName', prop: 'placeholder', key: 'searchByNamePH' },
+    { sel: '#reminderMethod option[value="wa"]', prop: 'text', key: 'reminderWA' },
+    { sel: '#reminderMethod option[value="sms"]', prop: 'text', key: 'reminderSMS' },
+    { sel: '#sendAllReminders', prop: 'text', key: 'sendAllReminders' },
+    { sel: '#emptyState', prop: 'text', key: 'noInvoicesYet' },
+
+    // invoices table headers
+    { sel: 'thead tr th', prop: 'textByOrderGeneric', key: ['reportsTable.no','tableInvoice','tableDate','tableCustomer','tablePhone','tableAmount','tablePaid','tableBalance','tableStatus','tableActions'] },
+
+    // products section
+    { sel: '#searchInput', prop: 'placeholder', key: 'searchProductsPH' },
+    { sel: '#addProductBtn', prop: 'text', key: 'addProductBtn' },
+    { sel: '#openCartHeader', prop: 'title', key: 'shoppingCartTitle' },
+    { sel: '#clearCart', prop: 'text', key: 'cancelAll' },
+    { sel: '#closeCart', prop: 'text', key: 'cancel' },
+    { sel: '#sellCart', prop: 'text', key: 'sellBtn' },
+
+    // empty products
+    { sel: '#emptyTitle', prop: 'text', key: 'emptyProductsTitle' },
+    { sel: '#emptyDesc', prop: 'text', key: 'emptyProductsDesc' },
+    { sel: '#emptyAddBtn', prop: 'text', key: 'addProductBtn' },
+
+    // product table headers
+    { sel: '#thName', prop: 'text', key: 'thName' },
+    { sel: '#thCost', prop: 'text', key: 'thCost' },
+    { sel: '#thPrice', prop: 'text', key: 'thPrice' },
+    { sel: '#thQty', prop: 'text', key: 'thQty' },
+    { sel: '#thActions', prop: 'text', key: 'thActions' },
+
+    // product modal
+    { sel: '#modalTitle', prop: 'text', key: 'productModalTitle' },
+    { sel: '#lblName', prop: 'text', key: 'lblName' },
+    { sel: '#productName', prop: 'placeholder', key: 'productNamePH' },
+    { sel: '#lblCost', prop: 'text', key: 'lblCost' },
+    { sel: '#productCost', prop: 'placeholder', key: 'productCostPH' },
+    { sel: '#lblPrice', prop: 'text', key: 'lblPrice' },
+    { sel: '#productPrice', prop: 'placeholder', key: 'productPricePH' },
+    { sel: '#lblQty', prop: 'text', key: 'lblQty' },
+    { sel: '#productQty', prop: 'placeholder', key: 'productQtyPH' },
+    { sel: '#cancelModal', prop: 'text', key: 'cancelBtn' },
+    { sel: '#saveProductBtn', prop: 'text', key: 'saveProductBtn' },
+
+    // reports
+    { sel: '#reportsSection h1', prop: 'text', key: 'reportsTitle' },
+    { sel: '#reportsSection p.text-sm', prop: 'text', key: 'reportsSub' },
+    { sel: '#reportsExportPdf', prop: 'text', key: 'exportPdf' },
+    { sel: '#reportsDeleteAll', prop: 'text', key: 'deleteAllReports' },
+    { sel: '#reportsPeriod', prop: 'options', key: 'reportsPeriod' },
+    { sel: '#reportsSearchInput', prop: 'placeholder', key: 'reportsSearchPH' },
+    { sel: '#reportsTotalItems', prop: 'text', key: 'totalItemsLabel' },
+    { sel: '#reportsTotalSales', prop: 'text', key: 'totalSalesLabel' },
+    { sel: '#reportsEmptyMsg', prop: 'text', key: 'reportsEmpty' },
+
+    // reports confirm modal
+    { sel: '#reportsConfirmDeleteAll h3', prop: 'text', key: 'confirmDeleteReportsTitle' },
+    { sel: '#reportsConfirmDeleteAll p', prop: 'text', key: 'confirmDeleteReportsText' },
+    { sel: '#reportsCancelDeleteAll', prop: 'text', key: 'confirmCancel' },
+    { sel: '#reportsConfirmDeleteAllBtn', prop: 'text', key: 'confirmDeleteAll' },
+
+    // recycle modal
+    { sel: '#recycleBinModal h4', prop: 'text', key: 'recycleTitle' },
+    { sel: '#rbRestoreAll', prop: 'text', key: 'restoreAll' },
+    { sel: '#rbDeleteAll', prop: 'text', key: 'rbDeleteAll' },
+    { sel: '#closeRecycleBin', prop: 'text', key: 'rbClose' },
+    { sel: '#rbInvoicesWrap h5', prop: 'text', key: 'rbInvoices' },
+    { sel: '#rbProductsWrap h5', prop: 'text', key: 'rbProducts' },
+    { sel: '#rbReportsWrap h5', prop: 'text', key: 'rbReports' },
+
+    // footer
+    { sel: 'footer .text-sm', prop: 'html', key: 'footerHtml' },
+
+    // bottom nav
+    { sel: 'nav#bottomNav button.navBtn:nth-child(1) span', prop: 'text', key: 'navDashboard' },
+    { sel: 'nav#bottomNav button.navBtn:nth-child(2) span', prop: 'text', key: 'navInvoices' },
+    { sel: 'nav#bottomNav button.navBtn:nth-child(3) span', prop: 'text', key: 'navProducts' },
+    { sel: 'nav#bottomNav button.navBtn:nth-child(4) span', prop: 'text', key: 'navReports' }
+  ];
+
+  // helper to read nested key paths (e.g. 'reportsTable.products' or 'expenseCategories.0')
+  function getKey(obj, path){
+    if (!path) return undefined;
+    const parts = String(path).split('.');
+    let cur = obj;
+    for (const p of parts){
+      if (cur === undefined || cur === null) return undefined;
+      // numeric index?
+      if (/^\d+$/.test(p)) {
+        cur = cur[Number(p)];
+      } else {
+        cur = cur[p];
+      }
+    }
+    return cur;
+  }
+
+  function setProp(node, prop, value){
+    if (!node) return;
+    try {
+      if (prop === 'text') node.textContent = value;
+      else if (prop === 'html') node.innerHTML = value;
+      else if (prop === 'placeholder') node.placeholder = value;
+      else if (prop === 'title') node.title = value;
+      else if (prop === 'value') node.value = value;
+    } catch(e){}
+  }
+
+  function applyOptions(selectNode, arr){
+    if (!selectNode) return;
+    selectNode.innerHTML = '';
+    arr.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v;
+      o.textContent = v;
+      selectNode.appendChild(o);
+    });
+  }
+
+  function applyTranslations(lang) {
+    const dict = translations[lang] || translations.en;
+
+    mapping.forEach(item => {
+      try {
+        const nodes = Array.from(document.querySelectorAll(item.sel));
+        if (!nodes.length) return;
+
+        if (item.prop === 'text') {
+          const v = getKey(dict, item.key);
+          if (v !== undefined) nodes.forEach(n => setProp(n, 'text', v));
+        } else if (item.prop === 'html') {
+          // support footer custom HTML
+          if (item.key === 'footerHtml') {
+            const copy = dict.footerCopy || '';
+            nodes.forEach(n => {
+              // keep owner name "Zakariye"
+              const name = '<span class="font-semibold">Zakariye</span>';
+              n.innerHTML = `&copy; 2025 ${name}. ${copy}`;
+            });
+          } else {
+            const v = getKey(dict, item.key);
+            if (v !== undefined) nodes.forEach(n => setProp(n, 'html', v));
+          }
+        } else if (item.prop === 'placeholder') {
+          const v = getKey(dict, item.key);
+          if (v !== undefined) nodes.forEach(n => setProp(n, 'placeholder', v));
+        } else if (item.prop === 'title') {
+          const v = getKey(dict, item.key);
+          if (v !== undefined) nodes.forEach(n => setProp(n, 'title', v));
+        } else if (item.prop === 'options') {
+          const arr = getKey(dict, item.key) || [];
+          nodes.forEach(n => applyOptions(n, arr));
+        } else if (item.prop === 'textByIndex') {
+          const arr = item.key;
+          nodes.forEach((n, idx) => {
+            const entry = arr[idx];
+            if (!entry) return;
+            const v = getKey(dict, entry.key);
+            if (v !== undefined) setProp(n, 'text', v);
+          });
+        } else if (item.prop === 'textByOrder') {
+          // nodes is list of elements (e.g. notes), item.key is array with order keys
+          const list = item.key || [];
+          list.forEach((entry, i) => {
+            const el = nodes[i];
+            if (!el) return;
+            const v = getKey(dict, entry.key);
+            if (v !== undefined) setProp(el, 'text', v);
+          });
+        } else if (item.prop === 'textByOrderGeneric') {
+          // generic mapping array of keys
+          const keys = item.key || [];
+          nodes.forEach((n, i) => {
+            const k = keys[i];
+            if (!k) return;
+            // support nested keys in reportsTable maybe
+            let v = getKey(dict, k);
+            // try fallback: if key doesn't exist, try direct mapping name
+            if (v === undefined) v = dict[k];
+            if (v !== undefined) setProp(n, 'text', v);
+          });
+        } else if (item.prop === 'textExact') {
+          // set first matched element
+          const v = getKey(dict, item.key);
+          if (v !== undefined) nodes[0] && setProp(nodes[0], 'text', v);
+        }
+      } catch (e) {
+        // ignore individual mapping errors so page doesn't break
+        console.error('i18n mapping error', e, item);
+      }
+    });
+
+    // additional manual / specific updates not covered by mapping:
+    // status select options
+    const statusSel = document.getElementById('status');
+    if (statusSel) {
+      const soStatus = getKey(dict, 'statusOptions') || {};
+      Array.from(statusSel.options).forEach(opt => {
+        if (opt.value && soStatus[opt.value]) opt.textContent = soStatus[opt.value];
+        else {
+          // if not a predefined key, for english keep same
+          const maybe = getKey(dict, `statusOptions.${opt.value}`);
+          if (maybe) opt.textContent = maybe;
+        }
+      });
+    }
+
+    // reports table headers (if present)
+    const reportsThead = document.querySelectorAll('#reportsTable thead th');
+    if (reportsThead && reportsThead.length) {
+      const rt = dict.reportsTable || {};
+      const keys = ['no','products','qty','total','paid','due','status','customer','phone','timestamp','actions'];
+      reportsThead.forEach((th, i) => {
+        const k = keys[i];
+        if (rt && rt[k]) th.textContent = rt[k];
+      });
+    }
+
+    // bottom nav explicit
+    const navMap = {
+      'nav#bottomNav button.navBtn:nth-child(1) span': dict.navDashboard,
+      'nav#bottomNav button.navBtn:nth-child(2) span': dict.navInvoices,
+      'nav#bottomNav button.navBtn:nth-child(3) span': dict.navProducts,
+      'nav#bottomNav button.navBtn:nth-child(4) span': dict.navReports
+    };
+    Object.entries(navMap).forEach(([sel, txt])=>{
+      const el = document.querySelector(sel);
+      if (el && txt) el.textContent = txt;
+    });
+
+    // set saved language
+    if (lang) localStorage.setItem(LS_KEY, lang);
+  }
+
+  // initialize on DOM ready
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const saved = localStorage.getItem(LS_KEY) || 'so'; // default to Somali (per request)
+    applyTranslations(saved);
+    // expose globally for settings modal or other scripts
+    window.applyTranslations = applyTranslations;
+  });
+
+  // convenience: immediately available function for manual switching
+  window.setAppLanguage = function(lang){
+    if (!lang) return;
+    applyTranslations(lang);
+  };
+
+})();
+
+
+
+
   /* =========================
     /* ---------- Dashboard: totals, filtering and charts ---------- */
 
@@ -1604,17 +2220,190 @@ function restoreFromTrash(storeName, trashId) {
    });
 
    
-  /* =========================
-    /* =========================
-   NAV / showSection (single consolidated version)
+/* =========================
+   Page transition helper + updated showSection (all pages participate)
    ========================= */
-function showSection(targetId) {
-  // hide main sections
-  [dashboardContent, invoicesSection, productsSection, reportsSection].forEach(s => s && s.classList.add('hidden'));
 
-  // show requested section (if it exists)
-  const el = document.getElementById(targetId);
-  if (el) el.classList.remove('hidden');
+/**
+ * Animate transition between two section elements.
+ * dir: 'left'   => old slides left, new comes from right
+ * dir: 'right'  => old slides right, new comes from left
+ * If dir is falsy -> no animation (instant swap)
+ */
+function animateSectionTransition(oldEl, newEl, dir = 'left') {
+  return new Promise((resolve) => {
+    if (!oldEl || !newEl || oldEl === newEl || !dir) {
+      // simple fallback
+      if (oldEl && oldEl !== newEl) oldEl.classList.add('hidden');
+      if (newEl) newEl.classList.remove('hidden');
+      return resolve();
+    }
+
+    // parent container must be set relative to allow absolutely positioned overlays
+    const container = oldEl.parentElement;
+    const prevContainerPos = container.style.position || '';
+    if (!prevContainerPos) container.style.position = 'relative';
+
+    // save original inline styles we will touch
+    const save = (el) => ({
+      position: el.style.position || '',
+      inset: el.style.inset || '',
+      top: el.style.top || '',
+      left: el.style.left || '',
+      right: el.style.right || '',
+      bottom: el.style.bottom || '',
+      width: el.style.width || '',
+      height: el.style.height || '',
+      transition: el.style.transition || '',
+      transform: el.style.transform || '',
+      zIndex: el.style.zIndex || ''
+    });
+    const oldSave = save(oldEl);
+    const newSave = save(newEl);
+
+    // Force both elements to overlay the container
+    [oldEl, newEl].forEach(el => {
+      el.style.position = 'absolute';
+      el.style.inset = '0';
+      el.style.width = '100%';
+      el.style.height = '100%';
+      el.style.top = '0';
+      el.style.left = '0';
+      el.style.right = '0';
+      el.style.bottom = '0';
+    });
+
+    // Ensure new is visible and above old initially
+    newEl.classList.remove('hidden');
+    newEl.style.zIndex = '600';
+    oldEl.style.zIndex = '500';
+
+    // set starting transforms depending on direction
+    if (dir === 'left') {
+      oldEl.style.transform = 'translateX(0)';
+      newEl.style.transform = 'translateX(100%)';
+    } else { // right
+      oldEl.style.transform = 'translateX(0)';
+      newEl.style.transform = 'translateX(-100%)';
+    }
+
+    // set transitions
+    const dur = 320; // ms
+    const easing = 'cubic-bezier(.22,.9,.3,1)';
+    oldEl.style.transition = `transform ${dur}ms ${easing}, opacity ${dur}ms ${easing}`;
+    newEl.style.transition = `transform ${dur}ms ${easing}, opacity ${dur}ms ${easing}`;
+
+    // force paint
+    void oldEl.offsetWidth;
+
+    // trigger animation on next frame
+    requestAnimationFrame(() => {
+      if (dir === 'left') {
+        oldEl.style.transform = 'translateX(-100%)';
+        newEl.style.transform = 'translateX(0)';
+      } else { // right
+        oldEl.style.transform = 'translateX(100%)';
+        newEl.style.transform = 'translateX(0)';
+      }
+    });
+
+    // handle transition end (listen on newEl to ensure animation completed)
+    function onEnd(e) {
+      if (e && e.target !== newEl) return;
+      // cleanup listeners
+      newEl.removeEventListener('transitionend', onEnd);
+      // hide old element
+      try { oldEl.classList.add('hidden'); } catch(e) {}
+      // restore original inline styles
+      const restore = (el, s) => {
+        el.style.position = s.position;
+        el.style.inset = s.inset;
+        el.style.top = s.top;
+        el.style.left = s.left;
+        el.style.right = s.right;
+        el.style.bottom = s.bottom;
+        el.style.width = s.width;
+        el.style.height = s.height;
+        el.style.transition = s.transition;
+        el.style.transform = s.transform;
+        el.style.zIndex = s.zIndex;
+      };
+      restore(oldEl, oldSave);
+      restore(newEl, newSave);
+      // restore container position if we changed it
+      if (!prevContainerPos) container.style.position = '';
+      resolve();
+    }
+
+    // safety: use transitionend or timeout as fallback
+    newEl.addEventListener('transitionend', onEnd);
+    setTimeout(() => onEnd(), dur + 80);
+  });
+}
+
+/* Section list: ordering determines animation direction */
+const SECTIONS = [
+  'dashboardContent',
+  'invoicesSection',
+  'productsSection',
+  'reportsSection'
+];
+
+/* keep track of last visible section id (optional) */
+let lastVisibleSectionId = null;
+
+/* updated showSection that uses animateSectionTransition based on SECTIONS order */
+function showSection(targetId) {
+  // compute current visible element among known sections
+  const currentVisible = SECTIONS.map(id => document.getElementById(id)).find(el => el && !el.classList.contains('hidden'));
+  const targetEl = document.getElementById(targetId);
+
+  // If target doesn't exist, fallback to instant hide/show and clear nav
+  if (!targetEl) {
+    SECTIONS.map(id => document.getElementById(id)).forEach(s => s && s.classList.add('hidden'));
+    setActiveNav(null);
+    return;
+  }
+
+  // If already visible, just update active state
+  if (currentVisible === targetEl) {
+    setActiveNav(targetId || null);
+    return;
+  }
+
+  // Determine direction using index order in SECTIONS
+  let dir = null;
+  const fromIndex = currentVisible ? SECTIONS.indexOf(currentVisible.id) : -1;
+  const toIndex = SECTIONS.indexOf(targetId);
+
+  if (fromIndex >= 0 && toIndex >= 0 && fromIndex !== toIndex) {
+    dir = (toIndex > fromIndex) ? 'left' : 'right';
+  } else {
+    // if either index unknown, fall back to no animation (instant)
+    dir = null;
+  }
+
+  // If animation is possible, run it
+  if (dir && currentVisible) {
+    animateSectionTransition(currentVisible, targetEl, dir).then(() => {
+      // after animation, perform section-specific refreshes
+      if (targetId === "dashboardContent") updateDashboardTotals();
+      if (targetId === "invoicesSection") renderInvoiceTable();
+      if (targetId === "productsSection") renderProductList(searchInput?.value || '');
+      if (targetId === "reportsSection") renderReports();
+
+      setActiveNav(targetId || null);
+      document.getElementById('bottomNav')?.classList.remove('hidden');
+      if (typeof authSection !== 'undefined' && authSection) authSection.classList.add('hidden');
+      if (typeof setAuthVisibility === 'function') setAuthVisibility(false);
+      lastVisibleSectionId = targetId;
+    });
+    return;
+  }
+
+  // No animation: instant replace (legacy behavior)
+  SECTIONS.map(id => document.getElementById(id)).forEach(s => s && s.classList.add('hidden'));
+  targetEl.classList.remove('hidden');
 
   // section-specific updates
   if (targetId === "dashboardContent") updateDashboardTotals();
@@ -1622,19 +2411,17 @@ function showSection(targetId) {
   if (targetId === "productsSection") renderProductList(searchInput?.value || '');
   if (targetId === "reportsSection") renderReports();
 
-  // mark active nav button (pass null/empty to clear all)
   setActiveNav(targetId || null);
-
-  // ensure bottom nav is visible when on app pages (hide on auth)
   document.getElementById('bottomNav')?.classList.remove('hidden');
+  if (typeof authSection !== 'undefined' && authSection) authSection.classList.add('hidden');
+  if (typeof setAuthVisibility === 'function') setAuthVisibility(false);
 
-  // when showing an app section, make sure auth UI is hidden
-  if (authSection) authSection.classList.add('hidden');
-  setAuthVisibility(false);
+  lastVisibleSectionId = targetId;
 }
 
-// highlight active button (accepts null to clear active state)
+/* highlight active button (accepts null to clear active state) */
 function setActiveNav(targetId) {
+  // navButtons assumed to be a NodeList/array of elements wired elsewhere
   navButtons.forEach(btn => {
     const isActive = targetId && btn.getAttribute('data-target') === targetId;
     btn.classList.toggle('text-blue-600', !!isActive);
@@ -1642,12 +2429,125 @@ function setActiveNav(targetId) {
   });
 }
 
-// single wiring for nav buttons (only once)
+/* existing wiring for nav buttons (unchanged) */
 navButtons.forEach(btn => btn.addEventListener('click', () => {
   const target = btn.getAttribute('data-target');
   if (target) showSection(target);
 }));
 
+/* =========================
+   Mobile swipe navigation between SECTIONS
+   (lightweight, non-invasive)
+   ========================= */
+
+   function enableSectionSwipeNavigation(opts = {}) {
+    const threshold = opts.threshold || 60; // px required to trigger
+    const maxVerticalRatio = opts.maxVerticalRatio || 0.6; // horizontal must dominate
+    const minViewportWidth = opts.minViewportWidth || 0; // set >0 to require small screens (0 = no limit)
+    const onlyTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  
+    if (!onlyTouch) return; // not a touch device
+  
+    // pick container to listen on: parent of sections or body fallback
+    const firstSection = document.getElementById(SECTIONS[0]);
+    const container = (firstSection && firstSection.parentElement) || document.body;
+  
+    let startX = 0, startY = 0, startTime = 0, isSwiping = false;
+  
+    function getCurrentVisibleIndex() {
+      const curEl = SECTIONS.map(id => document.getElementById(id)).find(el => el && !el.classList.contains('hidden'));
+      return curEl ? SECTIONS.indexOf(curEl.id) : -1;
+    }
+  
+    function canNavigate() {
+      // prevent swipe while modals are open or when interacting with inputs
+      if (document.querySelector('.modal, [role="dialog"], #reminderBulkModal:not(.hidden)')) return false;
+      return true;
+    }
+  
+    function onTouchStart(e) {
+      if (!canNavigate()) return;
+      if (minViewportWidth > 0 && window.innerWidth > minViewportWidth) return;
+      if (!e.touches || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      // ignore when starting over an input/select/textarea
+      const tag = (e.target && e.target.tagName && e.target.tagName.toLowerCase()) || '';
+      if (['input','textarea','select','button'].includes(tag)) return;
+      startX = t.clientX;
+      startY = t.clientY;
+      startTime = Date.now();
+      isSwiping = false;
+    }
+  
+    function onTouchMove(e) {
+      if (!e.touches || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      // if vertical movement dominates, cancel swipe detection
+      if (!isSwiping && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        isSwiping = true;
+        // prevent page from horizontally scrolling while swiping
+        e.preventDefault && e.preventDefault();
+      }
+      if (isSwiping) {
+        // preventDefault so the page doesn't accidentally scroll horizontally on some browsers
+        e.preventDefault && e.preventDefault();
+      }
+    }
+  
+    function onTouchEnd(e) {
+      if (!startTime) return;
+      const touch = (e.changedTouches && e.changedTouches[0]) || null;
+      if (!touch) { startTime = 0; return; }
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
+      const dt = Date.now() - startTime;
+      startTime = 0;
+  
+      // small vertical movement or long press -> ignore
+      if (Math.abs(dx) < threshold) return;
+      if (Math.abs(dy) > Math.abs(dx) * (1 / maxVerticalRatio)) return;
+  
+      // get current index
+      const curIndex = getCurrentVisibleIndex();
+      if (curIndex < 0) return;
+  
+      if (dx < 0) {
+        // swipe left -> go to next section (if exists)
+        const nextIndex = Math.min(SECTIONS.length - 1, curIndex + 1);
+        if (nextIndex !== curIndex) {
+          showSection(SECTIONS[nextIndex]);
+        }
+      } else {
+        // swipe right -> go to previous section
+        const prevIndex = Math.max(0, curIndex - 1);
+        if (prevIndex !== curIndex) {
+          showSection(SECTIONS[prevIndex]);
+        }
+      }
+    }
+  
+    // Attach listeners with passive: false so we can preventDefault during horizontal swipes
+    container.addEventListener('touchstart', onTouchStart, { passive: true });
+    container.addEventListener('touchmove', onTouchMove, { passive: false });
+    container.addEventListener('touchend', onTouchEnd, { passive: true });
+  
+    // Expose a way to disable if necessary
+    return function disableSwipe() {
+      container.removeEventListener('touchstart', onTouchStart);
+      container.removeEventListener('touchmove', onTouchMove);
+      container.removeEventListener('touchend', onTouchEnd);
+    };
+  }
+  
+  // enable swipe navigation (call once)
+  const disableSectionSwipe = enableSectionSwipeNavigation({
+    threshold: 60,
+    maxVerticalRatio: 0.6,
+    minViewportWidth: 1024 // optional: only enable on narrow screens; set 0 to always enable on touch devices
+  });
+  
 /* =========================
    Show/hide auth (login/register)
    ========================= */
@@ -1945,24 +2845,25 @@ function applyStatusPaidBehavior(container, total) {
   }
 
   // sync amount -> status
-  function syncFromAmount() {
+  function syncFromAmount(formatNow = true) {
     if (!amountPaidInput || !statusSelect) return;
     let val = Number((amountPaidInput.value || '').replace(/[^0-9.]/g, '')) || 0;
-
+  
     if (val <= 0) {
       statusSelect.value = 'unpaid';
       lastStatus = 'unpaid';
     } else if (val >= ttl) {
       val = ttl; // clamp
-      amountPaidInput.value = fmtMoney(val);
+      if (formatNow) amountPaidInput.value = fmtMoney(val);
       statusSelect.value = 'paid';
       lastStatus = 'paid';
     } else {
-      amountPaidInput.value = fmtMoney(val);
+      if (formatNow) amountPaidInput.value = fmtMoney(val);
       statusSelect.value = 'partial';
       lastStatus = 'partial';
     }
   }
+  
 
   // sync status -> amount
   function syncFromStatus() {
@@ -1993,21 +2894,25 @@ function applyStatusPaidBehavior(container, total) {
   if (amountPaidInput && !amountPaidInput._statusBound) {
     amountPaidInput.addEventListener('input', () => {
       // allow only numbers and dot
-      amountPaidInput.value = (amountPaidInput.value || '').replace(/[^0-9.]/g, '');
-      syncFromAmount();
+      const raw = (amountPaidInput.value || '').replace(/[^0-9.]/g, '');
+      amountPaidInput.value = raw; // keep what user typed
+      syncFromAmount(false);       // don't auto-format
     });
+  
+    // format nicely when focus leaves
+    amountPaidInput.addEventListener('blur', () => {
+      const val = Number((amountPaidInput.value || '').replace(/[^0-9.]/g, '')) || 0;
+      amountPaidInput.value = val ? fmtMoney(val) : '';
+      syncFromAmount(true);
+    });
+  
     amountPaidInput._statusBound = true;
   }
-
-  if (statusSelect && !statusSelect._statusBound) {
-    statusSelect.addEventListener('change', syncFromStatus);
-    statusSelect._statusBound = true;
-  }
+  
 
   // run initial sync
   syncFromAmount();
 }
-
 
 
 
@@ -2130,7 +3035,7 @@ buyRecordBtn?.addEventListener('click', () => {
   invoiceModal?.classList.add('hidden');
   window.dispatchEvent(new Event('dataUpdated'));
   toast('Sold & recorded.', 'success');
-  clearCartBtn();
+  resetInvoiceForm();
 });
 
 /* ----------------- BUY ONLY (quick record) ----------------- */
@@ -2200,7 +3105,7 @@ buyOnlyBtn?.addEventListener('click', () => {
   shopBackdrop?.classList.add('hidden');
   window.dispatchEvent(new Event('dataUpdated'));
   toast('Recorded in Reports.', 'success');
-  clearCartBtn();
+  resetInvoiceForm()
 });
 
 
@@ -2221,34 +3126,87 @@ buyOnlyBtn?.addEventListener('click', () => {
      ========================= */
 
      function makeItemRow(data = {}) {
+      function escapeHtmlSafe(s) {
+        if (s == null) return '';
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+      function parseNumberFromInput(s) {
+        if (s == null) return 0;
+        const cleaned = String(s).replace(/[^0-9.-]/g,'');
+        const n = parseFloat(cleaned);
+        return isFinite(n) ? n : 0;
+      }
+    
       const row = document.createElement('div');
-      row.className = 'grid sm:grid-cols-4 gap-2 mb-2 items-end';
-      const safeName = (data.name || data.product || '').toString().replace(/"/g, '&quot;');
-      const safePrice = Number(data.price ?? data.total ?? 0);
+      row.className = 'grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2 items-end';
+    
+      const safeName = (data.name || data.product || '').toString();
+      const safePrice = Number(data.price ?? 0);
+    
       row.innerHTML = `
-        <input class="col-span-2 item-name border rounded-xl px-3 py-2" placeholder="Item name" value="${escapeHtml(safeName)}">
-        <input type="number" min="0" step="0.01" class="item-price border rounded-xl px-3 py-2" placeholder="Price" value="${safePrice}">
-        <div class="flex items-center gap-2">
-          <input readonly class="item-total flex-1 border rounded-xl px-3 py-2 bg-gray-50" value="${fmtMoney(safePrice)}">
-          <button type="button" class="remove-item px-3 py-2 rounded bg-red-500 text-white">✕</button>
+        <div class="col-span-1 sm:col-span-2">
+          <input class="item-name w-full border rounded-xl px-3 py-2" 
+                 placeholder="Item name" 
+                 value="${escapeHtmlSafe(safeName)}" 
+                 aria-label="Item name">
+        </div>
+    
+        <div class="flex gap-2 items-end">
+          <input type="number" min="0" step="0.01" 
+                 class="item-price border rounded-xl px-3 py-2 flex-1" 
+                 placeholder="Price" 
+                 value="${safePrice}" 
+                 aria-label="Price">
+          <button type="button" 
+                  class="remove-item ml-1 inline-flex items-center justify-center w-9 h-9 rounded-full bg-red-500 text-white" 
+                  title="Remove item" aria-label="Remove item">✕</button>
         </div>
       `;
+    
       const priceEl = row.querySelector('.item-price');
-      const totalEl = row.querySelector('.item-total');
-      function recalc() { const p = parseFloat(priceEl.value) || 0; totalEl.value = fmtMoney(p); recalcInvoiceTotals(); }
-      priceEl.addEventListener('input', recalc);
-      row.querySelector('.remove-item').addEventListener('click', () => { row.remove(); recalcInvoiceTotals(); });
+      const removeBtn = row.querySelector('.remove-item');
+      const nameEl = row.querySelector('.item-name');
+    
+      function updateTotals() {
+        if (typeof recalcInvoiceTotals === 'function') recalcInvoiceTotals();
+      }
+    
+      priceEl.addEventListener('input', () => {
+        priceEl.value = (priceEl.value || '').toString().replace(/[^\d.]/g, '');
+        updateTotals();
+      });
+    
+      removeBtn.addEventListener('click', () => {
+        row.remove();
+        updateTotals();
+      });
+    
+      nameEl.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          priceEl.focus();
+        }
+      });
+    
       return row;
     }
-  
+    
+    /* ---------- Simplified recalcInvoiceTotals ---------- */
     function recalcInvoiceTotals() {
       if (!invoiceItemsContainer) return;
-      const rows = Array.from(invoiceItemsContainer.querySelectorAll('.item-total'));
-      const total = rows.reduce((s, el) => s + (Number(el.value) || 0), 0);
-      amountInput && (amountInput.value = fmtMoney(total));
-      const paid = Number(paidInput?.value) || 0;
-      if (statusSelect) statusSelect.value = paid >= total && total > 0 ? 'paid' : 'unpaid';
+      const priceEls = Array.from(invoiceItemsContainer.querySelectorAll('.item-price'));
+      const total = priceEls.reduce((s, el) => s + parseFloat(String(el.value || '0').replace(/[^0-9.-]/g, '')) || 0, 0);
+      
+      if (amountInput) {
+        if (typeof fmtMoney === 'function') amountInput.value = fmtMoney(total);
+        else amountInput.value = Number(total).toFixed(2);
+      }
+    
+      const paid = Number((paidInput?.value || '').toString().replace(/[^0-9.-]/g, '')) || 0;
+      if (statusSelect) statusSelect.value = (paid >= total && total > 0) ? 'paid' : 'unpaid';
     }
+    
+    
     paidInput?.addEventListener('input', recalcInvoiceTotals);
   
     function resetInvoiceForm() {
@@ -2266,6 +3224,20 @@ buyOnlyBtn?.addEventListener('click', () => {
       formMsg && (formMsg.textContent = '');
     }
   
+
+    // Example: when showing invoice create modal
+function openInvoiceCreateModal(totalAmount) {
+  const modal = document.getElementById('createInvoiceModal');
+  modal.classList.remove('hidden');
+
+  // Fill total
+  const totalEl = modal.querySelector('#invoiceTotal');
+  if (totalEl) totalEl.value = fmtMoney(totalAmount);
+
+  // Apply status behavior
+  applyStatusPaidBehavior(modal, totalAmount);
+}
+
     // create/open invoice toggle - hidden until clicked; createInvoiceSection has hidden-section default
     createInvoiceBtn?.addEventListener('click', () => {
       if (!createInvoiceSection) return;
@@ -2279,6 +3251,9 @@ buyOnlyBtn?.addEventListener('click', () => {
   
     addItemBtn?.addEventListener('click', () => { invoiceItemsContainer && invoiceItemsContainer.appendChild(makeItemRow()); recalcInvoiceTotals(); });
   
+
+
+
     saveInvoiceBtn?.addEventListener('click', () => {
       const user = getCurrentUser();
       if (!user) { toast('You must be logged in.', 'error'); return; }
@@ -2610,8 +3585,9 @@ buyOnlyBtn?.addEventListener('click', () => {
  *  - "Zakariye, waxaa wali kugu dhiman 25.00. Lacagta guud ee lagu leeyahay waa 125.00. (Inv: I-2)"
  *  - "Zakariye, lacagta laguugu leeyahay waa 200.00. (Inv: I-3)"
  */
-    /* =========================
-   REMINDERS / MESSAGING (status-aware, grouped send fix)
+   
+/* =========================
+   REMINDERS / MESSAGING (status-aware, bulk flow with persistent modal)
    ========================= */
 
 /* helper: build a status-aware line for a single invoice */
@@ -2623,34 +3599,30 @@ function buildInvoiceStatusLine(inv) {
   const id = inv.id || '';
 
   if (inv.status === 'paid') {
-    return `Mahadsanid ${customer}, lacagtadii hore ee lagugu lahaay waa ${fmtMoney(amount)}. Haraaga hadda waa ${fmtMoney(balance)}. (Inv: ${id})`;
+    return ` ${customer}, Waxaad bixisay Lacag dhan: ${fmtMoney(amount)}. Haraaga hadda waa ${fmtMoney(balance)}. Mahadsanid`;
   }
   if (inv.status === 'partial') {
-    return `${customer}, waxaa wali kugu dhiman lacag dhan ${fmtMoney(balance)}. Lacagta guud ee lagu leeyahay waa ${fmtMoney(amount)}. (Inv: ${id})`;
+    return `${customer}, waxaa wali kugu dhiman lacag dhan ${fmtMoney(balance)}. Fadlan iska bixi lacagta kugu hartay. Mahadsanid`;
   }
-  return `${customer}, lacagta laguugu leeyahay waa ${fmtMoney(amount)}. (Inv: ${id})`;
+  return `${customer}, lacagta laguugu leeyahay waa ${fmtMoney(amount)}. Fadlan iska bixi`;
 }
 
-/* single invoice message (unchanged behaviour: immediate send) */
+/* single invoice message (immediate send behavior remains) */
 function buildSingleReminderMessage(inv) {
   const storeName = getCurrentUser()?.name || '';
   const storePhone = getCurrentUser()?.phone || '';
   const line = buildInvoiceStatusLine(inv);
-  const body = `${line}\nDukaanka: ${storeName} (${storePhone}).`;
+  const body = `${line}\n${storeName} (${storePhone}).`;
   return `Xasuusin: ${body}`;
 }
-/* =========================
-   REMINDERS: short grouped message + skip in bulk flow
-   ========================= */
 
-/* Short grouped message (summary) */
+/* Short grouped summary message */
 function buildGroupedReminderMessage(group) {
   const storeName = getCurrentUser()?.name || '';
   const storePhone = getCurrentUser()?.phone || '';
   const customer = group.customer || '';
   const invoices = Array.isArray(group.invoices) ? group.invoices : [];
 
-  // compute total balance (sum of remaining balances)
   const totalBalance = invoices.reduce((acc, inv) => {
     const a = Number(inv.amount) || 0;
     const p = Number(inv.paid) || 0;
@@ -2658,72 +3630,245 @@ function buildGroupedReminderMessage(group) {
   }, 0);
 
   const ids = invoices.map(i => i.id).join(',') || '';
-
-  // concise summary message (Somali)
-  return `Xasuusin: ${customer}, lacagta guud ee laguugu leeyahay waa ${fmtMoney(totalBalance)}. Invoices: ${ids}. Dukaanka: ${storeName} (${storePhone}). Mahadsanid.`;
+  // concise Somali summary
+  return `Xasuusin: ${customer}, lacagta guud ee laguugu leeyahay waa ${fmtMoney(totalBalance)} (Invoices: ${ids}).\n${storeName} (${storePhone}). Mahadsanid.`;
 }
 
-/* Keep the modal builder (for other code) but bulk flow uses native confirm for reliability */
-function createReminderConfirmModal() {
-  let modal = document.getElementById('reminderConfirmModal');
+/* ----------------------
+   Bulk reminder modal (persistent)
+   - Use for Send / Skip / Stop per-group
+   - Keeps visible while user visits WA/SMS and returns
+   ---------------------- */
+/* Modern, responsive bulk reminder modal (buttons stay on one line even on mobile) */
+function createBulkReminderModal() {
+  let modal = document.getElementById('reminderBulkModal');
   if (modal) return modal;
+
   const html = `
-    <div id="reminderConfirmModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-black/50"></div>
-      <div class="relative max-w-lg w-full bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-        <h3 id="reminderConfirmHeader" class="text-lg font-semibold mb-2"></h3>
-        <div id="reminderConfirmBody" class="mb-4 whitespace-pre-line"></div>
-        <div class="flex justify-end gap-2">
-          <button id="reminderCancelBtn" class="px-3 py-2 rounded bg-gray-200">Cancel</button>
-          <button id="reminderOkBtn" class="px-3 py-2 rounded bg-emerald-600 text-white">OK</button>
+    <div id="reminderBulkModal" class="hidden fixed inset-0 z-70 flex items-center justify-center p-4">
+      <!-- modern translucent backdrop with blur (not plain gray) -->
+      <div class="absolute inset-0" style="
+        background: linear-gradient(180deg, rgba(2,6,23,0.10), rgba(2,6,23,0.45));
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      "></div>
+
+      <!-- card -->
+      <div class="relative w-full max-w-2xl mx-4 bg-white/95 dark:bg-[#071021]/95 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-2xl p-4 sm:p-6">
+        <!-- close btn -->
+        <button id="reminderBulkClose" aria-label="Close" class="absolute right-3 top-3 text-gray-600 hover:text-gray-900 dark:text-gray-300">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+            <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <h3 id="reminderBulkHeader" class="text-base sm:text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100"></h3>
+
+        <div id="reminderBulkBody" class="mb-3 whitespace-pre-line text-sm text-gray-700 dark:text-gray-200"></div>
+
+        <div id="reminderBulkProgress" class="mb-4 text-xs text-gray-500 dark:text-gray-400"></div>
+
+        <!-- ACTIONS: single horizontal line on all sizes; will scroll horizontally on very small screens -->
+        <div class="flex flex-row gap-3 items-center justify-end flex-nowrap overflow-x-auto" style="padding-top:6px">
+          <button id="reminderBulkSend" class="flex-shrink-0 min-w-[88px] px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition">
+            Send
+          </button>
+
+          <button id="reminderBulkStop" class="flex-shrink-0 min-w-[88px] px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white transition">
+            Stop
+          </button>
+
+          <button id="reminderBulkSkip" class="flex-shrink-0 min-w-[88px] px-4 py-2 rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black transition">
+            Skip
+          </button>
         </div>
       </div>
     </div>
   `;
+
   const wrapper = document.createElement('div');
   wrapper.innerHTML = html;
   document.body.appendChild(wrapper);
-  return document.getElementById('reminderConfirmModal');
+
+  modal = document.getElementById('reminderBulkModal');
+
+  // Wire the Close button to hide modal (keeps modal in DOM for reuse)
+  const closeBtn = modal.querySelector('#reminderBulkClose');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      modal.classList.add('hidden');
+    });
+  }
+
+  // Also hide modal when clicking the backdrop area
+  modal.addEventListener('click', (ev) => {
+    if (ev.target === modal) modal.classList.add('hidden');
+  });
+
+  return modal;
 }
 
-/* keep modal async confirm (used elsewhere) */
-function showReminderConfirmCompatModal(group, progressStr, messageText) {
+/**
+ * Show interactive bulk confirmation for one group.
+ * - group: { customer, phone, invoices }
+ * - progressStr: like "2/5"
+ * - messageText: preview message to send
+ * - method: 'wa'|'sms'
+ * Returns Promise resolving one of: 'send'|'skip'|'stop'
+ *
+ * Note: the Send button will open the WA/SMS link synchronously (user gesture),
+ * preventing popup blocking. The modal remains visible until user acts.
+ */
+function showBulkConfirm(group, progressStr, messageText, method = 'wa') {
   return new Promise((resolve) => {
-    const modal = createReminderConfirmModal();
-    const header = modal.querySelector('#reminderConfirmHeader');
-    const body = modal.querySelector('#reminderConfirmBody');
-    const okBtn = modal.querySelector('#reminderOkBtn');
-    const cancelBtn = modal.querySelector('#reminderCancelBtn');
+    const modal = createBulkReminderModal();
+    const header = modal.querySelector('#reminderBulkHeader');
+    const body = modal.querySelector('#reminderBulkBody');
+    const progressEl = modal.querySelector('#reminderBulkProgress');
+    const btnSend = modal.querySelector('#reminderBulkSend');
+    const btnSkip = modal.querySelector('#reminderBulkSkip');
+    const btnStop = modal.querySelector('#reminderBulkStop');
 
-    header.textContent = `${progressStr} Xasuusin ${group.customer || ''}`;
+    // fill content
+    header.textContent = `${progressStr} Xasuusin — ${group.customer || ''}`;
     body.textContent = messageText;
+    progressEl.textContent = `Invoices: ${ (group.invoices || []).length } • Total: ${fmtMoney(group.totalBalance || 0) }`;
+
+    // ensure visible
+    modal.classList.remove('hidden');
+
+    // clean previous handlers (safe)
+    btnSend.replaceWith(btnSend.cloneNode(true));
+    btnSkip.replaceWith(btnSkip.cloneNode(true));
+    btnStop.replaceWith(btnStop.cloneNode(true));
+
+    // re-select buttons
+    const sendBtn = modal.querySelector('#reminderBulkSend');
+    const skipBtn = modal.querySelector('#reminderBulkSkip');
+    const stopBtn = modal.querySelector('#reminderBulkStop');
+
+    // Compute phone and message (done here so send handler is simple)
+    const phoneRaw = group.phone || (group.invoices && group.invoices[0] && group.invoices[0].phone) || '';
+    const phone = cleanPhone(phoneRaw || '');
+    const msg = encodeURIComponent(messageText);
+
+    function cleanupAndResolve(result) {
+      modal.classList.add('hidden');
+      // keep modal in DOM for reuse but remove active listeners by replacing nodes (done above)
+      resolve(result);
+    }
+
+    // Send handler: must call window.open synchronously
+    sendBtn.addEventListener('click', function onSend(e) {
+      // open the appropriate link and keep modal visible briefly (we will resolve)
+      if (!phone) {
+        toast('No phone available for this group', 'error');
+        cleanupAndResolve('skip');
+        return;
+      }
+      try {
+        if (method === 'wa') {
+          // WhatsApp uses wa.me with no '+' and prefilled text
+          const url = `https://wa.me/${phone.replace(/^\+/, '')}?text=${msg}`;
+          window.open(url, '_blank');
+        } else {
+          // SMS (open in new tab/window or use sms: scheme)
+          const url = `sms:+${phone}?&body=${msg}`;
+          window.open(url, '_blank');
+        }
+      } catch (err) {
+        console.error('Failed to open messaging URL', err);
+        toast('Failed to open messaging app', 'error');
+        cleanupAndResolve('skip');
+        return;
+      }
+      // The action was user-initiated, count as send
+      cleanupAndResolve('send');
+    });
+
+    skipBtn.addEventListener('click', function onSkip() {
+      cleanupAndResolve('skip');
+    });
+
+    stopBtn.addEventListener('click', function onStop() {
+      cleanupAndResolve('stop');
+    });
+
+    // also support keyboard Enter/Escape
+    function onKey(e) {
+      if (e.key === 'Escape') { cleanupAndResolve('stop'); }
+      if (e.key === 'Enter') { /* treat Enter as send */ sendBtn.click(); }
+    }
+    document.addEventListener('keydown', onKey, { once: true });
+
+    // focus the Send button for quick keyboard action
+    sendBtn.focus();
+  });
+}
+
+/* Final summary modal using bulk modal area (OK-only) */
+function showFinalSummaryModal(total, sent, skipped) {
+  return new Promise((resolve) => {
+    const modal = createBulkReminderModal();
+    const header = modal.querySelector('#reminderBulkHeader');
+    const body = modal.querySelector('#reminderBulkBody');
+    const progressEl = modal.querySelector('#reminderBulkProgress');
+    const btnSend = modal.querySelector('#reminderBulkSend');
+    const btnSkip = modal.querySelector('#reminderBulkSkip');
+    const btnStop = modal.querySelector('#reminderBulkStop');
+
+    // configure appearance for summary
+    header.textContent = `Reminders Completed`;
+    body.textContent = `Dhamaan ${total} macaamiil ayaa la tijaabiyey.\n\nDiray: ${sent}\nSkipped: ${skipped}`;
+    progressEl.textContent = '';
+
+    // Show only one OK button: reuse "Send" as OK visually
+    btnSend.textContent = 'OK';
+    btnSend.classList.remove('bg-emerald-600');
+    btnSend.classList.add('bg-slate-700');
+    btnSkip.style.display = 'none';
+    btnStop.style.display = 'none';
+
+    // show modal
+    modal.classList.remove('hidden');
 
     function cleanup() {
-      modal.classList.add('hidden');
-      okBtn.removeEventListener('click', onOk);
-      cancelBtn.removeEventListener('click', onCancel);
+      // restore skip/stop visibility for later use
+      btnSkip.style.display = '';
+      btnStop.style.display = '';
+      btnSend.textContent = 'Send';
+      btnSend.classList.remove('bg-slate-700');
+      btnSend.classList.add('bg-emerald-600');
     }
-    function onOk() { cleanup(); resolve(true); }
-    function onCancel() { cleanup(); resolve(false); }
 
-    okBtn.addEventListener('click', onOk);
-    cancelBtn.addEventListener('click', onCancel);
-    modal.classList.remove('hidden');
+    // ensure single click handler
+    btnSend.replaceWith(btnSend.cloneNode(true));
+    const okBtn = modal.querySelector('#reminderBulkSend');
+    okBtn.addEventListener('click', () => {
+      cleanup();
+      modal.classList.add('hidden');
+      resolve(true);
+    });
+
     okBtn.focus();
   });
 }
 
-/* ---------- BULK FLOW: native-confirm + Skip option (preserves user gesture) ---------- */
+/* ---------- BULK FLOW using the interactive modal (no native confirm) ---------- */
 /**
- * For each group:
- * 1) show native confirm with preview (OK = Send)
- * 2) if Cancel -> show second native confirm (OK = Skip this customer, Cancel = Stop all)
+ * This flow shows a persistent modal for each group.
+ * Buttons:
+ *  - Send -> opens WA/SMS (synchronous) and marks sent
+ *  - Skip -> skips current customer
+ *  - Stop -> aborts the whole bulk flow
+ *
+ * At the end it shows a final summary modal with counts.
  */
 async function sendAllRemindersFlow(method) {
   const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
   if (!user) return toast('Login required', 'error');
 
-  // collect invoices that owe money
   const invoices = filteredInvoicesForUI().filter(inv => {
     const bal = (Number(inv.amount) || 0) - (Number(inv.paid) || 0);
     return bal > 0;
@@ -2747,64 +3892,101 @@ async function sendAllRemindersFlow(method) {
   const groups = Array.from(groupsMap.values());
   if (!groups.length) return toast('No groups to remind', 'info');
 
+  let sentCount = 0;
+  let skippedCount = 0;
+
   for (let i = 0; i < groups.length; i++) {
     const g = groups[i];
-    const progressStr = `${i+1}/${groups.length}`;
-
-    // build short preview
+    const progressStr = `${i + 1}/${groups.length}`;
     const preview = buildGroupedReminderMessage(g);
 
-    // find effective phone (cleaned), fallback to first invoice phone
+    // pick effective phone
     const effectivePhone = cleanPhone(g.phone || '') || (g.invoices[0] && cleanPhone(g.invoices[0].phone || '')) || '';
     if (!effectivePhone) {
       console.warn('Skipping group (no phone):', g);
       toast(`Skipping ${g.customer || 'unknown'} - no phone number`, 'warn');
+      skippedCount++;
       continue;
     }
 
-    // Native confirm 1: OK = SEND
-    const sendLabel = `${progressStr} - ${g.customer || ''}\n\n${preview}\n\nOK = Send    Cancel = More options`;
-    const firstOk = window.confirm(sendLabel);
+    // show interactive modal and wait for user action
+    const action = await showBulkConfirm(g, progressStr, preview, method);
 
-    if (firstOk) {
-      // Send immediately (allowed because confirm is synchronous in user gesture)
-      try {
-        sendReminderForGrouped(g, method);
-      } catch (err) {
-        console.error('Error sending grouped reminder', err, g);
-        toast(`Failed to send reminder for ${g.customer || ''}`, 'error');
-      }
-      // small polite delay
+    if (action === 'send') {
+      sentCount++;
+      // small polite delay so WA/SMS opens and modal is still usable on return
       await new Promise(r => setTimeout(r, 300));
       continue;
     }
-
-    // If user clicked Cancel -> offer Skip or Stop
-    const skipLabel = `Skip ${g.customer || ''} and continue? \n\nOK = Skip this customer (continue to next). \nCancel = Stop sending reminders.`;
-    const skipOk = window.confirm(skipLabel);
-
-    if (skipOk) {
-      // Skip this customer and continue
+    if (action === 'skip') {
+      skippedCount++;
       toast(`Skipped ${g.customer || ''}`, 'info');
       continue;
-    } else {
-      // Stop the whole bulk flow
+    }
+    if (action === 'stop') {
+      // user aborted
       toast('Bulk reminders cancelled', 'info');
-      return;
+      break;
     }
   }
 
-  toast('Bulk reminders processed (completed or skipped some)', 'success');
+  // show final summary and wait for OK
+  await showFinalSummaryModal(groups.length, sentCount, skippedCount);
 }
 
-/* test helper */
-window.testSendAllReminders = window.testSendAllReminders || function(method = 'wa') {
-  console.log('[reminders] manual test start (method=%s)', method);
-  return sendAllRemindersFlow(method).then(() => console.log('[reminders] manual test complete')).catch(e => console.error('[reminders] manual test failed', e));
-};
+/* ------------------- Wire "Send All Reminders" button ------------------- */
+(function wireSendAllReminders() {
+  const BUTTON_ID = 'sendAllReminders';
+  const METHOD_IDS = ['reminderMethod', 'reminderMethodSelect', 'reminder-method', 'reminderMethodBtn'];
 
+  function getMethodElement() {
+    for (const id of METHOD_IDS) {
+      const el = document.getElementById(id);
+      if (el) return el;
+    }
+    const sel = document.querySelector('select[name="reminderMethod"]');
+    if (sel) return sel;
+    return null;
+  }
+  function getSelectedMethod() {
+    const el = getMethodElement();
+    if (!el) return 'wa';
+    return (el.value || 'wa').toLowerCase();
+  }
 
-/* Send functions --------------------------------------------------------- */
+  function attach() {
+    const btn = document.getElementById(BUTTON_ID);
+    if (!btn) {
+      console.warn(`[reminders] Button #${BUTTON_ID} not found — bulk reminders unavailable.`);
+      return;
+    }
+    if (btn.dataset.remindersWired === '1') return;
+    btn.addEventListener('click', async (ev) => {
+      ev.preventDefault();
+      const method = getSelectedMethod();
+      try {
+        await sendAllRemindersFlow(method);
+      } catch (err) {
+        console.error('[reminders] sendAllRemindersFlow error', err);
+        toast('Failed to send all reminders', 'error');
+      }
+    });
+    btn.dataset.remindersWired = '1';
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attach);
+  } else {
+    attach();
+  }
+
+  window.testSendAllReminders = window.testSendAllReminders || function (method = 'wa') {
+    console.log('[reminders] manual test start (method=%s)', method);
+    return sendAllRemindersFlow(method).then(() => console.log('[reminders] manual test complete')).catch(e => console.error('[reminders] manual test failed', e));
+  };
+})();
+
+/* ------------------- Single/group send helpers (unchanged) ------------------- */
 
 /* immediate single send (no confirmation modal) */
 function sendReminderForSingle(invObj, method) {
@@ -2817,131 +3999,45 @@ function sendReminderForSingle(invObj, method) {
   }
   const msg = buildSingleReminderMessage(invObj);
   if (method === 'wa') {
-    window.open(`https://wa.me/${phone.replace('+','')}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/${phone.replace('+', '')}?text=${encodeURIComponent(msg)}`, '_blank');
   } else {
     window.open(`sms:+${phone}?&body=${encodeURIComponent(msg)}`, '_blank');
   }
 }
 
-/* grouped send (called after confirmation) */
+/* grouped send (called standalone, e.g., from row action) */
 function sendReminderForGrouped(group, method) {
   if (!group) {
     console.warn('sendReminderForGrouped: invalid group', group);
     return;
   }
-
-  // ensure we have a fallback phone if group.phone missing
   let phone = cleanPhone(group.phone || '');
   if (!phone && Array.isArray(group.invoices) && group.invoices.length) {
     phone = cleanPhone(group.invoices[0].phone || '');
-    console.debug('sendReminderForGrouped: falling back to first invoice phone', phone);
   }
   if (!phone) {
     toast('No phone available for this group.', 'error');
-    console.warn('sendReminderForGrouped: no phone for group', group);
     return;
   }
-
   const msg = buildGroupedReminderMessage(group);
   if (method === 'wa') {
-    window.open(`https://wa.me/${phone.replace('+','')}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/${phone.replace('+', '')}?text=${encodeURIComponent(msg)}`, '_blank');
   } else {
     window.open(`sms:+${phone}?&body=${encodeURIComponent(msg)}`, '_blank');
   }
 }
 
-
-
-
-
-// ------------------- Wire "Send All Reminders" button -------------------
-// Place this AFTER sendAllRemindersFlow / sendReminderForGrouped / sendReminderForSingle
-
-(function wireSendAllReminders() {
-  const BUTTON_ID = 'sendAllReminders'; // your button id
-  // possible method selector ids you might have in your UI (adjust if different)
-  const METHOD_IDS = ['reminderMethod', 'reminderMethodSelect', 'reminder-method', 'reminderMethodBtn'];
-
-  // find method input (first existing)
-  function getMethodElement() {
-    for (const id of METHOD_IDS) {
-      const el = document.getElementById(id);
-      if (el) return el;
-    }
-    // fallback: any select with name 'reminderMethod'
-    const sel = document.querySelector('select[name="reminderMethod"]');
-    if (sel) return sel;
-    return null;
-  }
-
-  function getSelectedMethod() {
-    const el = getMethodElement();
-    if (!el) return 'wa';
-    // if it's a select/input with .value
-    return (el.value || 'wa').toLowerCase();
-  }
-
-  // safe attach (avoid duplicate listeners)
-  function attach() {
-    const btn = document.getElementById(BUTTON_ID);
-    if (!btn) {
-      console.warn(`[reminders] Button #${BUTTON_ID} not found — bulk reminders unavailable.`);
-      return;
-    }
-
-    // guard: if already wired, skip
-    if (btn.dataset.remindersWired === '1') {
-      console.debug('[reminders] sendAllReminders is already wired.');
-      return;
-    }
-
-    btn.addEventListener('click', async (ev) => {
-      ev.preventDefault();
-      const method = getSelectedMethod();
-      try {
-        // call the grouped flow
-        await sendAllRemindersFlow(method);
-      } catch (err) {
-        console.error('[reminders] sendAllRemindersFlow error', err);
-        toast('Failed to send all reminders', 'error');
-      }
-    });
-
-    btn.dataset.remindersWired = '1';
-    console.log('[reminders] Wired #sendAllReminders button (method element: %s)', getMethodElement() ? getMethodElement().id || getMethodElement().name : 'none');
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', attach);
-  } else {
-    attach();
-  }
-
-  // small test helper usable from console:
-  window.testSendAllReminders = window.testSendAllReminders || function(method = 'wa') {
-    console.log('[reminders] manual test start (method=%s)', method);
-    return sendAllRemindersFlow(method).then(() => console.log('[reminders] manual test complete')).catch(e => console.error('[reminders] manual test failed', e));
-  };
-})();
-
-
-
-
-// Dispatcher: call single or grouped send
+/* Dispatcher: call single or grouped send (keeps other code paths unchanged) */
 function sendReminderFor(target, method) {
   if (!target) return toast('Invalid reminder target', 'error');
-
-  // single invoice object (has id) -> send immediately (no confirmation)
   if (target.id) {
     sendReminderForSingle(target, method);
     return;
   }
-
-  // group object (has invoices array) -> show preview confirmation then send
   if (Array.isArray(target.invoices)) {
     const preview = buildGroupedReminderMessage(target);
-    // showReminderConfirm returns a Promise<boolean>
-    showReminderConfirm(target, `1/1`, preview).then(ok => {
+    // show async modal (existing function kept elsewhere) or directly call grouped send
+    showReminderConfirmCompatModal(target, `1/1`, preview).then(ok => {
       if (ok) sendReminderForGrouped(target, method);
     }).catch(err => {
       console.error('showReminderConfirm failed', err);
@@ -2949,17 +4045,14 @@ function sendReminderFor(target, method) {
     });
     return;
   }
-
-  // fallback: maybe an array passed directly (rare) — treat as group
   if (Array.isArray(target)) {
     const group = { customer: '', phone: '', invoices: target, totalBalance: target.reduce((s,i)=> s + Math.max(0,(Number(i.amount)||0)-(Number(i.paid)||0)),0) };
     const preview = buildGroupedReminderMessage(group);
-    showReminderConfirm(group, `1/1`, preview).then(ok => {
+    showReminderConfirmCompatModal(group, `1/1`, preview).then(ok => {
       if (ok) sendReminderForGrouped(group, method);
     });
     return;
   }
-
   toast('Invalid reminder target', 'error');
 }
 
@@ -3195,10 +4288,7 @@ function sendReminderFor(target, method) {
       renderReports();
       toast('Report moved to recycle bin', 'success');
     } 
-    else if (action === 'print-report') {
-      const rpt = reports[idx];
-      // … keep your print logic here (unchanged)
-    }
+
      else if (action === 'print-report') {
       const rpt = reports[idx];
     
@@ -3500,558 +4590,632 @@ function sendReminderFor(target, method) {
    Replace your previous setupSettingsModuleWithDrive() with this block.
    Client ID (user-provided): 246612771655-cehl69jg1g3hj5u0mjouuum3pvu0cc1t.apps.googleusercontent.com
    ========================= */
+   (function setupSettingsModuleWithDrive_v2(){
 
-(function setupSettingsModuleWithDrive_v2(){
-
-  const DRIVE_CLIENT_ID = '1030812046213-qtq456lnvrdavrgu4gbaa8ksqb6tr489.apps.googleusercontent.com';
-  const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.file';
-  const LS_MSG_TPL = 'msg_templates_v1';
-  const LS_NOTICES = 'notices_v1';
-  const LS_SETTINGS = 'app_settings_v1';
-  const BACKUP_NAME_PREFIX = 'supermarket_backup_';
-
-  // helpers
-  function lsGet(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return localStorage.getItem(k); } }
-  function lsSet(k,v){ try { if (v === undefined) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch(e){ console.error(e); } }
-  function now(){ return Date.now(); }
-  function escapeHtml(s){ if (s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-  // ensure Notices API exists (fallback)
-  if (!window.Notices) {
-    window.Notices = {
-      add: ({title, body}) => {
-        const all = lsGet(LS_NOTICES) || [];
-        const payload = { id: `N-${Date.now()}`, title: title||'Notice', body: body||'', created: Date.now() };
-        all.unshift(payload);
-        lsSet(LS_NOTICES, all);
-        return payload;
-      },
-      list: () => lsGet(LS_NOTICES) || []
-    };
-  }
-
-  // toast fallback (non-blocking)
-  if (typeof window.toast !== 'function') {
-    window.toast = function(msg='', type='info') {
-      try {
-        const id = 'app-toast';
-        const ex = document.getElementById(id);
-        if (ex) ex.remove();
-        const el = document.createElement('div');
-        el.id = id;
-        el.textContent = msg;
-        el.style.position = 'fixed';
-        el.style.right = '16px';
-        el.style.bottom = '16px';
-        el.style.zIndex = 1100;
-        el.style.padding = '10px 14px';
-        el.style.borderRadius = '10px';
-        el.style.boxShadow = '0 6px 20px rgba(0,0,0,0.12)';
-        el.style.background = type === 'error' ? '#fee2e2' : (type === 'success' ? '#dcfce7' : '#eef2ff');
-        el.style.color = '#0f172a';
-        document.body.appendChild(el);
-        setTimeout(()=> el.style.opacity = '0', 2200);
-        setTimeout(()=> el.remove(), 2600);
-      } catch(e){ console.log(msg); }
-    };
-  }
-
-  // spinner overlay (mobile-friendly)
-  function ensureSpinner(){
-    let sp = document.getElementById('driveSpinnerOverlay');
-    if (sp) return sp;
-    sp = document.createElement('div');
-    sp.id = 'driveSpinnerOverlay';
-    sp.className = 'hidden fixed inset-0 z-100 flex items-center justify-center';
-    sp.innerHTML = `
-      <div style="position:absolute;inset:0;background:rgba(0,0,0,0.5)"></div>
-      <div role="status" style="z-index:9999; background:var(--bg,#fff); padding:14px 16px; border-radius:12px; display:flex; gap:12px; align-items:center; max-width:92%; width:320px;">
-        <svg width="36" height="36" viewBox="0 0 50 50" style="transform-origin:center" aria-hidden>
-          <circle cx="25" cy="25" r="20" stroke="#0ea5e9" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="31.4 31.4">
-            <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="1s" repeatCount="indefinite"/>
-          </circle>
-        </svg>
-        <div style="min-width:140px">
-          <div id="driveSpinnerMsg" style="font-weight:600">Working...</div>
-          <div id="driveSpinnerSub" style="font-size:12px;color:#6b7280;margin-top:6px">Please wait</div>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(sp);
-    return sp;
-  }
-  function showSpinner(msg='Working...', sub=''){ const sp = ensureSpinner(); sp.classList.remove('hidden'); document.getElementById('driveSpinnerMsg').textContent = msg; document.getElementById('driveSpinnerSub').textContent = sub; }
-  function hideSpinner(){ const sp = document.getElementById('driveSpinnerOverlay'); if (sp) sp.classList.add('hidden'); }
-
-  // seed defaults (safe)
-  (function seed(){
-    try {
-      if (!lsGet(LS_NOTICES)) lsSet(LS_NOTICES, [{ id:`N-${Date.now()}`, title:'Welcome', body:'Welcome — your data is stored locally. Use Drive backup to save to Google Drive.', created: Date.now() }]);
-    } catch(e){}
-    try {
-      if (!lsGet(LS_MSG_TPL)) lsSet(LS_MSG_TPL, { reminder_wa:'Hello {customer}, your invoice {id} has balance {balance}. - {store}', reminder_sms:'Hello {customer}, invoice {id} balance {balance}.' });
-    } catch(e){}
-    try {
-      if (!lsGet(LS_SETTINGS)) lsSet(LS_SETTINGS, { autoRestoreOnLogin:false, autoBackup:{ enabled:false, days:7 }, lastAutoBackup:0, lastDailyReminderByStore:{} });
-    } catch(e){}
-  })();
-
-  // Google libraries init
-  let driveTokenClient = null;
-  let gapiClientLoaded = false;
-  function initGisIfNeeded() {
-    if (driveTokenClient) return;
-    if (!window.google || !google.accounts || !google.accounts.oauth2) { console.warn('GSI not loaded'); return; }
-    driveTokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: DRIVE_CLIENT_ID,
-      scope: DRIVE_SCOPES,
-      callback: (tokenResp) => {} // set per-call
-    });
-  }
-  function initGapiIfNeeded(){
-    if (gapiClientLoaded) return Promise.resolve();
-    return new Promise((resolve,reject)=>{
-      if (!window.gapi) return reject(new Error('gapi not loaded'));
-      try {
-        gapi.load('client', async () => {
-          try { await gapi.client.init({ discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"] }); gapiClientLoaded = true; resolve(); }
-          catch(err){ reject(err); }
-        });
-      } catch(err){ reject(err); }
-    });
-  }
-  function requestDriveToken(cb){
-    initGisIfNeeded();
-    if (!driveTokenClient) { toast('Google Identity not available', 'error'); return; }
-    driveTokenClient.callback = (resp) => {
-      if (resp.error) { console.error(resp); toast('Drive auth error', 'error'); return; }
-      cb(resp.access_token);
-    };
-    try { driveTokenClient.requestAccessToken({ prompt: '' }); } catch(e){ console.error(e); toast('Drive token request failed', 'error'); }
-  }
-
-  // UI Modal builder (mobile friendly)
-  function openSettingsModal(){
-    let modal = document.getElementById('appSettingsModal');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'appSettingsModal';
-      modal.className = 'hidden fixed inset-0 z-90 flex items-start justify-center p-4';
-      modal.innerHTML = `
-        <div id="appSettingsModalBackdrop" class="absolute inset-0 bg-black/60"></div>
-        <div class="relative w-full max-w-3xl bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-auto max-h-[92vh]">
-          <div class="flex items-center justify-between p-3 border-b">
-            <h2 id="settingsTitle" class="text-lg font-semibold">Settings & Utilities</h2>
-            <div class="flex items-center gap-2">
-              <button id="settingsHelpOpen" title="Help" class="px-3 py-1 rounded bg-gray-100"><i class="fa-solid fa-question"></i></button>
-              <button id="settingsCloseBtn" class="px-3 py-1 rounded bg-gray-200">Close</button>
-            </div>
-          </div>
-
-          <div class="md:flex md:gap-4">
-            <nav id="settingsNav" class="md:w-56 p-3 border-r hidden md:block">
-              <ul class="space-y-2 text-sm">
-                <li><button class="settings-tab w-full text-left px-2 py-2 rounded" data-tab="helpNav"><i class="fa-solid fa-circle-info mr-2"></i> Help</button></li>
-                <li><button class="settings-tab w-full text-left px-2 py-2 rounded" data-tab="notices"><i class="fa-solid fa-bell mr-2"></i> Notices</button></li>
-                <li><button class="settings-tab w-full text-left px-2 py-2 rounded" data-tab="export"><i class="fa-solid fa-download mr-2"></i> Export</button></li>
-                <li><button class="settings-tab w-full text-left px-2 py-2 rounded" data-tab="drive"><i class="fa-brands fa-google-drive mr-2"></i> Drive Backup</button></li>
-              </ul>
-            </nav>
-
-            <div id="settingsContent" class="p-3 md:flex-1">
-              <!-- Panels stack for mobile -->
-              
-
-          <div class="settings-panel" data-panel="helpNav" style="display:none">
-  <h4 class="font-semibold mb-3 text-gray-800 dark:text-gray-200">📘 Help & Full Guide</h4>
-  <div class="space-y-5 text-sm leading-relaxed">
-
-    <!-- Add Product -->
-    <div class="flex items-start gap-2">
-      <i class="fa-solid fa-plus text-green-600 mt-1"></i>
-      <div>
-        <b>Add Product</b> — Click 
-        <span class="px-2 bg-gray-100 dark:bg-gray-700 rounded text-xs">Add Product</span> to open the product form.
-        <ul class="ml-5 list-disc mt-1">
-          <li><b>Product Name</b> — readable name (e.g. Rice 25kg)</li>
-          <li><b>Original Price/Cost</b> — optional, for margins</li>
-          <li><b>Price</b> — selling price (required)</li>
-          <li><b>Quantity</b> — current stock (required)</li>
-        </ul>
-        After filling press <b>Save Product</b>.
-      </div>
-    </div>
-
-    <!-- Create Invoice -->
-    <div class="flex items-start gap-2">
-      <i class="fa-solid fa-file-invoice-dollar text-blue-600 mt-1"></i>
-      <div>
-        <b>Create Invoice</b> — Click 
-        <span class="px-2 bg-gray-100 dark:bg-gray-700 rounded text-xs">Create Invoice</span>.
-        <ol class="ml-5 list-decimal mt-1">
-          <li>Enter customer name and phone (phone auto-formats to +252).</li>
-          <li>Add items: select product or type name, set quantity & price.</li>
-          <li>Total is auto-calculated. Enter amount paid and set status (Paid/Unpaid).</li>
-          <li>Click <b>Save Invoice</b> to record sale in Reports.</li>
-        </ol>
-      </div>
-    </div>
-
-    <!-- Adding Expense -->
-    <div class="flex items-start gap-2">
-      <i class="fa-solid fa-wallet text-purple-600 mt-1"></i>
-      <div>
-        <b>Adding Expense</b> — Open 
-        <span class="px-2 bg-gray-100 dark:bg-gray-700 rounded text-xs">Manage Expenses</span>.
-        <ol class="ml-5 list-decimal mt-1">
-          <li>Click <b>Add Expense</b> to open the expense form.</li>
-          <li>Fill details: <b>Name</b>, <b>Amount</b>, <b>Date</b>, <b>Category</b>.</li>
-          <li>Use <i class="fa-solid fa-plus-circle text-green-600"></i> <b>Add More</b> to insert extra rows.</li>
-          <li>Click <b>Save</b> — your expenses are stored in localStorage & shown in reports.</li>
-        </ol>
-      </div>
-    </div>
-
-    <!-- Edit -->
-    <div class="flex items-start gap-2">
-      <i class="fa-solid fa-pen text-yellow-600 mt-1"></i>
-      <div>
-        <b>Edit Invoice / Product</b> — Use the edit icon, update fields, and click Save. Changes update immediately.
-      </div>
-    </div>
-
-    <!-- Delete -->
-    <div class="flex items-start gap-2">
-      <i class="fa-solid fa-trash text-red-600 mt-1"></i>
-      <div>
-        <b>Delete</b> — Use delete action on products or invoices. ⚠️ Deletion is permanent.
-      </div>
-    </div>
-
-    <!-- Export -->
-    <div class="flex items-start gap-2">
-      <i class="fa-solid fa-file-export text-indigo-600 mt-1"></i>
-      <div>
-        <b>Export / Print</b> — Found under <b>Settings → Export</b>:
-        <ul class="ml-5 list-disc mt-1">
-          <li>PDF — invoices in PDF format</li>
-          <li>CSV — spreadsheet exports</li>
-          <li>Print — single invoice print layout</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Backup -->
-    <div class="flex items-start gap-2">
-      <i class="fa-brands fa-google-drive text-green-500 mt-1"></i>
-      <div>
-        <b>Backup & Restore</b> — Save and restore data with Google Drive.
-        <ul class="ml-5 list-disc mt-1">
-          <li><b>Backup</b> — saves snapshot of localStorage.</li>
-          <li><b>Restore</b> — replaces current data with backup.</li>
-          <li>Export first for safety before restoring.</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Auto Backup -->
-    <div class="flex items-start gap-2">
-      <i class="fa-solid fa-clock-rotate-left text-orange-500 mt-1"></i>
-      <div>
-        <b>Auto Backup / Restore</b> — Schedule Drive backups & restore on login.
-      </div>
-    </div>
-
-    <!-- Dashboard -->
-    <div class="flex items-start gap-2">
-      <i class="fa-solid fa-chart-line text-emerald-600 mt-1"></i>
-      <div>
-        <b>Dashboard (Sales / Revenue)</b> — Choose period filters (Today/Weekly/Monthly).
-      </div>
-    </div>
-
-    <!-- Print -->
-    <div class="flex items-start gap-2">
-      <i class="fa-solid fa-print text-gray-600 mt-1"></i>
-      <div>
-        <b>Printing & Layout</b> — Use print icons on invoices or export reports for desktop printing.
-      </div>
-    </div>
-
-    <!-- Troubleshooting -->
-    <div class="flex items-start gap-2">
-      <i class="fa-solid fa-lightbulb text-yellow-500 mt-1"></i>
-      <div>
-        <b>Troubleshooting</b> — If charts look wrong, check invoice dates. If Drive fails, verify OAuth setup.
-      </div>
-    </div>
-
-    <!-- Security -->
-    <div class="flex items-start gap-2">
-      <i class="fa-solid fa-shield-halved text-blue-600 mt-1"></i>
-      <div>
-        <b>Security & Privacy</b> — Backups stay in your Google Drive only. Keep OAuth secrets private.
-      </div>
-    </div>
-
-    <!-- Support -->
-    <div class="flex items-start gap-2">
-      <i class="fa-solid fa-headset text-pink-600 mt-1"></i>
-      <div>
-        <b>Need More Help?</b> — Export data first, then contact support with error screenshots.
-      </div>
-    </div>
-
-  </div>
-
-  <div class="mt-4 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-3">
-    💡 Tip: On mobile, open <b>Help</b> from the settings (top-right). Rotate to landscape for better tables.
-  </div>
-</div>
-
-              <div class="settings-panel" data-panel="notices" style="display:none">
-                <h4 class="font-semibold mb-2">Notices</h4>
-                <div id="settingsNotices" class="space-y-2 max-h-56 overflow-auto p-1"></div>
-              </div>
-
-              <div class="settings-panel" data-panel="export" style="display:none">
-                <h4 class="font-semibold mb-2">Export</h4>
-                <div class="flex gap-2 flex-wrap">
-                  <button id="exportInvoicesPdf" class="px-3 py-2 bg-blue-600 text-white rounded"><i class="fa-solid fa-file-pdf mr-1"></i> PDF</button>
-                  <button id="exportInvoicesExcel" class="px-3 py-2 bg-green-600 text-white rounded"><i class="fa-solid fa-file-csv mr-1"></i> CSV</button>
-                </div>
-              </div>
-
-              <div class="settings-panel" data-panel="drive" style="display:none">
-                <h4 class="font-semibold mb-2">Google Drive Backup</h4>
-                <div class="text-sm text-gray-600 mb-2">Requires Google OAuth (GSI) & acceptance as test user. Backups store a JSON snapshot of localStorage.</div>
-
-                <div class="space-y-2">
-                  <label class="flex items-center gap-2"><input id="optAutoRestoreLogin" type="checkbox"> Auto-check Drive on login (opt-in)</label>
-                  <label class="flex items-center gap-2">
-                    <input id="optAutoBackupEnabled" type="checkbox"> Auto backup every
-                    <input id="optAutoBackupDays" type="number" min="1" value="7" style="width:64px;margin-left:6px"> days
-                  </label>
-                  <div class="text-xs text-gray-500">Auto backups run while the app is open (background timers). Last run stored in settings.</div>
-
-                  <div class="flex gap-2 mt-2 flex-wrap">
-                    <button id="driveBackupBtn" class="px-3 py-2 bg-indigo-600 text-white rounded"><i class="fa-brands fa-google-drive mr-1"></i> Backup to Drive</button>
-                    <button id="driveRefreshBtn" class="px-3 py-2 bg-amber-500 text-white rounded"><i class="fa-solid fa-refresh mr-1"></i> Refresh List</button>
-                    <button id="driveRestoreLatestBtn" class="px-3 py-2 bg-red-600 text-white rounded"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Restore Latest</button>
-                  </div>
-
-                  <div id="driveStatus" class="mt-2 text-sm text-gray-700">Drive: not initialized</div>
-                  <div id="driveBackupList" class="mt-3 space-y-2 max-h-48 overflow-auto"></div>
-                </div>
-              </div>
-
-            </div>
+    const DRIVE_CLIENT_ID = '246612771655-cehl69jg1g3hj5u0mjouuum3pvu0cc1t.apps.googleusercontent.com';
+    const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.file';
+    const LS_MSG_TPL = 'msg_templates_v1';
+    const LS_NOTICES = 'notices_v1';
+    const LS_SETTINGS = 'app_settings_v1';
+    const BACKUP_NAME_PREFIX = 'supermarket_backup_';
+  
+    // helpers
+    function lsGet(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return localStorage.getItem(k); } }
+    function lsSet(k,v){ try { if (v === undefined) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch(e){ console.error(e); } }
+    function now(){ return Date.now(); }
+    function escapeHtml(s){ if (s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    // ensure Notices API exists (fallback)
+    if (!window.Notices) {
+      window.Notices = {
+        add: ({title, body}) => {
+          const all = lsGet(LS_NOTICES) || [];
+          const payload = { id: `N-${Date.now()}`, title: title||'Notice', body: body||'', created: Date.now() };
+          all.unshift(payload);
+          lsSet(LS_NOTICES, all);
+          return payload;
+        },
+        list: () => lsGet(LS_NOTICES) || []
+      };
+    }
+  
+    // toast fallback (non-blocking)
+    if (typeof window.toast !== 'function') {
+      window.toast = function(msg='', type='info') {
+        try {
+          const id = 'app-toast';
+          const ex = document.getElementById(id);
+          if (ex) ex.remove();
+          const el = document.createElement('div');
+          el.id = id;
+          el.textContent = msg;
+          el.style.position = 'fixed';
+          el.style.right = '16px';
+          el.style.bottom = '16px';
+          el.style.zIndex = 1100;
+          el.style.padding = '10px 14px';
+          el.style.borderRadius = '10px';
+          el.style.boxShadow = '0 6px 20px rgba(0,0,0,0.12)';
+          el.style.background = type === 'error' ? '#fee2e2' : (type === 'success' ? '#dcfce7' : '#eef2ff');
+          el.style.color = '#0f172a';
+          document.body.appendChild(el);
+          setTimeout(()=> el.style.opacity = '0', 2200);
+          setTimeout(()=> el.remove(), 2600);
+        } catch(e){ console.log(msg); }
+      };
+    }
+  
+    // spinner overlay (mobile-friendly)
+    function ensureSpinner(){
+      let sp = document.getElementById('driveSpinnerOverlay');
+      if (sp) return sp;
+      sp = document.createElement('div');
+      sp.id = 'driveSpinnerOverlay';
+      sp.className = 'hidden fixed inset-0 z-100 flex items-center justify-center';
+      sp.innerHTML = `
+        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.5)"></div>
+        <div role="status" style="z-index:9999; background:var(--bg,#fff); padding:14px 16px; border-radius:12px; display:flex; gap:12px; align-items:center; max-width:92%; width:320px;">
+          <svg width="36" height="36" viewBox="0 0 50 50" style="transform-origin:center" aria-hidden>
+            <circle cx="25" cy="25" r="20" stroke="#0ea5e9" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="31.4 31.4">
+              <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="1s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+          <div style="min-width:140px">
+            <div id="driveSpinnerMsg" style="font-weight:600">Working...</div>
+            <div id="driveSpinnerSub" style="font-size:12px;color:#6b7280;margin-top:6px">Please wait</div>
           </div>
         </div>
       `;
-
-      document.body.appendChild(modal);
-
-      // tab wiring (works on mobile & desktop)
-      function showTab(name){
-        modal.querySelectorAll('.settings-panel').forEach(p => p.dataset.panel === name ? (p.style.display='block') : (p.style.display='none'));
-      }
-      modal.querySelectorAll('.settings-tab').forEach(tb => tb.addEventListener('click', function(){
-        showTab(this.dataset.tab);
-        // small visual selection for md sidebar
-        modal.querySelectorAll('.settings-tab').forEach(x => x.classList.remove('bg-gray-100'));
-        this.classList.add('bg-gray-100');
-      }));
-
-      // close/backdrop
-      modal.querySelector('#settingsCloseBtn')?.addEventListener('click', ()=> modal.classList.add('hidden'));
-      modal.addEventListener('click', (e)=> { if (e.target === modal || e.target.id === 'appSettingsModalBackdrop') modal.classList.add('hidden'); });
-
-      // messages save/reset
-      modal.querySelector('#settingsSaveMsgBtn')?.addEventListener('click', ()=>{
-        const wa = (document.getElementById('settingsWaTpl')||{}).value || '';
-        const sms = (document.getElementById('settingsSmsTpl')||{}).value || '';
-        lsSet(LS_MSG_TPL, { reminder_wa: wa, reminder_sms: sms });
-        const s = document.getElementById('settingsMsgStatus'); if (s){ s.classList.remove('hidden'); setTimeout(()=> s.classList.add('hidden'), 1200); }
-        toast('Templates saved', 'success');
-      });
-      modal.querySelector('#settingsResetMsgBtn')?.addEventListener('click', ()=>{
-        if (!confirm('Reset message templates to defaults?')) return;
-        lsSet(LS_MSG_TPL, { reminder_wa: "Xasuusin: {customer}, lacagta lagugu leeyahay waa: {balance}. Fadlan iska bixi dukaanka {store} ({phone}).", reminder_sms: "Xasuusin: {customer}, lacagta lagugu leeyahay waa: {balance}." });
-        const tpl = lsGet(LS_MSG_TPL) || {};
-        document.getElementById('settingsWaTpl') && (document.getElementById('settingsWaTpl').value = tpl.reminder_wa || '');
-        document.getElementById('settingsSmsTpl') && (document.getElementById('settingsSmsTpl').value = tpl.reminder_sms || '');
-        toast('Templates reset', 'success');
-      });
-
-      // export wiring
-      modal.querySelector('#exportInvoicesPdf')?.addEventListener('click', ()=>{
-        const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
-        if (!user) { toast('Login required','error'); return; }
-        const inv = (typeof getStoreInvoices === 'function') ? getStoreInvoices(user.name) : [];
-        if (!inv || !inv.length) { toast('No invoices','error'); return; }
-        if (!window.jspdf) { alert('jsPDF required'); return; }
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text(`${user.name} - Invoices`, 14, 16);
-        if (doc.autoTable) {
-          doc.autoTable({ head: [['ID','Date','Customer','Phone','Amount','Paid','Status']], body: inv.map(i => [i.id, i.date, i.customer, i.phone, i.amount, i.paid, i.status]), startY: 22 });
-        } else {
-          let y = 22;
-          inv.forEach(i => { doc.text(`${i.id} ${i.date} ${i.customer} ${i.amount}`, 14, y); y+=8; });
-        }
-        doc.save(`invoices_${user.name}_${Date.now()}.pdf`);
-        toast('PDF exported','success');
-      });
-      modal.querySelector('#exportInvoicesExcel')?.addEventListener('click', ()=>{
-        const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
-        if (!user) { toast('Login required','error'); return; }
-        const inv = (typeof getStoreInvoices === 'function') ? getStoreInvoices(user.name) : [];
-        if (!inv || !inv.length) { toast('No invoices','error'); return; }
-        const rows = [['ID','Date','Customer','Phone','Amount','Paid','Status']]; inv.forEach(i => rows.push([i.id, i.date, i.customer, i.phone, i.amount, i.paid, i.status]));
-        const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-        const blob = new Blob([csv], { type:'text/csv' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `invoices_${user.name}_${Date.now()}.csv`; document.body.appendChild(a); a.click(); a.remove();
-        toast('CSV exported','success');
-      });
-
-      // Drive controls (internal functions defined below)
-      const driveBackupBtn = modal.querySelector('#driveBackupBtn');
-      const driveRefreshBtn = modal.querySelector('#driveRefreshBtn');
-      const driveRestoreLatestBtn = modal.querySelector('#driveRestoreLatestBtn');
-      // wire after functions defined
-
-      // Add quick-access help button for mobile: opens help panel
-      modal.querySelector('#settingsHelpOpen')?.addEventListener('click', ()=> {
-        // on mobile show help content inside modal
-        showTab('helpNav');
-      });
-
-      // when modal opens show messages tab by default
-      // (we rely on showTab when opening)
-    } // end create modal
-
-    // populate and show
-    modal = document.getElementById('appSettingsModal');
-    // fill templates
-    const tpl = lsGet(LS_MSG_TPL) || {};
-    document.getElementById('settingsWaTpl') && (document.getElementById('settingsWaTpl').value = tpl.reminder_wa || '');
-    document.getElementById('settingsSmsTpl') && (document.getElementById('settingsSmsTpl').value = tpl.reminder_sms || '');
-
-
-    // ---------- Notices UI + programmatic helpers (auto-insert programmatic notices, no edit/delete) ----------
-(function setupNoticesUI() {
-  // render the notices area (call when modal opens or notices change)
-  function renderNoticesUI() {
-    const notices = lsGet(LS_NOTICES) || [];
-    const noticesEl = document.getElementById('settingsNotices');
-    if (!noticesEl) return;
-    if (!notices.length) {
-      noticesEl.innerHTML = '<div class="text-sm text-gray-500">No notices.</div>';
-      return;
+      document.body.appendChild(sp);
+      return sp;
     }
-    noticesEl.innerHTML = notices.map(n => `
-      <div class="border rounded p-2 bg-gray-50">
-        <div class="flex justify-between items-center mb-1">
-          <div class="font-semibold text-sm">${escapeHtml(n.title)}</div>
-          <div class="text-xs text-gray-400">${new Date(n.created||Date.now()).toLocaleDateString()}</div>
+    function showSpinner(msg='Working...', sub=''){ const sp = ensureSpinner(); sp.classList.remove('hidden'); document.getElementById('driveSpinnerMsg').textContent = msg; document.getElementById('driveSpinnerSub').textContent = sub; }
+    function hideSpinner(){ const sp = document.getElementById('driveSpinnerOverlay'); if (sp) sp.classList.add('hidden'); }
+  
+    // seed defaults (safe)
+    (function seed(){
+      try {
+        if (!lsGet(LS_NOTICES)) lsSet(LS_NOTICES, [{ id:`N-${Date.now()}`, title:'Welcome', body:'Welcome — your data is stored locally. Use Drive backup to save to Google Drive.', created: Date.now() }]);
+      } catch(e){}
+      try {
+        if (!lsGet(LS_MSG_TPL)) lsSet(LS_MSG_TPL, { reminder_wa:'Hello {customer}, your invoice {id} has balance {balance}. - {store}', reminder_sms:'Hello {customer}, invoice {id} balance {balance}.' });
+      } catch(e){}
+      try {
+        if (!lsGet(LS_SETTINGS)) lsSet(LS_SETTINGS, { autoRestoreOnLogin:false, autoBackup:{ enabled:false, days:7 }, lastAutoBackup:0, lastDailyReminderByStore:{} });
+      } catch(e){}
+    })();
+  
+    // Google libraries init
+    let driveTokenClient = null;
+    let gapiClientLoaded = false;
+    function initGisIfNeeded() {
+      if (driveTokenClient) return;
+      if (!window.google || !google.accounts || !google.accounts.oauth2) { console.warn('GSI not loaded'); return; }
+      driveTokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: DRIVE_CLIENT_ID,
+        scope: DRIVE_SCOPES,
+        callback: (tokenResp) => {} // set per-call
+      });
+    }
+    function initGapiIfNeeded(){
+      if (gapiClientLoaded) return Promise.resolve();
+      return new Promise((resolve,reject)=>{
+        if (!window.gapi) return reject(new Error('gapi not loaded'));
+        try {
+          gapi.load('client', async () => {
+            try { await gapi.client.init({ discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"] }); gapiClientLoaded = true; resolve(); }
+            catch(err){ reject(err); }
+          });
+        } catch(err){ reject(err); }
+      });
+    }
+    function requestDriveToken(cb){
+      initGisIfNeeded();
+      if (!driveTokenClient) { toast('Google Identity not available', 'error'); return; }
+      driveTokenClient.callback = (resp) => {
+        if (resp.error) { console.error(resp); toast('Drive auth error', 'error'); return; }
+        cb(resp.access_token);
+      };
+      try { driveTokenClient.requestAccessToken({ prompt: '' }); } catch(e){ console.error(e); toast('Drive token request failed', 'error'); }
+    }
+  // Updated openSettingsModal with animated help notice, expanded help content, and non-gray palette
+function openSettingsModal(){
+  let modal = document.getElementById('appSettingsModal');
+
+  // Inject small CSS for help notice animation once
+  if (!document.getElementById('appSettingsModal-styles')) {
+    const style = document.createElement('style');
+    style.id = 'appSettingsModal-styles';
+    style.innerHTML = `
+      /* Help notice entrance */
+      .help-notice-enter { opacity: 0; transform: translateY(-10px) scale(.98); }
+      .help-notice-enter.help-notice-enter-active { opacity: 1; transform: translateY(0) scale(1); transition: all 360ms cubic-bezier(.2,.9,.25,1); }
+      /* subtle shadow for modern card */
+      .help-notice-card { box-shadow: 0 8px 28px rgba(14, 165, 233, 0.08); }
+      /* replace some default gray hover classes fallback if developer used them elsewhere */
+      .no-gray-bg { background-color: transparent !important; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'appSettingsModal';
+    modal.className = 'hidden fixed inset-0 z-90 flex items-start justify-center p-4';
+    modal.innerHTML = `
+      <div id="appSettingsModalBackdrop" class="absolute inset-0 bg-black/60"></div>
+
+      <div class="relative w-full max-w-3xl bg-white dark:bg-sky-900/6 rounded-lg shadow-lg overflow-auto max-h-[92vh]">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-4 border-b border-sky-100 dark:border-sky-800">
+          <div class="flex items-center gap-4">
+            <h2 id="settingsTitle" class="text-lg font-semibold text-sky-800 dark:text-sky-100">Settings & Utilities</h2>
+
+            <!-- Modern language pill toggle (sky) -->
+            <div id="langToggle" class="inline-flex items-center bg-sky-50 dark:bg-sky-900/10 rounded-full p-1">
+              <button id="langEnBtn" class="px-3 py-1 rounded-full text-xs font-semibold">EN</button>
+              <button id="langSoBtn" class="px-3 py-1 rounded-full text-xs font-semibold">SO</button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button id="settingsHelpOpen" title="Help" class="p-2 rounded bg-sky-50 dark:bg-sky-900/10 text-sky-700"><i class="fa-solid fa-question"></i></button>
+            <button id="settingsCloseBtn" class="px-3 py-1 rounded bg-sky-100 dark:bg-sky-800 text-sky-800 dark:text-sky-100">Close</button>
+          </div>
         </div>
-        <div class="text-sm text-gray-700">${escapeHtml(n.body)}</div>
+
+        <div class="md:flex md:gap-4">
+          <!-- Left nav (sidebar on md+) -->
+          <nav id="settingsNav" class="md:w-56 p-3 border-r border-sky-100 hidden md:block">
+            <ul class="space-y-2 text-sm">
+              <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="helpNotice"><i class="fa-solid fa-lightbulb mr-2 text-amber-500"></i> Help Notice</button></li>
+              <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="messages"><i class="fa-solid fa-message mr-2 text-sky-500"></i> Messages</button></li>
+              <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="helpNav"><i class="fa-solid fa-circle-info mr-2 text-emerald-500"></i> Help</button></li>
+              <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="notices"><i class="fa-solid fa-bell mr-2 text-amber-600"></i> Notices</button></li>
+              <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="export"><i class="fa-solid fa-download mr-2 text-indigo-600"></i> Export</button></li>
+              <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="drive"><i class="fa-brands fa-google-drive mr-2 text-emerald-600"></i> Drive Backup</button></li>
+            </ul>
+          </nav>
+
+          <!-- Content -->
+          <div id="settingsContent" class="p-4 md:flex-1">
+            <!-- Help Notice panel (modern animated card) -->
+            <div class="settings-panel" data-panel="helpNotice" style="display:none">
+              <div id="helpNoticeCard" class="help-notice-card flex items-start gap-3 p-4 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800">
+                <div class="text-2xl">💡</div>
+                <div class="flex-1">
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <h4 id="helpNoticeTitle" class="font-semibold text-lg text-sky-800 dark:text-sky-100">Quick Tips</h4>
+                      <div id="helpNoticeBody" class="text-sm text-sky-600 dark:text-sky-200 mt-1">Short helpful context appears here.</div>
+                    </div>
+                    <div class="ml-3">
+                      <button id="dismissHelpNotice" class="text-xs px-2 py-1 rounded bg-white/90 dark:bg-sky-800 text-sky-700">Dismiss</button>
+                    </div>
+                  </div>
+                  <div class="mt-3 flex gap-2">
+                    <button id="moreHelpBtn" class="px-3 py-1 bg-sky-600 text-white rounded text-sm"><i class="fa-solid fa-book-open mr-1"></i> Full Guide</button>
+                    <button id="showHelpPanelBtn" class="px-3 py-1 bg-sky-100 rounded text-sm text-sky-800">Open Help</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="settings-panel" data-panel="messages" style="display:none">
+              <h4 class="font-semibold mb-2 text-sky-800 dark:text-sky-100">WhatsApp / SMS Templates</h4>
+              <div class="text-sm mb-2 text-sky-600 dark:text-sky-200">Placeholders: <code>{customer}</code> <code>{id}</code> <code>{balance}</code> <code>{store}</code></div>
+              <div class="space-y-2">
+                <textarea id="settingsWaTpl" rows="3" class="w-full border rounded p-2"></textarea>
+                <textarea id="settingsSmsTpl" rows="3" class="w-full border rounded p-2"></textarea>
+                <div class="flex gap-2 mt-2">
+                  <button id="settingsSaveMsgBtn" class="px-3 py-2 bg-sky-600 text-white rounded">Save</button>
+                  <button id="settingsResetMsgBtn" class="px-3 py-2 bg-sky-100 text-sky-800 rounded">Reset</button>
+                  <div id="settingsMsgStatus" class="text-sm text-sky-600 hidden ml-2">Saved</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Full Help -->
+            <div class="settings-panel" data-panel="helpNav" style="display:none">
+              <h4 class="font-semibold mb-2 text-sky-800 dark:text-sky-100">Help & Full Guide</h4>
+              <div class="space-y-3 text-sm">
+                <div id="helpFullContent" class="prose max-w-none text-sm text-sky-600 dark:text-sky-200">
+                  <div id="helpIntro"><!-- localized HTML filled later --></div>
+
+                  <h5 class="text-sky-700">Invoices</h5>
+                  <ol class="text-sky-600">
+                    <li>Create Invoice → Add customer name & phone → add items (choose product or type) → set qty & price.</li>
+                    <li>Set Amount Paid and Status (Paid / Unpaid). Save to add to Reports.</li>
+                    <li>To send invoice: use WhatsApp or SMS from invoice row (buttons appear on invoice actions) — ensures phone formatting (+252) when available.</li>
+                  </ol>
+
+                  <h5 class="text-sky-700">Send Messages / Call</h5>
+                  <ul class="text-sky-600">
+                    <li><b>WhatsApp:</b> Click the WhatsApp icon on an invoice — it opens WhatsApp Web/mobile with the templated message. Customize templates in Settings → Messages.</li>
+                    <li><b>SMS:</b> Click SMS to copy or open an SMS composer (depends on device/browser).</li>
+                    <li><b>Call:</b> Use the phone icon to initiate a call on devices that support tel: links.</li>
+                  </ul>
+
+                  <h5 class="text-sky-700">Products</h5>
+                  <ul class="text-sky-600">
+                    <li>Add Product → set Name, Price, Quantity. Products are available when creating invoices.</li>
+                    <li>Edit stock directly from the product list. Use search to quickly find items.</li>
+                  </ul>
+
+                  <h5 class="text-sky-700">Dashboard & Reports</h5>
+                  <ul class="text-sky-600">
+                    <li>Dashboard shows totals (Invoices, Products, Sales, Revenue, Profit, Expenses) — change period (Today / Weekly / Monthly / Yearly / Live).</li>
+                    <li>Reports lists all saved invoices and can be exported to PDF/CSV or printed.</li>
+                    <li>Use Drive Backup to snapshot your localStorage so you can restore later.</li>
+                  </ul>
+                </div>
+
+                <div class="mt-3 text-xs text-sky-500 dark:text-sky-400">
+                  Tip: On mobile, use the <b>Help</b> button (top-right) for quick access. Rotate to landscape for wider tables.
+                </div>
+              </div>
+            </div>
+
+            <!-- Notices -->
+            <div class="settings-panel" data-panel="notices" style="display:none">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-semibold text-sky-800 dark:text-sky-100">Notices</h4>
+                <div class="flex items-center gap-2">
+                  <button id="translateProgrammaticNotices" class="px-2 py-1 text-xs rounded bg-sky-100 text-sky-800">Translate Notices</button>
+                  <button id="clearNoticesBtn" class="px-2 py-1 text-xs rounded bg-red-600 text-white">Clear All</button>
+                </div>
+              </div>
+              <div id="settingsNotices" class="space-y-2 max-h-56 overflow-auto p-1"></div>
+            </div>
+
+            <!-- Export -->
+            <div class="settings-panel" data-panel="export" style="display:none">
+              <h4 class="font-semibold mb-2 text-sky-800 dark:text-sky-100">Export</h4>
+              <div class="flex gap-2 flex-wrap">
+                <button id="exportInvoicesPdf" class="px-3 py-2 bg-sky-600 text-white rounded"><i class="fa-solid fa-file-pdf mr-1"></i> PDF</button>
+                <button id="exportInvoicesExcel" class="px-3 py-2 bg-emerald-600 text-white rounded"><i class="fa-solid fa-file-csv mr-1"></i> CSV</button>
+              </div>
+            </div>
+
+            <!-- Drive -->
+            <div class="settings-panel" data-panel="drive" style="display:none">
+              <h4 class="font-semibold mb-2 text-sky-800 dark:text-sky-100">Google Drive Backup</h4>
+              <div class="text-sm mb-2 text-sky-600 dark:text-sky-200">Requires Google OAuth (GSI) & acceptance as test user. Backups store a JSON snapshot of localStorage.</div>
+              <div class="space-y-2">
+                <label class="flex items-center gap-2"><input id="optAutoRestoreLogin" type="checkbox"> Auto-check Drive on login (opt-in)</label>
+                <label class="flex items-center gap-2">
+                  <input id="optAutoBackupEnabled" type="checkbox"> Auto backup every
+                  <input id="optAutoBackupDays" type="number" min="1" value="7" style="width:64px;margin-left:6px"> days
+                </label>
+                <div class="text-xs text-sky-500 dark:text-sky-400">Auto backups run while the app is open (background timers). Last run stored in settings.</div>
+                <div class="flex gap-2 mt-2 flex-wrap">
+                  <button id="driveBackupBtn" class="px-3 py-2 bg-indigo-600 text-white rounded"><i class="fa-brands fa-google-drive mr-1"></i> Backup to Drive</button>
+                  <button id="driveRefreshBtn" class="px-3 py-2 bg-amber-500 text-white rounded"><i class="fa-solid fa-refresh mr-1"></i> Refresh List</button>
+                  <button id="driveRestoreLatestBtn" class="px-3 py-2 bg-red-600 text-white rounded"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Restore Latest</button>
+                </div>
+                <div id="driveStatus" class="mt-2 text-sm text-sky-600 dark:text-sky-200">Drive: not initialized</div>
+                <div id="driveBackupList" class="mt-3 space-y-2 max-h-48 overflow-auto"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
       </div>
-    `).join('');
-  }
+    `;
 
-  // Provide a minimal Notices API: add + list
-  window.Notices = {
-    add: function({ title = 'Notice', body = '' } = {}) {
-      const all = lsGet(LS_NOTICES) || [];
-      const payload = { id: `N-${Date.now()}-${Math.floor(Math.random()*9000)}`, title: String(title), body: String(body), created: Date.now() };
-      all.unshift(payload);
-      lsSet(LS_NOTICES, all);
-      // update UI and notify other tabs
-      try { renderNoticesUI(); } catch (e) { /* ignore */ }
-      try { window.dispatchEvent(new Event('noticesUpdated')); } catch (e) { /* ignore */ }
-      try { localStorage.setItem('__notices_sync', Date.now().toString()); } catch (e) { /* ignore */ }
-      return payload;
-    },
-    list: function() {
-      return lsGet(LS_NOTICES) || [];
+
+    document.body.appendChild(modal);
+
+    /* -------------------------
+       Translations + language logic
+       ------------------------- */
+    const LS_LANG_KEY = 'preferredLang';
+    const translations = {
+      en: {
+        settingsTitle: "Settings & Utilities",
+        closeBtn: "Close",
+        helpBtnTitle: "Help",
+        tabs: { helpNotice: "Help Notice", messages: "Messages", helpNav: "Help", notices: "Notices", export: "Export", drive: "Drive Backup" },
+        helpNoticeTitle: "Quick Tips",
+        helpNoticeBody: "Need a quick refresher? Use 'Create Invoice' to start, 'Add Product' to populate stock, and 'Drive Backup' to protect your data.",
+        helpFullIntro: "<strong>Getting started:</strong> Add products, create invoices, send reminders, and export reports. Below are step-by-step help items.",
+        tplDefaults: {
+          reminder_wa: "Reminder: {customer}, your balance is {balance}. Please pay at {store} ({phone}).",
+          reminder_sms: "Reminder: {customer}, your balance is {balance}."
+        },
+        savedText: "Saved",
+        exportPdf: "PDF",
+        exportCsv: "CSV",
+        driveNotInit: "Drive: not initialized",
+        noticesEmpty: "No notices.",
+        programmaticNotices: {
+          backup_done: { title: "Backup complete", body: "Your backup was saved to Drive." },
+          restore_done: { title: "Restore complete", body: "Data restored from Drive successfully." },
+          welcome: { title: "Welcome", body: "Welcome to your supermarket dashboard — quick tips available in Settings." }
+        },
+        translateNoticesBtn: "Translate Notices",
+        clearNoticesBtn: "Clear All"
+      },
+      so: {
+        settingsTitle: "Dejimaha & Adeegyada",
+        closeBtn: "Xidh",
+        helpBtnTitle: "Caawimo",
+        tabs: { helpNotice: "Ogeysiis Caawimo", messages: "Fariimaha", helpNav: "Caawimo", notices: "Ogeysiisyo", export: "Dhoofin", drive: "Kaydin Drive" },
+        helpNoticeTitle: "Talooyin Degdeg ah",
+        helpNoticeBody: "U baahan tahay xasuusin kooban? Isticmaal 'Abuur Rasiid' si aad u bilowdo, 'Kudar Alaab' si aad u buuxiso kaydka, iyo 'Kaydin Drive' si aad xogta u ilaaliso.",
+        helpFullIntro: "<strong>Sida loo bilaabo:</strong> Kudar alaabo, abuuro rasiidyo, dir xasuusin, oo dhoofso warbixinno. Hoos ka hel tallabo-tallabo caawimo.",
+        tplDefaults: {
+          reminder_wa: "Xasuusin: {customer}, lacagta lagugu leeyahay waa: {balance}. Fadlan iska bixi dukaanka {store} ({phone}).",
+          reminder_sms: "Xasuusin: {customer}, lacagta lagugu leeyahay waa: {balance}."
+        },
+        savedText: "La keydiyey",
+        exportPdf: "PDF",
+        exportCsv: "CSV",
+        driveNotInit: "Drive: lama diyaarin",
+        noticesEmpty: "Ogeysiis ma jiro.",
+        programmaticNotices: {
+          backup_done: { title: "Kaydin dhameystiran", body: "Kaydintaada waxaa lagu badbaadiyey Drive." },
+          restore_done: { title: "Soo celin dhameystiran", body: "Xogta si guul leh ayaa looga soo celiyey Drive." },
+          welcome: { title: "Soo Dhawoow", body: "Ku soo dhawoow guddiga suuqa — talooyin kooban ka hel Dejimaha." }
+        },
+        translateNoticesBtn: "Tarjum Ogeysiisyada",
+        clearNoticesBtn: "Masax Dhammaan"
+      }
+    };
+
+    /* apply translations into modal */
+    function applyLangToModal(lang) {
+      const t = translations[lang] || translations.en;
+      document.getElementById('settingsTitle') && (document.getElementById('settingsTitle').textContent = t.settingsTitle);
+      document.getElementById('settingsCloseBtn') && (document.getElementById('settingsCloseBtn').textContent = t.closeBtn);
+      document.getElementById('settingsHelpOpen') && (document.getElementById('settingsHelpOpen').title = t.helpBtnTitle);
+
+      // tabs
+      Object.entries(t.tabs).forEach(([k, v]) => {
+        const el = modal.querySelector(`.settings-tab[data-tab="${k}"]`);
+        if (el) {
+          const icon = el.querySelector('i') ? el.querySelector('i').outerHTML + ' ' : '';
+          el.innerHTML = icon + v;
+        }
+      });
+
+      // help content
+      document.getElementById('helpNoticeTitle') && (document.getElementById('helpNoticeTitle').textContent = t.helpNoticeTitle);
+      document.getElementById('helpNoticeBody') && (document.getElementById('helpNoticeBody').innerHTML = t.helpNoticeBody);
+      document.getElementById('helpIntro') && (document.getElementById('helpIntro').innerHTML = t.helpFullIntro);
+
+      // messages templates default
+      const tpl = lsGet(LS_MSG_TPL) || {};
+      if (!tpl.reminder_wa && !tpl.reminder_sms) {
+        lsSet(LS_MSG_TPL, { reminder_wa: t.tplDefaults.reminder_wa, reminder_sms: t.tplDefaults.reminder_sms });
+      }
+      const storedTpl = lsGet(LS_MSG_TPL) || {};
+      document.getElementById('settingsWaTpl') && (document.getElementById('settingsWaTpl').value = storedTpl.reminder_wa || t.tplDefaults.reminder_wa);
+      document.getElementById('settingsSmsTpl') && (document.getElementById('settingsSmsTpl').value = storedTpl.reminder_sms || t.tplDefaults.reminder_sms);
+
+      // export & notices UI
+      document.getElementById('exportInvoicesPdf') && (document.getElementById('exportInvoicesPdf').innerHTML = `<i class="fa-solid fa-file-pdf mr-1"></i> ${t.exportPdf}`);
+      document.getElementById('exportInvoicesExcel') && (document.getElementById('exportInvoicesExcel').innerHTML = `<i class="fa-solid fa-file-csv mr-1"></i> ${t.exportCsv}`);
+      document.getElementById('driveStatus') && (document.getElementById('driveStatus').textContent = t.driveNotInit);
+      document.getElementById('translateProgrammaticNotices') && (document.getElementById('translateProgrammaticNotices').textContent = t.translateNoticesBtn);
+      document.getElementById('clearNoticesBtn') && (document.getElementById('clearNoticesBtn').textContent = t.clearNoticesBtn);
+
+      if (lang) localStorage.setItem(LS_LANG_KEY, lang);
     }
-  };
 
-  // ensure programmatic notices exist (adds if not present)
-  function ensureProgrammaticNotices() {
-    // Accept notices from either of these globals (you can set them before this script runs):
-    const programmatic = Array.isArray(window.PROGRAMMATIC_NOTICES) ? window.PROGRAMMATIC_NOTICES
-                      : Array.isArray(window.GLOBAL_NOTICES) ? window.GLOBAL_NOTICES
-                      : [];
-    if (!programmatic.length) return;
+    function setActiveLangButton(lang) {
+      const en = document.getElementById('langEnBtn'), so = document.getElementById('langSoBtn');
+      if (!en || !so) return;
+      en.classList.remove('bg-sky-600','text-white','shadow');
+      so.classList.remove('bg-sky-600','text-white','shadow');
+      if (lang === 'so') so.classList.add('bg-sky-600','text-white','shadow'); else en.classList.add('bg-sky-600','text-white','shadow');
+    }
 
-    const existing = lsGet(LS_NOTICES) || [];
-    let changed = false;
+    function applyLanguage(lang, save = true) {
+      if (!lang) lang = localStorage.getItem(LS_LANG_KEY) || 'en';
+      if (save) localStorage.setItem(LS_LANG_KEY, lang);
+      setActiveLangButton(lang);
+      applyLangToModal(lang);
+      try { renderNoticesUI(); } catch(e) {}
+      try { if (typeof window.applyTranslations === 'function') window.applyTranslations(lang); } catch(e) {}
+    }
 
-    programmatic.forEach(item => {
-      if (!item) return;
-      const id = item.id ? String(item.id) : null;
-      const title = item.title ? String(item.title) : null;
-      // check by id (preferred) then by exact title to avoid duplicates
-      const found = id ? existing.find(n => n.id === id) : (title ? existing.find(n => n.title === title) : null);
-      if (!found) {
-        const payload = {
-          id: id || `N-${Date.now()}-${Math.floor(Math.random()*9000)}`,
-          title: title || 'Notice',
-          body: item.body ? String(item.body) : '',
-          created: item.created ? Number(item.created) : Date.now()
-        };
-        existing.unshift(payload);
-        changed = true;
+    // wire language buttons
+    modal.querySelector('#langEnBtn')?.addEventListener('click', () => applyLanguage('en', true));
+    modal.querySelector('#langSoBtn')?.addEventListener('click', () => applyLanguage('so', true));
+
+    /* -------------------------
+       Panels/tab wiring & helpers
+       ------------------------- */
+    function showTab(name){
+      modal.querySelectorAll('.settings-panel').forEach(p => p.dataset.panel === name ? (p.style.display='block') : (p.style.display='none'));
+      modal.querySelectorAll('.settings-tab').forEach(x => x.classList.remove('bg-sky-50','dark:bg-sky-800'));
+      const btn = modal.querySelector(`.settings-tab[data-tab="${name}"]`);
+      if (btn) btn.classList.add('bg-sky-50');
+    }
+    modal.querySelectorAll('.settings-tab').forEach(tb => tb.addEventListener('click', function(){
+      showTab(this.dataset.tab);
+    }));
+
+    // close/backdrop
+    modal.querySelector('#settingsCloseBtn')?.addEventListener('click', ()=> modal.classList.add('hidden'));
+    modal.addEventListener('click', (e)=> { if (e.target === modal || e.target.id === 'appSettingsModalBackdrop') modal.classList.add('hidden'); });
+
+    /* -------------------------
+       Messages save/reset
+       ------------------------- */
+    modal.querySelector('#settingsSaveMsgBtn')?.addEventListener('click', ()=>{
+      const wa = (document.getElementById('settingsWaTpl')||{}).value || '';
+      const sms = (document.getElementById('settingsSmsTpl')||{}).value || '';
+      lsSet(LS_MSG_TPL, { reminder_wa: wa, reminder_sms: sms });
+      const s = document.getElementById('settingsMsgStatus'); if (s){ s.classList.remove('hidden'); setTimeout(()=> s.classList.add('hidden'), 1200); }
+      const lang = localStorage.getItem(LS_LANG_KEY) || 'en';
+      const msg = (translations[lang] && translations[lang].savedText) ? translations[lang].savedText : 'Saved';
+      toast(msg, 'success');
+    });
+    modal.querySelector('#settingsResetMsgBtn')?.addEventListener('click', ()=>{
+      if (!confirm('Reset message templates to defaults?')) return;
+      const lang = localStorage.getItem(LS_LANG_KEY) || 'en';
+      const t = translations[lang] || translations.en;
+      lsSet(LS_MSG_TPL, { reminder_wa: t.tplDefaults.reminder_wa, reminder_sms: t.tplDefaults.reminder_sms });
+      const tpl = lsGet(LS_MSG_TPL) || {};
+      document.getElementById('settingsWaTpl') && (document.getElementById('settingsWaTpl').value = tpl.reminder_wa || '');
+      document.getElementById('settingsSmsTpl') && (document.getElementById('settingsSmsTpl').value = tpl.reminder_sms || '');
+      toast(t.savedText || 'Saved', 'success');
+    });
+
+    /* -------------------------
+       Export wiring (unchanged)
+       ------------------------- */
+    modal.querySelector('#exportInvoicesPdf')?.addEventListener('click', ()=>{
+      const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
+      if (!user) { toast('Login required','error'); return; }
+      const inv = (typeof getStoreInvoices === 'function') ? getStoreInvoices(user.name) : [];
+      if (!inv || !inv.length) { toast('No invoices','error'); return; }
+      if (!window.jspdf) { alert('jsPDF required'); return; }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text(`${user.name} - Invoices`, 14, 16);
+      if (doc.autoTable) {
+        doc.autoTable({ head: [['ID','Date','Customer','Phone','Amount','Paid','Status']], body: inv.map(i => [i.id, i.date, i.customer, i.phone, i.amount, i.paid, i.status]), startY: 22 });
+      } else {
+        let y = 22;
+        inv.forEach(i => { doc.text(`${i.id} ${i.date} ${i.customer} ${i.amount}`, 14, y); y+=8; });
+      }
+      doc.save(`invoices_${user.name}_${Date.now()}.pdf`);
+      toast('PDF exported','success');
+    });
+    modal.querySelector('#exportInvoicesExcel')?.addEventListener('click', ()=>{
+      const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
+      if (!user) { toast('Login required','error'); return; }
+      const inv = (typeof getStoreInvoices === 'function') ? getStoreInvoices(user.name) : [];
+      if (!inv || !inv.length) { toast('No invoices','error'); return; }
+      const rows = [['ID','Date','Customer','Phone','Amount','Paid','Status']]; inv.forEach(i => rows.push([i.id, i.date, i.customer, i.phone, i.amount, i.paid, i.status]));
+      const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type:'text/csv' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `invoices_${user.name}_${Date.now()}.csv`; document.body.appendChild(a); a.click(); a.remove();
+      toast('CSV exported','success');
+    });
+
+    /* -------------------------
+       Notices UI (with programmatic i18n support)
+       ------------------------- */
+    function renderNoticesUI() {
+      const notices = lsGet(LS_NOTICES) || [];
+      const noticesEl = document.getElementById('settingsNotices');
+      if (!noticesEl) return;
+      const lang = localStorage.getItem(LS_LANG_KEY) || 'en';
+      const progI18n = (translations[lang] && translations[lang].programmaticNotices) ? translations[lang].programmaticNotices : {};
+
+      if (!notices.length) {
+        const t = translations[lang] || translations.en;
+        noticesEl.innerHTML = `<div class="text-sm text-slate-600 dark:text-slate-400">${t.noticesEmpty}</div>`;
+        return;
+      }
+
+      noticesEl.innerHTML = notices.map(n => {
+        let title = escapeHtml(n.title || '');
+        let body = escapeHtml(n.body || '');
+        if (n.i18nKey && progI18n[n.i18nKey]) {
+          title = escapeHtml(progI18n[n.i18nKey].title || title);
+          body = escapeHtml(progI18n[n.i18nKey].body || body);
+        }
+        return `
+          <div class="rounded-lg p-3 bg-white dark:bg-sky-900/6 shadow-sm border border-sky-100">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="font-semibold text-sm text-slate-900 dark:text-slate-100">${title}</div>
+                <div class="text-sm text-slate-600 dark:text-slate-300 mt-1">${body}</div>
+              </div>
+              <div class="text-xs text-slate-400">${new Date(n.created||Date.now()).toLocaleString()}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.Notices = {
+      add: function({ title = 'Notice', body = '', i18nKey = null } = {}) {
+        const all = lsGet(LS_NOTICES) || [];
+        const payload = { id: `N-${Date.now()}-${Math.floor(Math.random()*9000)}`, title: String(title), body: String(body), created: Date.now() };
+        if (i18nKey) payload.i18nKey = i18nKey;
+        all.unshift(payload);
+        lsSet(LS_NOTICES, all);
+        try { renderNoticesUI(); } catch (e) {}
+        try { window.dispatchEvent(new Event('noticesUpdated')); } catch (e) {}
+        try { localStorage.setItem('__notices_sync', Date.now().toString()); } catch (e) {}
+        return payload;
+      },
+      list: function() { return lsGet(LS_NOTICES) || []; },
+      clear: function() { lsSet(LS_NOTICES, []); renderNoticesUI(); }
+    };
+
+    function ensureProgrammaticNotices() {
+      const programmatic = Array.isArray(window.PROGRAMMATIC_NOTICES) ? window.PROGRAMMATIC_NOTICES
+                        : Array.isArray(window.GLOBAL_NOTICES) ? window.GLOBAL_NOTICES
+                        : [];
+      if (!programmatic.length) return;
+      const existing = lsGet(LS_NOTICES) || [];
+      let changed = false;
+      programmatic.forEach(item => {
+        if (!item) return;
+        const id = item.id ? String(item.id) : null;
+        const i18nKey = item.i18nKey || item.key || null;
+        const found = id ? existing.find(n => n.id === id) : (i18nKey ? existing.find(n => n.i18nKey === i18nKey) : null);
+        if (!found) {
+          const payload = {
+            id: id || `N-${Date.now()}-${Math.floor(Math.random()*9000)}`,
+            title: item.title || (i18nKey ? i18nKey : 'Notice'),
+            body: item.body || '',
+            created: item.created ? Number(item.created) : Date.now(),
+            i18nKey: i18nKey || null
+          };
+          existing.unshift(payload);
+          changed = true;
+        }
+      });
+      if (changed) {
+        lsSet(LS_NOTICES, existing);
+        try { renderNoticesUI(); } catch(e) {}
+        try { window.dispatchEvent(new Event('noticesUpdated')); } catch(e) {}
+        try { localStorage.setItem('__notices_sync', Date.now().toString()); } catch(e) {}
+      }
+    }
+
+    renderNoticesUI();
+    try { ensureProgrammaticNotices(); } catch(e){ console.error('ensureProgrammaticNotices failed', e); }
+
+    window.addEventListener('storage', (ev) => {
+      if (!ev) return;
+      if (ev.key === LS_NOTICES || ev.key === '__notices_sync') {
+        setTimeout(()=> { try { renderNoticesUI(); } catch(e){} }, 50);
       }
     });
+    window.addEventListener('noticesUpdated', () => { try { renderNoticesUI(); } catch(e){} });
+    window.renderNoticesUI = renderNoticesUI;
 
-    if (changed) {
-      lsSet(LS_NOTICES, existing);
-      try { renderNoticesUI(); } catch(e) { /* ignore */ }
-      try { window.dispatchEvent(new Event('noticesUpdated')); } catch(e) { /* ignore */ }
-      try { localStorage.setItem('__notices_sync', Date.now().toString()); } catch(e) { /* ignore */ }
-    }
-  }
-
-  // Initial render on modal open / script run
-  renderNoticesUI();
-
-  // Immediately ensure any programmatic notices are present (so they appear after a refresh)
-  try { ensureProgrammaticNotices(); } catch(e){ console.error('ensureProgrammaticNotices failed', e); }
-
-  // When other tabs change notices via localStorage, refresh UI (cross-tab sync)
-  window.addEventListener('storage', (ev) => {
-    if (!ev) return;
-    if (ev.key === LS_NOTICES || ev.key === '__notices_sync') {
-      // small delay to let the value be written
-      setTimeout(()=> { try { renderNoticesUI(); } catch(e){} }, 50);
-    }
-  });
-
-  // Also re-render when an app-level event is fired
-  window.addEventListener('noticesUpdated', () => { try { renderNoticesUI(); } catch(e){} });
-
-  // Provide a helper so other code can re-render after they add notices
-  window.renderNoticesUI = renderNoticesUI;
-
-  // Example: if you still have a manual button (optional), wire it
-  const someRemindBtn = document.getElementById('someRemindBtn');
-  if (someRemindBtn) {
-    someRemindBtn.addEventListener('click', () => {
-      window.Notices.add({
-        title: 'Manual reminder',
-        body: 'This was created by clicking the reminder button.'
-      });
-      toast('Notice added', 'success');
+    document.getElementById('translateProgrammaticNotices')?.addEventListener('click', ()=> {
+      renderNoticesUI();
+      toast('Notices translated', 'success');
     });
-  }
-})();
-//window.Notices.add({ title: 'New', body: 'Something important' });
+    document.getElementById('clearNoticesBtn')?.addEventListener('click', ()=> {
+      if (!confirm('Clear all notices?')) return;
+      window.Notices.clear();
+      toast('Notices cleared','success');
+    });
 
+    // example manual notice trigger
+    const someRemindBtn = document.getElementById('someRemindBtn');
+    if (someRemindBtn) {
+      someRemindBtn.addEventListener('click', () => {
+        window.Notices.add({ i18nKey: 'welcome' });
+        toast('Notice added', 'success');
+      });
+    }
 
-    // populate drive settings toggles
+    /* -------------------------
+       Drive settings wiring
+       ------------------------- */
     const s = lsGet(LS_SETTINGS) || {};
     const optRestore = document.getElementById('optAutoRestoreLogin');
     const optAutoEnabled = document.getElementById('optAutoBackupEnabled');
@@ -4060,441 +5224,504 @@ function sendReminderFor(target, method) {
     if (optAutoEnabled) optAutoEnabled.checked = Boolean(s.autoBackup && s.autoBackup.enabled);
     if (optAutoDays) optAutoDays.value = (s.autoBackup && s.autoBackup.days) ? s.autoBackup.days : 7;
 
-    // setup drive init (non-blocking)
     initGisIfNeeded();
-    initGapiIfNeeded().then(()=> { setDriveStatus('Drive: ready'); }).catch(()=> { setDriveStatus('Drive: client not ready'); });
+    initGapiIfNeeded().then(()=> { setDriveStatus && setDriveStatus('Drive: ready'); }).catch(()=> { setDriveStatus && setDriveStatus('Drive: client not ready'); });
 
-    // show the modal
-    modal.classList.remove('hidden');
-    // default panel: messages
-    modal.querySelectorAll('.settings-panel').forEach(p => p.style.display = p.dataset.panel === 'messages' ? 'block' : 'none');
+    document.getElementById('driveBackupBtn')?.addEventListener('click', driveBackup);
+    document.getElementById('driveRefreshBtn')?.addEventListener('click', driveListBackups);
+    document.getElementById('driveRestoreLatestBtn')?.addEventListener('click', driveRestoreLatest);
 
-    // wire save of drive settings
     function persistDriveSettings(){
       const cur = lsGet(LS_SETTINGS) || {};
       cur.autoRestoreOnLogin = Boolean(document.getElementById('optAutoRestoreLogin')?.checked);
       cur.autoBackup = { enabled: Boolean(document.getElementById('optAutoBackupEnabled')?.checked), days: Number(document.getElementById('optAutoBackupDays')?.value) || 7 };
       lsSet(LS_SETTINGS, cur);
-      toast('Backup settings saved','success');
+      const lang = localStorage.getItem(LS_LANG_KEY) || 'en';
+      const msg = (translations[lang] && translations[lang].savedText) ? translations[lang].savedText : 'Saved';
+      toast(msg,'success');
       if (cur.autoBackup && cur.autoBackup.enabled) scheduleAutoBackup(); else cancelAutoBackup();
     }
     document.getElementById('optAutoRestoreLogin')?.addEventListener('change', persistDriveSettings);
     document.getElementById('optAutoBackupEnabled')?.addEventListener('change', persistDriveSettings);
     document.getElementById('optAutoBackupDays')?.addEventListener('change', persistDriveSettings);
 
-    // wire Drive buttons now
-    document.getElementById('driveBackupBtn')?.addEventListener('click', driveBackup);
-    document.getElementById('driveRefreshBtn')?.addEventListener('click', driveListBackups);
-    document.getElementById('driveRestoreLatestBtn')?.addEventListener('click', driveRestoreLatest);
+    /* -------------------------
+       Show modal + animate help notice
+       ------------------------- */
+    modal.classList.remove('hidden');
+    modal.querySelectorAll('.settings-panel').forEach(p => p.style.display = p.dataset.panel === 'helpNotice' ? 'block' : 'none');
 
-    // initial list load
-    driveListBackups();
-  } // end openSettingsModal
+    (function initLangOnModalOpen(){
+      const saved = localStorage.getItem(LS_LANG_KEY) || 'en';
+      setActiveLangButton(saved);
+      applyLangToModal(saved);
 
-  // small helper to set drive status element
-  function setDriveStatus(msg, isError){
-    const el = document.getElementById('driveStatus');
-    if (el) { el.textContent = msg; el.style.color = isError ? '#b91c1c' : '#065f46'; }
-  }
+      // wire language buttons to also call global applyTranslations
+      document.getElementById('langEnBtn')?.addEventListener('click', ()=> {
+        localStorage.setItem(LS_LANG_KEY,'en');
+        try { if (typeof window.applyTranslations === 'function') window.applyTranslations('en'); } catch(e){}
+        applyLanguage('en', true);
+      });
+      document.getElementById('langSoBtn')?.addEventListener('click', ()=> {
+        localStorage.setItem(LS_LANG_KEY,'so');
+        try { if (typeof window.applyTranslations === 'function') window.applyTranslations('so'); } catch(e){}
+        applyLanguage('so', true);
+      });
 
-  // Drive implementations: list, backup, download, restore, latest
-  async function driveListBackups(){
-    setDriveStatus('Listing backups...');
-    initGisIfNeeded();
-    try { await initGapiIfNeeded(); } catch(e){ setDriveStatus('gapi init failed', true); console.error(e); return; }
-    showSpinner('Listing backups...');
-    requestDriveToken(async (token) => {
-      try {
-        const q = `name contains '${BACKUP_NAME_PREFIX}' and trashed=false and mimeType='application/json'`;
-        const params = `?q=${encodeURIComponent(q)}&fields=files(id,name,createdTime,size)&orderBy=createdTime desc&pageSize=50`;
-        const res = await fetch('https://www.googleapis.com/drive/v3/files' + params, { headers: { Authorization: 'Bearer ' + token }});
-        if (!res.ok) { const t = await res.text(); console.error(t); setDriveStatus('List failed', true); hideSpinner(); return; }
-        const data = await res.json();
-        const listEl = document.getElementById('driveBackupList');
-        if (!listEl) { hideSpinner(); return; }
-        listEl.innerHTML = '';
-        if (!data.files || !data.files.length) { listEl.innerHTML = '<div class="text-sm text-gray-500">No backups found</div>'; setDriveStatus('No backups'); hideSpinner(); return; }
-        data.files.forEach(file => {
-          const wrap = document.createElement('div');
-          wrap.className = 'p-2 border rounded bg-white flex items-center justify-between gap-2';
-          const left = document.createElement('div');
-          left.style.flex = '1';
-          left.innerHTML = `<div style="font-weight:600;word-break:break-word">${escapeHtml(file.name)}</div><div style="font-size:12px;color:#6b7280">${new Date(file.createdTime).toLocaleString()} • ${file.size ? (Math.round(file.size/1024) + ' KB') : ''}</div>`;
-          const right = document.createElement('div');
-          right.style.display = 'flex';
-          right.style.gap = '6px';
-          const btnRestore = document.createElement('button'); btnRestore.className = 'px-2 py-1 bg-green-600 text-white rounded text-sm'; btnRestore.textContent = 'Restore';
-          const btnDownload = document.createElement('button'); btnDownload.className = 'px-2 py-1 bg-gray-200 rounded text-sm'; btnDownload.textContent = 'Download';
-          btnRestore.onclick = () => driveRestore(file.id, file.name);
-          btnDownload.onclick = () => driveDownload(file.id, file.name);
-          right.appendChild(btnRestore); right.appendChild(btnDownload);
-          wrap.appendChild(left); wrap.appendChild(right);
-          listEl.appendChild(wrap);
-        });
-        setDriveStatus('Backups listed (' + data.files.length + ')');
-        hideSpinner();
-      } catch(err){ console.error(err); setDriveStatus('Error listing', true); hideSpinner(); }
-    });
-  }
+      // help controls (dismiss, open full help)
+      document.getElementById('dismissHelpNotice')?.addEventListener('click', ()=> {
+        document.getElementById('helpNoticeCard')?.classList.add('hidden');
+      });
+      document.getElementById('moreHelpBtn')?.addEventListener('click', ()=> {
+        showTab('helpNav');
+      });
+      document.getElementById('showHelpPanelBtn')?.addEventListener('click', ()=> {
+        showTab('helpNav');
+      });
 
-  async function driveBackup(){
-    setDriveStatus('Preparing backup...');
-    // create snapshot of localStorage
-    const snapshot = {};
-    for (let i=0;i<localStorage.length;i++){ const k = localStorage.key(i); snapshot[k] = localStorage.getItem(k); }
-    const payload = JSON.stringify(snapshot, null, 2);
-    showSpinner('Uploading backup...','Preparing data');
-    requestDriveToken(async (token) => {
-      try {
-        const metadata = { name: `${BACKUP_NAME_PREFIX}${Date.now()}.json`, mimeType: 'application/json' };
-        const form = new FormData();
-        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-        form.append('file', new Blob([payload], { type: 'application/json' }));
-        const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,createdTime', {
-          method: 'POST',
-          headers: { Authorization: 'Bearer ' + token },
-          body: form
-        });
-        if (!res.ok) { const t = await res.text(); console.error('upload failed', t); setDriveStatus('Backup failed', true); hideSpinner(); return; }
-        const json = await res.json();
-        const settings = lsGet(LS_SETTINGS) || {}; settings.lastAutoBackup = now(); lsSet(LS_SETTINGS, settings);
-        setDriveStatus('Backup saved: ' + json.name);
-        toast('Backup saved to Drive', 'success');
-        hideSpinner();
-        driveListBackups();
-      } catch(err){ console.error(err); setDriveStatus('Backup error', true); hideSpinner(); }
-    });
-  }
+      // animate the help notice entrance
+      const helpCard = document.getElementById('helpNoticeCard');
+      if (helpCard) {
+        helpCard.classList.add('help-notice-enter');
+        // next tick -> active
+        setTimeout(()=> {
+          helpCard.classList.add('help-notice-enter-active');
+        }, 20);
+        // remove the enter classes after animation so it can play again later
+        setTimeout(()=> {
+          helpCard.classList.remove('help-notice-enter','help-notice-enter-active');
+        }, 420);
+      }
+    })();
 
-  async function driveDownload(fileId, fileName){
-    setDriveStatus('Downloading ' + fileName + '...');
-    showSpinner('Downloading backup...', fileName);
-    requestDriveToken(async (token) => {
-      try {
-        const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers: { Authorization: 'Bearer ' + token }});
-        if (!res.ok) { const t = await res.text(); console.error(t); setDriveStatus('Download failed', true); hideSpinner(); return; }
-        const text = await res.text();
-        const blob = new Blob([text], { type:'application/json' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fileName; document.body.appendChild(a); a.click(); a.remove();
-        setDriveStatus('Downloaded ' + fileName);
-        toast('Backup downloaded', 'success');
-        hideSpinner();
-      } catch(err){ console.error(err); setDriveStatus('Download error', true); hideSpinner(); }
-    });
-  }
+  } // end if create modal
 
-  async function driveRestore(fileId, fileName){
-    if (!confirm(`Restore "${fileName}"? This will overwrite local data stored in this browser.`)) return;
-    setDriveStatus('Restoring ' + fileName + '...');
-    showSpinner('Restoring backup...', fileName);
-    requestDriveToken(async (token) => {
-      try {
-        const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers: { Authorization: 'Bearer ' + token }});
-        if (!res.ok) { const t = await res.text(); console.error(t); setDriveStatus('Restore failed', true); hideSpinner(); return; }
-        const text = await res.text();
-        let obj;
-        try { obj = JSON.parse(text); } catch(e){ setDriveStatus('Invalid JSON in backup', true); hideSpinner(); return; }
-        localStorage.clear();
-        Object.keys(obj).forEach(k => localStorage.setItem(k, obj[k]));
-        // re-render app pieces (non-intrusive)
-        try { window.dispatchEvent(new Event('dataUpdated')); } catch(e){}
-        try { if (typeof renderProductList === 'function') renderProductList(); } catch(e){}
-        try { if (typeof renderInvoiceTable === 'function') renderInvoiceTable(); } catch(e){}
-        try { if (typeof renderReports === 'function') renderReports(); } catch(e){}
-        try { if (typeof updateDashboardTotals === 'function') updateDashboardTotals(); } catch(e){}
-        setDriveStatus('Restore complete');
-        toast('Backup restored', 'success');
-        hideSpinner();
-      } catch(err){ console.error(err); setDriveStatus('Restore error', true); hideSpinner(); }
-    });
-  }
+  // ensure modal element ref
+  modal = document.getElementById('appSettingsModal');
 
-  async function driveRestoreLatest(){
-    setDriveStatus('Fetching latest backup...');
-    showSpinner('Fetching latest backup...');
-    requestDriveToken(async (token) => {
-      try {
-        const q = `name contains '${BACKUP_NAME_PREFIX}' and trashed=false and mimeType='application/json'`;
-        const params = `?q=${encodeURIComponent(q)}&fields=files(id,name,createdTime)&orderBy=createdTime desc&pageSize=1`;
-        const res = await fetch('https://www.googleapis.com/drive/v3/files' + params, { headers: { Authorization: 'Bearer ' + token }});
-        if (!res.ok) { const t = await res.text(); console.error(t); setDriveStatus('Failed to fetch latest', true); hideSpinner(); return; }
-        const data = await res.json();
-        if (!data.files || !data.files.length) { setDriveStatus('No backups found'); hideSpinner(); return; }
-        const latest = data.files[0];
-        if (!confirm(`Restore latest backup "${latest.name}"? This will overwrite local data.`)) { hideSpinner(); return; }
-        // download & restore
-        const r = await fetch(`https://www.googleapis.com/drive/v3/files/${latest.id}?alt=media`, { headers: { Authorization: 'Bearer ' + token }});
-        if (!r.ok) { setDriveStatus('Failed to download latest', true); hideSpinner(); return; }
-        const txt = await r.text();
-        let obj; try { obj = JSON.parse(txt); } catch(e){ setDriveStatus('Latest backup invalid', true); hideSpinner(); return; }
-        localStorage.clear();
-        Object.keys(obj).forEach(k => localStorage.setItem(k, obj[k]));
-        try { window.dispatchEvent(new Event('dataUpdated')); } catch(e){}
-        try { if (typeof renderProductList === 'function') renderProductList(); } catch(e){}
-        try { if (typeof renderInvoiceTable === 'function') renderInvoiceTable(); } catch(e){}
-        try { if (typeof renderReports === 'function') renderReports(); } catch(e){}
-        try { if (typeof updateDashboardTotals === 'function') updateDashboardTotals(); } catch(e){}
-        setDriveStatus('Latest backup restored: ' + latest.name);
-        toast('Latest backup restored','success');
-        hideSpinner();
-      } catch(err){ console.error(err); setDriveStatus('Error restoring latest', true); hideSpinner(); }
-    });
-  }
+  // fill templates into textareas (if any)
+  const tpl = lsGet(LS_MSG_TPL) || {};
+  document.getElementById('settingsWaTpl') && (document.getElementById('settingsWaTpl').value = tpl.reminder_wa || '');
+  document.getElementById('settingsSmsTpl') && (document.getElementById('settingsSmsTpl').value = tpl.reminder_sms || '');
 
-  // Expose functions for wiring (they map to internal names in your app too)
-  window.driveBackup = driveBackup;
-  window.driveListBackups = driveListBackups;
-  window.driveRestoreLatest = driveRestoreLatest;
+  // helper: escapeHtml
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-  // Settings button attach (safe: will not override if exists)
-  (function attachSettingsButton(){
-    let btn = document.getElementById('storeSettingsBtn');
-    if (!btn) {
-      const target = document.getElementById('storeDisplayDesktop');
-      btn = document.createElement('button');
-      btn.id = 'storeSettingsBtn';
-      btn.className = 'ml-2 px-2 py-1 rounded bg-emerald-600 text-white';
-      btn.title = 'Settings';
-      btn.innerHTML = '<i class="fa-solid fa-cog"></i>';
-      if (target && target.parentNode) target.parentNode.insertBefore(btn, target.nextSibling);
-      else document.body.appendChild(btn);
+  // expose applyLanguage helper globally for other UI
+  window.applySettingsModalLanguage = function(lang){
+    try { if (typeof applyLanguage === 'function') applyLanguage(lang, true); } catch(e){}
+  };
+
+  // end openSettingsModal
+}
+
+
+    // small helper to set drive status element
+    function setDriveStatus(msg, isError){
+      const el = document.getElementById('driveStatus');
+      if (el) { el.textContent = msg; el.style.color = isError ? '#b91c1c' : '#065f46'; }
     }
-    btn.onclick = openSettingsModal;
-  })();
-
-  // ===========================
-  // Auto-backup scheduling (timers while app is open)
-  // ===========================
-  let autoBackupTimer = null;
-  function scheduleAutoBackup(){
-    const s = lsGet(LS_SETTINGS) || {};
-    if (!s.autoBackup || !s.autoBackup.enabled) return cancelAutoBackup();
-    const days = Number(s.autoBackup.days) || 7;
-    const ms = days * 24 * 60 * 60 * 1000;
-    cancelAutoBackup();
-    // quick immediate run if overdue
-    const last = Number(s.lastAutoBackup || 0);
-    if (!last || (now() - last >= ms)) {
-      try { driveBackup(); } catch(e){ console.error(e); }
-    }
-    autoBackupTimer = setInterval(()=> {
-      try { driveBackup(); } catch(e){ console.error(e); }
-    }, ms);
-  }
-  function cancelAutoBackup(){ if (autoBackupTimer){ clearInterval(autoBackupTimer); autoBackupTimer = null; } }
-  // init schedule if enabled
-  (function initAuto(){
-    const s = lsGet(LS_SETTINGS) || {};
-    if (s && s.autoBackup && s.autoBackup.enabled) setTimeout(scheduleAutoBackup, 800);
-  })();
-
-  // ===========================
-  // Auto-restore prompt on login (opt-in)
-  // Attach a hook to setCurrentUser if available
-  // ===========================
-  (function attachLoginHook(){
-    if (typeof window.setCurrentUser === 'function') {
-      const _orig = window.setCurrentUser;
-      window.setCurrentUser = function(user){
-        _orig(user);
-        try { window.dispatchEvent(new CustomEvent('app:userLoggedIn', { detail:{ user } })); } catch(e){ console.warn(e); }
-      };
-    }
-    window.addEventListener('app:userLoggedIn', ev => { try { handleAutoRestorePrompt(ev.detail.user); } catch(e){ console.error(e); } });
-    document.addEventListener('DOMContentLoaded', ()=> {
-      const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
-      if (user) handleAutoRestorePrompt(user);
-    });
-  })();
-
-  async function handleAutoRestorePrompt(user){
-    try {
-      const settings = lsGet(LS_SETTINGS) || {};
-      if (!settings.autoRestoreOnLogin) return;
-      if (!user) return;
+  
+    // Drive implementations: list, backup, download, restore, latest
+    async function driveListBackups(){
+      setDriveStatus('Listing backups...');
       initGisIfNeeded();
-      try { await initGapiIfNeeded(); } catch(e){ console.warn('gapi not ready', e); }
-      showSpinner('Checking Drive for backups...');
+      try { await initGapiIfNeeded(); } catch(e){ setDriveStatus('gapi init failed', true); console.error(e); return; }
+      showSpinner('Listing backups...');
+      requestDriveToken(async (token) => {
+        try {
+          const q = `name contains '${BACKUP_NAME_PREFIX}' and trashed=false and mimeType='application/json'`;
+          const params = `?q=${encodeURIComponent(q)}&fields=files(id,name,createdTime,size)&orderBy=createdTime desc&pageSize=50`;
+          const res = await fetch('https://www.googleapis.com/drive/v3/files' + params, { headers: { Authorization: 'Bearer ' + token }});
+          if (!res.ok) { const t = await res.text(); console.error(t); setDriveStatus('List failed', true); hideSpinner(); return; }
+          const data = await res.json();
+          const listEl = document.getElementById('driveBackupList');
+          if (!listEl) { hideSpinner(); return; }
+          listEl.innerHTML = '';
+          if (!data.files || !data.files.length) { listEl.innerHTML = '<div class="text-sm text-gray-500">No backups found</div>'; setDriveStatus('No backups'); hideSpinner(); return; }
+          data.files.forEach(file => {
+            const wrap = document.createElement('div');
+            wrap.className = 'p-2 border rounded bg-white flex items-center justify-between gap-2';
+            const left = document.createElement('div');
+            left.style.flex = '1';
+            left.innerHTML = `<div style="font-weight:600;word-break:break-word">${escapeHtml(file.name)}</div><div style="font-size:12px;color:#6b7280">${new Date(file.createdTime).toLocaleString()} • ${file.size ? (Math.round(file.size/1024) + ' KB') : ''}</div>`;
+            const right = document.createElement('div');
+            right.style.display = 'flex';
+            right.style.gap = '6px';
+            const btnRestore = document.createElement('button'); btnRestore.className = 'px-2 py-1 bg-green-600 text-white rounded text-sm'; btnRestore.textContent = 'Restore';
+            const btnDownload = document.createElement('button'); btnDownload.className = 'px-2 py-1 bg-gray-200 rounded text-sm'; btnDownload.textContent = 'Download';
+            btnRestore.onclick = () => driveRestore(file.id, file.name);
+            btnDownload.onclick = () => driveDownload(file.id, file.name);
+            right.appendChild(btnRestore); right.appendChild(btnDownload);
+            wrap.appendChild(left); wrap.appendChild(right);
+            listEl.appendChild(wrap);
+          });
+          setDriveStatus('Backups listed (' + data.files.length + ')');
+          hideSpinner();
+        } catch(err){ console.error(err); setDriveStatus('Error listing', true); hideSpinner(); }
+      });
+    }
+  
+    async function driveBackup(){
+      setDriveStatus('Preparing backup...');
+      // create snapshot of localStorage
+      const snapshot = {};
+      for (let i=0;i<localStorage.length;i++){ const k = localStorage.key(i); snapshot[k] = localStorage.getItem(k); }
+      const payload = JSON.stringify(snapshot, null, 2);
+      showSpinner('Uploading backup...','Preparing data');
+      requestDriveToken(async (token) => {
+        try {
+          const metadata = { name: `${BACKUP_NAME_PREFIX}${Date.now()}.json`, mimeType: 'application/json' };
+          const form = new FormData();
+          form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+          form.append('file', new Blob([payload], { type: 'application/json' }));
+          const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,createdTime', {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + token },
+            body: form
+          });
+          if (!res.ok) { const t = await res.text(); console.error('upload failed', t); setDriveStatus('Backup failed', true); hideSpinner(); return; }
+          const json = await res.json();
+          const settings = lsGet(LS_SETTINGS) || {}; settings.lastAutoBackup = now(); lsSet(LS_SETTINGS, settings);
+          setDriveStatus('Backup saved: ' + json.name);
+          toast('Backup saved to Drive', 'success');
+          hideSpinner();
+          driveListBackups();
+        } catch(err){ console.error(err); setDriveStatus('Backup error', true); hideSpinner(); }
+      });
+    }
+  
+    async function driveDownload(fileId, fileName){
+      setDriveStatus('Downloading ' + fileName + '...');
+      showSpinner('Downloading backup...', fileName);
+      requestDriveToken(async (token) => {
+        try {
+          const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers: { Authorization: 'Bearer ' + token }});
+          if (!res.ok) { const t = await res.text(); console.error(t); setDriveStatus('Download failed', true); hideSpinner(); return; }
+          const text = await res.text();
+          const blob = new Blob([text], { type:'application/json' });
+          const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fileName; document.body.appendChild(a); a.click(); a.remove();
+          setDriveStatus('Downloaded ' + fileName);
+          toast('Backup downloaded', 'success');
+          hideSpinner();
+        } catch(err){ console.error(err); setDriveStatus('Download error', true); hideSpinner(); }
+      });
+    }
+  
+    async function driveRestore(fileId, fileName){
+      if (!confirm(`Restore "${fileName}"? This will overwrite local data stored in this browser.`)) return;
+      setDriveStatus('Restoring ' + fileName + '...');
+      showSpinner('Restoring backup...', fileName);
+      requestDriveToken(async (token) => {
+        try {
+          const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers: { Authorization: 'Bearer ' + token }});
+          if (!res.ok) { const t = await res.text(); console.error(t); setDriveStatus('Restore failed', true); hideSpinner(); return; }
+          const text = await res.text();
+          let obj;
+          try { obj = JSON.parse(text); } catch(e){ setDriveStatus('Invalid JSON in backup', true); hideSpinner(); return; }
+          localStorage.clear();
+          Object.keys(obj).forEach(k => localStorage.setItem(k, obj[k]));
+          // re-render app pieces (non-intrusive)
+          try { window.dispatchEvent(new Event('dataUpdated')); } catch(e){}
+          try { if (typeof renderProductList === 'function') renderProductList(); } catch(e){}
+          try { if (typeof renderInvoiceTable === 'function') renderInvoiceTable(); } catch(e){}
+          try { if (typeof renderReports === 'function') renderReports(); } catch(e){}
+          try { if (typeof updateDashboardTotals === 'function') updateDashboardTotals(); } catch(e){}
+          setDriveStatus('Restore complete');
+          toast('Backup restored', 'success');
+          hideSpinner();
+        } catch(err){ console.error(err); setDriveStatus('Restore error', true); hideSpinner(); }
+      });
+    }
+  
+    async function driveRestoreLatest(){
+      setDriveStatus('Fetching latest backup...');
+      showSpinner('Fetching latest backup...');
       requestDriveToken(async (token) => {
         try {
           const q = `name contains '${BACKUP_NAME_PREFIX}' and trashed=false and mimeType='application/json'`;
           const params = `?q=${encodeURIComponent(q)}&fields=files(id,name,createdTime)&orderBy=createdTime desc&pageSize=1`;
           const res = await fetch('https://www.googleapis.com/drive/v3/files' + params, { headers: { Authorization: 'Bearer ' + token }});
-          hideSpinner();
-          if (!res.ok) { const t = await res.text(); console.error(t); setDriveStatus('Failed to check Drive', true); return; }
+          if (!res.ok) { const t = await res.text(); console.error(t); setDriveStatus('Failed to fetch latest', true); hideSpinner(); return; }
           const data = await res.json();
-          if (!data.files || !data.files.length) { setDriveStatus('No backups found', false); return; }
+          if (!data.files || !data.files.length) { setDriveStatus('No backups found'); hideSpinner(); return; }
           const latest = data.files[0];
-          const confirmRestore = confirm(`A Drive backup exists: "${latest.name}" (${new Date(latest.createdTime).toLocaleString()}). Restore now?`);
-          if (!confirmRestore) return;
-          showSpinner('Restoring latest backup...', latest.name);
-          requestDriveToken(async (tk) => {
-            try {
-              const r = await fetch(`https://www.googleapis.com/drive/v3/files/${latest.id}?alt=media`, { headers: { Authorization: 'Bearer ' + tk }});
-              if (!r.ok) { setDriveStatus('Failed to download latest', true); hideSpinner(); return; }
-              const txt = await r.text();
-              let obj; try { obj = JSON.parse(txt); } catch(e){ setDriveStatus('Backup JSON invalid', true); hideSpinner(); return; }
-              localStorage.clear();
-              Object.keys(obj).forEach(k => localStorage.setItem(k, obj[k]));
-              try { window.dispatchEvent(new Event('dataUpdated')); } catch(e){}
-              try { if (typeof renderProductList === 'function') renderProductList(); } catch(e){}
-              try { if (typeof renderInvoiceTable === 'function') renderInvoiceTable(); } catch(e){}
-              try { if (typeof renderReports === 'function') renderReports(); } catch(e){}
-              try { if (typeof updateDashboardTotals === 'function') updateDashboardTotals(); } catch(e){}
-              setDriveStatus('Backup restored: ' + latest.name);
-              toast('Drive backup restored', 'success');
-              hideSpinner();
-            } catch(err){ console.error(err); setDriveStatus('Restore failed', true); hideSpinner(); }
-          });
-        } catch(err){ console.error(err); hideSpinner(); setDriveStatus('Error while checking Drive', true); }
+          if (!confirm(`Restore latest backup "${latest.name}"? This will overwrite local data.`)) { hideSpinner(); return; }
+          // download & restore
+          const r = await fetch(`https://www.googleapis.com/drive/v3/files/${latest.id}?alt=media`, { headers: { Authorization: 'Bearer ' + token }});
+          if (!r.ok) { setDriveStatus('Failed to download latest', true); hideSpinner(); return; }
+          const txt = await r.text();
+          let obj; try { obj = JSON.parse(txt); } catch(e){ setDriveStatus('Latest backup invalid', true); hideSpinner(); return; }
+          localStorage.clear();
+          Object.keys(obj).forEach(k => localStorage.setItem(k, obj[k]));
+          try { window.dispatchEvent(new Event('dataUpdated')); } catch(e){}
+          try { if (typeof renderProductList === 'function') renderProductList(); } catch(e){}
+          try { if (typeof renderInvoiceTable === 'function') renderInvoiceTable(); } catch(e){}
+          try { if (typeof renderReports === 'function') renderReports(); } catch(e){}
+          try { if (typeof updateDashboardTotals === 'function') updateDashboardTotals(); } catch(e){}
+          setDriveStatus('Latest backup restored: ' + latest.name);
+          toast('Latest backup restored','success');
+          hideSpinner();
+        } catch(err){ console.error(err); setDriveStatus('Error restoring latest', true); hideSpinner(); }
       });
-    } catch(e){ console.error(e); }
-  }
-
-  // ===========================
-  // Daily backup reminder: create a notice per store once per day
-  // ===========================
-  function dailyBackupReminder(){
-    try {
-      const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
-      if (!user || !user.name) return;
+    }
+  
+    // Expose functions for wiring (they map to internal names in your app too)
+    window.driveBackup = driveBackup;
+    window.driveListBackups = driveListBackups;
+    window.driveRestoreLatest = driveRestoreLatest;
+  
+    // Settings button attach (safe: will not override if exists)
+    (function attachSettingsButton(){
+      let btn = document.getElementById('storeSettingsBtn');
+      if (!btn) {
+        const target = document.getElementById('storeDisplayDesktop');
+        btn = document.createElement('button');
+        btn.id = 'storeSettingsBtn';
+        btn.className = 'ml-2 px-2 py-1 rounded bg-emerald-600 text-white';
+        btn.title = 'Settings';
+        btn.innerHTML = '<i class="fa-solid fa-cog"></i>';
+        if (target && target.parentNode) target.parentNode.insertBefore(btn, target.nextSibling);
+        else document.body.appendChild(btn);
+      }
+      btn.onclick = openSettingsModal;
+    })();
+  
+    // ===========================
+    // Auto-backup scheduling (timers while app is open)
+    // ===========================
+    let autoBackupTimer = null;
+    function scheduleAutoBackup(){
       const s = lsGet(LS_SETTINGS) || {};
-      const lastByStore = s.lastDailyReminderByStore || {};
-      const todayKey = new Date().toISOString().slice(0,10); // YYYY-MM-DD
-      if (lastByStore[user.id] === todayKey) return; // already reminded today
-      // create notice
-      const title = `Backup Reminder — ${user.name}`;
-      const body = `Hi ${user.name}. Remember to backup your supermarket data to Google Drive to protect against device loss. Open Settings → Drive Backup to save your data.`;
+      if (!s.autoBackup || !s.autoBackup.enabled) return cancelAutoBackup();
+      const days = Number(s.autoBackup.days) || 7;
+      const ms = days * 24 * 60 * 60 * 1000;
+      cancelAutoBackup();
+      // quick immediate run if overdue
+      const last = Number(s.lastAutoBackup || 0);
+      if (!last || (now() - last >= ms)) {
+        try { driveBackup(); } catch(e){ console.error(e); }
+      }
+      autoBackupTimer = setInterval(()=> {
+        try { driveBackup(); } catch(e){ console.error(e); }
+      }, ms);
+    }
+    function cancelAutoBackup(){ if (autoBackupTimer){ clearInterval(autoBackupTimer); autoBackupTimer = null; } }
+    // init schedule if enabled
+    (function initAuto(){
+      const s = lsGet(LS_SETTINGS) || {};
+      if (s && s.autoBackup && s.autoBackup.enabled) setTimeout(scheduleAutoBackup, 800);
+    })();
+  
+    // ===========================
+    // Auto-restore prompt on login (opt-in)
+    // Attach a hook to setCurrentUser if available
+    // ===========================
+    (function attachLoginHook(){
+      if (typeof window.setCurrentUser === 'function') {
+        const _orig = window.setCurrentUser;
+        window.setCurrentUser = function(user){
+          _orig(user);
+          try { window.dispatchEvent(new CustomEvent('app:userLoggedIn', { detail:{ user } })); } catch(e){ console.warn(e); }
+        };
+      }
+      window.addEventListener('app:userLoggedIn', ev => { try { handleAutoRestorePrompt(ev.detail.user); } catch(e){ console.error(e); } });
+      document.addEventListener('DOMContentLoaded', ()=> {
+        const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
+        if (user) handleAutoRestorePrompt(user);
+      });
+    })();
+  
+    async function handleAutoRestorePrompt(user){
       try {
-        window.Notices && typeof window.Notices.add === 'function' ? window.Notices.add({ title, body }) : lsSet(LS_NOTICES, [{ id:`N-${Date.now()}`, title, body, created: Date.now() }].concat(lsGet(LS_NOTICES)||[]));
+        const settings = lsGet(LS_SETTINGS) || {};
+        if (!settings.autoRestoreOnLogin) return;
+        if (!user) return;
+        initGisIfNeeded();
+        try { await initGapiIfNeeded(); } catch(e){ console.warn('gapi not ready', e); }
+        showSpinner('Checking Drive for backups...');
+        requestDriveToken(async (token) => {
+          try {
+            const q = `name contains '${BACKUP_NAME_PREFIX}' and trashed=false and mimeType='application/json'`;
+            const params = `?q=${encodeURIComponent(q)}&fields=files(id,name,createdTime)&orderBy=createdTime desc&pageSize=1`;
+            const res = await fetch('https://www.googleapis.com/drive/v3/files' + params, { headers: { Authorization: 'Bearer ' + token }});
+            hideSpinner();
+            if (!res.ok) { const t = await res.text(); console.error(t); setDriveStatus('Failed to check Drive', true); return; }
+            const data = await res.json();
+            if (!data.files || !data.files.length) { setDriveStatus('No backups found', false); return; }
+            const latest = data.files[0];
+            const confirmRestore = confirm(`A Drive backup exists: "${latest.name}" (${new Date(latest.createdTime).toLocaleString()}). Restore now?`);
+            if (!confirmRestore) return;
+            showSpinner('Restoring latest backup...', latest.name);
+            requestDriveToken(async (tk) => {
+              try {
+                const r = await fetch(`https://www.googleapis.com/drive/v3/files/${latest.id}?alt=media`, { headers: { Authorization: 'Bearer ' + tk }});
+                if (!r.ok) { setDriveStatus('Failed to download latest', true); hideSpinner(); return; }
+                const txt = await r.text();
+                let obj; try { obj = JSON.parse(txt); } catch(e){ setDriveStatus('Backup JSON invalid', true); hideSpinner(); return; }
+                localStorage.clear();
+                Object.keys(obj).forEach(k => localStorage.setItem(k, obj[k]));
+                try { window.dispatchEvent(new Event('dataUpdated')); } catch(e){}
+                try { if (typeof renderProductList === 'function') renderProductList(); } catch(e){}
+                try { if (typeof renderInvoiceTable === 'function') renderInvoiceTable(); } catch(e){}
+                try { if (typeof renderReports === 'function') renderReports(); } catch(e){}
+                try { if (typeof updateDashboardTotals === 'function') updateDashboardTotals(); } catch(e){}
+                setDriveStatus('Backup restored: ' + latest.name);
+                toast('Drive backup restored', 'success');
+                hideSpinner();
+              } catch(err){ console.error(err); setDriveStatus('Restore failed', true); hideSpinner(); }
+            });
+          } catch(err){ console.error(err); hideSpinner(); setDriveStatus('Error while checking Drive', true); }
+        });
       } catch(e){ console.error(e); }
-      // mark reminder done for today
-      lastByStore[user.id] = todayKey;
-      s.lastDailyReminderByStore = lastByStore;
-      lsSet(LS_SETTINGS, s);
-    } catch(e){ console.error(e); }
-  }
-  // call on load and after login
-  document.addEventListener('DOMContentLoaded', ()=> dailyBackupReminder());
-  window.addEventListener('app:userLoggedIn', ()=> dailyBackupReminder());
-  window.addEventListener('dataUpdated', ()=> dailyBackupReminder());
-
-  // attach public API
-  window.AppSettings = window.AppSettings || {};
-  window.AppSettings.open = openSettingsModal;
-  window.AppSettings.driveBackup = driveBackup;
-  window.AppSettings.driveListBackups = driveListBackups;
-  window.AppSettings.driveRestoreLatest = driveRestoreLatest;
-
-  // ensure spinner exists
-  ensureSpinner();
-
-  console.info('Settings + Drive v2 loaded');
-
-})(); // end module
-
-(function adjustSettingsModalForMobileAndDarkmode(){
-  // small CSS overrides to improve modal background, cards, spinner and mobile nav behavior
-  const css = `
-    /* modal container background + text that respects dark mode */
-    #appSettingsModal .relative { background: #f8fafc; color: #0f172a; }
-    .dark #appSettingsModal .relative { background: #0b1220; color: #e6eef8; }
-
-    /* make the inner cards use subtle backgrounds in both modes */
-    #appSettingsModal .bg-white { background: #ffffff; color: inherit; }
-    .dark #appSettingsModal .bg-white { background: #071021; color: inherit; }
-
-    /* spinner panel color */
-    #driveSpinnerOverlay [role="status"] { background: #ffffff; color: inherit; }
-    .dark #driveSpinnerOverlay [role="status"] { background: #071021; color: #e6eef8; }
-
-    /* make the left nav visible on mobile as a horizontal scroll row;
-       on md+ screens it becomes the vertical column as before */
-    #appSettingsModal nav#settingsNav { display: flex !important; flex-direction: row; gap: 8px; overflow-x: auto; padding: 8px; border-right: none; -webkit-overflow-scrolling: touch; }
-    @media (min-width: 768px) {
-      #appSettingsModal nav#settingsNav { display: block !important; flex-direction: column; border-right: 1px solid rgba(0,0,0,0.06); padding: 12px; }
     }
-
-    /* ensure settings-tab buttons are compact and readable on narrow screens */
-    #appSettingsModal .settings-tab { white-space: nowrap; border-radius: 8px; padding-left:10px; padding-right:10px; }
-    #appSettingsModal .settings-tab.bg-gray-100 { background-color: rgba(255,255,255,0.06) !important; }
-
-    /* small improvements for backup list items */
-    #driveBackupList .p-2 { background: var(--card-bg,#fff); }
-    .dark #driveBackupList .p-2 { background: #071021; }
-
-    /* ensure modal scroll area uses proper color */
-    #appSettingsModal .settings-panel { color: inherit; }
-  `;
-  const s = document.createElement('style');
-  s.setAttribute('data-for','settings-modal-fixes');
-  s.textContent = css;
-  document.head.appendChild(s);
-
-  // helper to ensure nav is visible and styled when modal created/opened
-  function ensureSettingsNavVisible() {
-    const nav = document.getElementById('settingsNav');
-    if (!nav) return;
-    // remove any 'hidden' that your module may have put on desktop-only nav
-    nav.classList.remove('hidden');
-    // apply flexible mobile layout
-    nav.style.display = 'flex';
-    nav.style.flexDirection = 'row';
-    nav.style.gap = '8px';
-    nav.style.padding = '8px';
-    nav.style.borderRight = 'none';
-    // make tabs easy to tap
-    nav.querySelectorAll('.settings-tab').forEach(tb => {
-      tb.style.whiteSpace = 'nowrap';
-      tb.style.flex = '0 0 auto';
+  
+    // ===========================
+    // Daily backup reminder: create a notice per store once per day
+    // ===========================
+    function dailyBackupReminder(){
+      try {
+        const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
+        if (!user || !user.name) return;
+        const s = lsGet(LS_SETTINGS) || {};
+        const lastByStore = s.lastDailyReminderByStore || {};
+        const todayKey = new Date().toISOString().slice(0,10); // YYYY-MM-DD
+        if (lastByStore[user.id] === todayKey) return; // already reminded today
+        // create notice
+        const title = `Backup Reminder — ${user.name}`;
+        const body = `Hi ${user.name}. Remember to backup your supermarket data to Google Drive to protect against device loss. Open Settings → Drive Backup to save your data.`;
+        try {
+          window.Notices && typeof window.Notices.add === 'function' ? window.Notices.add({ title, body }) : lsSet(LS_NOTICES, [{ id:`N-${Date.now()}`, title, body, created: Date.now() }].concat(lsGet(LS_NOTICES)||[]));
+        } catch(e){ console.error(e); }
+        // mark reminder done for today
+        lastByStore[user.id] = todayKey;
+        s.lastDailyReminderByStore = lastByStore;
+        lsSet(LS_SETTINGS, s);
+      } catch(e){ console.error(e); }
+    }
+    // call on load and after login
+    document.addEventListener('DOMContentLoaded', ()=> dailyBackupReminder());
+    window.addEventListener('app:userLoggedIn', ()=> dailyBackupReminder());
+    window.addEventListener('dataUpdated', ()=> dailyBackupReminder());
+  
+    // attach public API
+    window.AppSettings = window.AppSettings || {};
+    window.AppSettings.open = openSettingsModal;
+    window.AppSettings.driveBackup = driveBackup;
+    window.AppSettings.driveListBackups = driveListBackups;
+    window.AppSettings.driveRestoreLatest = driveRestoreLatest;
+  
+    // ensure spinner exists
+    ensureSpinner();
+  
+    console.info('Settings + Drive v2 loaded');
+  
+  })(); // end module
+  
+  (function adjustSettingsModalForMobileAndDarkmode(){
+    // small CSS overrides to improve modal background, cards, spinner and mobile nav behavior
+    const css = `
+      /* modal container background + text that respects dark mode */
+      #appSettingsModal .relative { background: #f8fafc; color: #0f172a; }
+      .dark #appSettingsModal .relative { background: #0b1220; color: #e6eef8; }
+  
+      /* make the inner cards use subtle backgrounds in both modes */
+      #appSettingsModal .bg-white { background: #ffffff; color: inherit; }
+      .dark #appSettingsModal .bg-white { background: #071021; color: inherit; }
+  
+      /* spinner panel color */
+      #driveSpinnerOverlay [role="status"] { background: #ffffff; color: inherit; }
+      .dark #driveSpinnerOverlay [role="status"] { background: #071021; color: #e6eef8; }
+  
+      /* make the left nav visible on mobile as a horizontal scroll row;
+         on md+ screens it becomes the vertical column as before */
+      #appSettingsModal nav#settingsNav { display: flex !important; flex-direction: row; gap: 8px; overflow-x: auto; padding: 8px; border-right: none; -webkit-overflow-scrolling: touch; }
+      @media (min-width: 768px) {
+        #appSettingsModal nav#settingsNav { display: block !important; flex-direction: column; border-right: 1px solid rgba(0,0,0,0.06); padding: 12px; }
+      }
+  
+      /* ensure settings-tab buttons are compact and readable on narrow screens */
+      #appSettingsModal .settings-tab { white-space: nowrap; border-radius: 8px; padding-left:10px; padding-right:10px; }
+      #appSettingsModal .settings-tab.bg-gray-100 { background-color: rgba(255,255,255,0.06) !important; }
+  
+      /* small improvements for backup list items */
+      #driveBackupList .p-2 { background: var(--card-bg,#fff); }
+      .dark #driveBackupList .p-2 { background: #071021; }
+  
+      /* ensure modal scroll area uses proper color */
+      #appSettingsModal .settings-panel { color: inherit; }
+    `;
+    const s = document.createElement('style');
+    s.setAttribute('data-for','settings-modal-fixes');
+    s.textContent = css;
+    document.head.appendChild(s);
+  
+    // helper to ensure nav is visible and styled when modal created/opened
+    function ensureSettingsNavVisible() {
+      const nav = document.getElementById('settingsNav');
+      if (!nav) return;
+      // remove any 'hidden' that your module may have put on desktop-only nav
+      nav.classList.remove('hidden');
+      // apply flexible mobile layout
+      nav.style.display = 'flex';
+      nav.style.flexDirection = 'row';
+      nav.style.gap = '8px';
+      nav.style.padding = '8px';
+      nav.style.borderRight = 'none';
+      // make tabs easy to tap
+      nav.querySelectorAll('.settings-tab').forEach(tb => {
+        tb.style.whiteSpace = 'nowrap';
+        tb.style.flex = '0 0 auto';
+      });
+    }
+  
+    // call on DOMContentLoaded & also each time settings modal might be opened
+    document.addEventListener('DOMContentLoaded', ensureSettingsNavVisible);
+    // call when settings button clicked (works both for original button and dynamically created one)
+    document.addEventListener('click', function(e){
+      const btn = e.target.closest('#storeSettingsBtn, #settingsHelpOpen, #settingsCloseBtn');
+      if (btn) {
+        // scheduled to allow modal markup to be created first
+        setTimeout(ensureSettingsNavVisible, 120);
+      }
     });
-  }
-
-  // call on DOMContentLoaded & also each time settings modal might be opened
-  document.addEventListener('DOMContentLoaded', ensureSettingsNavVisible);
-  // call when settings button clicked (works both for original button and dynamically created one)
-  document.addEventListener('click', function(e){
-    const btn = e.target.closest('#storeSettingsBtn, #settingsHelpOpen, #settingsCloseBtn');
-    if (btn) {
-      // scheduled to allow modal markup to be created first
-      setTimeout(ensureSettingsNavVisible, 120);
-    }
-  });
-
-  // small MutationObserver: if modal is inserted later, ensure nav fixed
-  const mo = new MutationObserver((mutations) => {
-    for (const m of mutations) {
-      for (const n of m.addedNodes) {
-        if (n && n.querySelector && n.querySelector('#appSettingsModal')) {
-          setTimeout(ensureSettingsNavVisible, 40);
-          return;
+  
+    // small MutationObserver: if modal is inserted later, ensure nav fixed
+    const mo = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        for (const n of m.addedNodes) {
+          if (n && n.querySelector && n.querySelector('#appSettingsModal')) {
+            setTimeout(ensureSettingsNavVisible, 40);
+            return;
+          }
         }
       }
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+  
+    // Update spinner CSS variable if page uses `dark` class (improve immediate spinner colors)
+    function applySpinnerTheme(){
+      const root = document.documentElement;
+      const isDark = root.classList.contains('dark') || window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const spinnerPanel = document.querySelector('#driveSpinnerOverlay [role="status"]');
+      if (spinnerPanel) {
+        spinnerPanel.style.background = isDark ? '#071021' : '#ffffff';
+        spinnerPanel.style.color = isDark ? '#e6eef8' : '#0f172a';
+      }
     }
-  });
-  mo.observe(document.body, { childList: true, subtree: true });
+    document.addEventListener('DOMContentLoaded', applySpinnerTheme);
+    // react on theme toggles if your page toggles the 'dark' class
+    const themeObserver = new MutationObserver(applySpinnerTheme);
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  
+  })();
+    /* =========================
+       small utilities exposed
+       ========================= */
+    window._supermarket_helpers = {
+      lsGet, lsSet, getAllProducts, getAllInvoices, getAllReports
+    };
+  
+  })(); // end auth.js
+  
 
-  // Update spinner CSS variable if page uses `dark` class (improve immediate spinner colors)
-  function applySpinnerTheme(){
-    const root = document.documentElement;
-    const isDark = root.classList.contains('dark') || window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const spinnerPanel = document.querySelector('#driveSpinnerOverlay [role="status"]');
-    if (spinnerPanel) {
-      spinnerPanel.style.background = isDark ? '#071021' : '#ffffff';
-      spinnerPanel.style.color = isDark ? '#e6eef8' : '#0f172a';
-    }
-  }
-  document.addEventListener('DOMContentLoaded', applySpinnerTheme);
-  // react on theme toggles if your page toggles the 'dark' class
-  const themeObserver = new MutationObserver(applySpinnerTheme);
-  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-
-})();
-  /* =========================
-     small utilities exposed
-     ========================= */
-  window._supermarket_helpers = {
-    lsGet, lsSet, getAllProducts, getAllInvoices, getAllReports
-  };
-
-})(); // end auth.js
