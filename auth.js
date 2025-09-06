@@ -505,620 +505,7 @@
   
 
 
-(function(){
-  const LS_KEY = 'preferredLang';
-
-  const translations = {
-    en: {
-      // Auth
-      registrationTitle: "Supermarket Registration",
-      regName: "Supermarket Name",
-      regAddress: "Address",
-      regPhone: "Phone",
-      regEmail: "Email",
-      regPassword: "Password",
-      regConfirm: "Confirm Password",
-      registerBtn: "Register",
-      loginHere: "Login here",
-      loginTitle: "Supermarket Login",
-      loginBtn: "Login",
-      registerHere: "Register here",
-      logoutBtn: "Logout",
-
-      // Dashboard / general
-      viewLabel: "View:",
-      dashboardPeriod: ["Lifetime","Today","Last 7 days","This month","This year","Live (auto)"],
-      refresh: "Refresh",
-      manageExpensesIconTitle: "Manage Expenses",
-      recycleBinTitle: "Recycle Bin",
-
-      totalInvoices: "Total Invoices",
-      totalProducts: "Total Products",
-      productsNote: "Products are global (no created date)",
-      totalSalesPaid: "Total Sales (Paid)",
-      totalRevenue: "Total Revenue",
-      revenueNote: "Sum of invoice totals (amount)",
-      totalProfit: "Total Profit",
-      profitNote: "Revenue minus expenses",
-      totalExpenses: "Total Expenses",
-      expensesNote: "Total of saved expenses",
-
-      manageExpensesTitle: "Manage Expenses",
-      addExpense: "Add Expense",
-      manageSaved: "Manage Saved",
-      expenseNamePH: "Expense Name",
-      expenseAmountPH: "Amount",
-      expenseCategoryDefault: "Category",
-      expenseCategories: ["Utilities","Rent","Supplies","Salary"],
-      addMore: "Add More",
-      saveBtn: "Save",
-      cancelBtn: "Cancel",
-      closeBtn: "Close",
-
-      salesChart: "Sales chart",
-      basedOnPeriod: "Based on selected period",
-
-      // Invoices
-      createInvoice: "+ Create Invoice",
-      createInvoiceTitle: "Create Invoice",
-      customerNameLabel: "Customer Name",
-      customerPhoneLabel: "Customer Phone",
-      invoiceDateLabel: "Invoice Date",
-      customerNamePH: "e.g. Zakariye Salah",
-      customerPhonePH: "e.g. 617125558",
-      addItem: "+ Add Item",
-      totalAmountLabel: "Total Amount",
-      amountPaidLabel: "Amount Paid",
-      statusLabel: "Status",
-      statusOptions: { unpaid: "Unpaid", paid: "Paid" },
-      saveInvoice: "Save Invoice",
-      invoicesTitle: "Invoices",
-      clearPaid: "Clear Paid",
-      filterAll: "All",
-      filterPaid: "Paid",
-      filterUnpaid: "Unpaid",
-      searchByNamePH: "Search by name...",
-      reminderWA: "WhatsApp",
-      reminderSMS: "SMS",
-      sendAllReminders: "Send All Reminders",
-      noInvoicesYet: "No invoices yet.",
-
-      // Products
-      searchProductsPH: "Search products...",
-      addProductBtn: "+ Add Product",
-      shoppingCartTitle: "Shopping Cart",
-      cancelAll: "Cancel All",
-      cancel: "Cancel",
-      sellBtn: "Sell",
-      invoiceModalTitle: "Invoice",
-      backBtn: "Back",
-      buyRecord: "Buy & Record Invoice",
-      buyOnly: "Buy Only",
-      emptyProductsTitle: "No products yet",
-      emptyProductsDesc: 'Click "Add Product" to create your first one.',
-      thName: "Product",
-      thCost: "Original Price",
-      thPrice: "Price",
-      thQty: "Qty",
-      thActions: "Actions",
-      productModalTitle: "Add Product",
-      lblName: "Product Name *",
-      lblCost: "Original Price",
-      lblPrice: "Price *",
-      lblQty: "Quantity *",
-      saveProductBtn: "Save Product",
-      productNamePH: "e.g. Rice 25kg",
-      productCostPH: "0.00",
-      productPricePH: "0.00",
-      productQtyPH: "0",
-
-      // Reports
-      reportsTitle: "Reports",
-      reportsSub: "Centralized sales records — live & exportable",
-      exportPdf: "Export PDF",
-      deleteAllReports: "Delete All",
-      reportsFilterLabel: "Filter:",
-      reportsPeriod: ["All time","Daily","Weekly (7 days)","Monthly","Yearly"],
-      reportsDateLabel: "Date:",
-      reportsSearchPH: "Product or customer...",
-      totalItemsLabel: "Total Items:",
-      totalSalesLabel: "Total Sales:",
-      reportsTable: {
-        no: "#", products: "Products", qty: "Qty", total: "Total",
-        paid: "Paid", due: "Due", status: "Status", customer: "Customer",
-        phone: "Phone", timestamp: "Timestamp", actions: "Actions"
-      },
-      reportsEmpty: "No reports to show.",
-      confirmDeleteReportsTitle: "Delete all reports?",
-      confirmDeleteReportsText: "This will permanently remove all report records for this store.",
-      confirmCancel: "Cancel",
-      confirmDeleteAll: "Delete All",
-
-      // Recycle bin
-      recycleTitle: "Recycle Bin",
-      restoreAll: "Restore All",
-      rbDeleteAll: "Delete All",
-      rbClose: "Close",
-      rbInvoices: "Invoices",
-      rbProducts: "Products",
-      rbReports: "Reports",
-
-      // Footer & bottom nav
-      footerCopy: "All rights reserved.",
-      navDashboard: "Dashboard",
-      navInvoices: "Invoices",
-      navProducts: "Products",
-      navReports: "Reports"
-    },
-
-    so: {
-      // Auth
-      registrationTitle: "Diiwaangelinta Suuqa",
-      regName: "Magaca Suuqa",
-      regAddress: "Cinwaanka",
-      regPhone: "Telefoon",
-      regEmail: "Iimayl",
-      regPassword: "Furaha",
-      regConfirm: "Xaqiiji Furaha",
-      registerBtn: "Diiwaangeli",
-      loginHere: "Halkan Gali",
-      loginTitle: "Geli Dukaan",
-      loginBtn: "Gali",
-      registerHere: "Diiwaangeli halkan",
-      logoutBtn: "Ka Bax",
-
-      // Dashboard / general
-      viewLabel: "Muuqaal:",
-      dashboardPeriod: ["Guud","Maanta","7-kii Maalmood","Bisha","Sannadka","Nool (si toos ah)"],
-      refresh: "Cusboonaysii",
-      manageExpensesIconTitle: "Maamul Kharashyada",
-      recycleBinTitle: "Qashinka Dib-u-celinta",
-
-      totalInvoices: "Wadar Rasiidada",
-      totalProducts: "Wadar Alaabta",
-      productsNote: "Alaabtu guud ayay tahay (ma jiro taariikh abuuris)",
-      totalSalesPaid: "Wadar Iib (La Bixiyay)",
-      totalRevenue: "Wadar Dakhliga",
-      revenueNote: "Wadar qiimaha rasiidyada (lacagta)",
-      totalProfit: "Wadar Faa'iido",
-      profitNote: "Dakhliga ka jar kharashyada",
-      totalExpenses: "Wadar Kharashyada",
-      expensesNote: "Wadar kharashyada la keydiyey",
-
-      manageExpensesTitle: "Maamul Kharashyada",
-      addExpense: "Kudar Kharash",
-      manageSaved: "Maamul kuwa la keydiyey",
-      expenseNamePH: "Magaca Kharashka",
-      expenseAmountPH: "Qadarka",
-      expenseCategoryDefault: "Qaybta",
-      expenseCategories: ["Adeegyo","Kiro","Agabka","Mushahar"],
-      addMore: "Kudar Inta Kale",
-      saveBtn: "Keydi",
-      cancelBtn: "Bax",
-      closeBtn: "Xidh",
-
-      salesChart: "Jaantuska Iibka",
-      basedOnPeriod: "Iyada oo ku salaysan mudada la dooray",
-
-      // Invoices
-      createInvoice: "+ Abuur Rasiid",
-      createInvoiceTitle: "Abuur Rasiid",
-      customerNameLabel: "Magaca Macmiilka",
-      customerPhoneLabel: "Telefoonka Macmiilka",
-      invoiceDateLabel: "Taariikhda Rasiidka",
-      customerNamePH: "tusaale: Zakariye Salah",
-      customerPhonePH: "tusaale: 617125558",
-      addItem: "+ Kudar Shay",
-      totalAmountLabel: "Wadar Lacagta",
-      amountPaidLabel: "Lacagta La Bixiyay",
-      statusLabel: "Xaaladda",
-      statusOptions: { unpaid: "Lacag la'aan", paid: "La Bixiyay" },
-      saveInvoice: "Keydi Rasiidka",
-      invoicesTitle: "Rasiidada",
-      clearPaid: "Nadiifi Ku Bixid",
-      filterAll: "Dhammaan",
-      filterPaid: "La Bixiyay",
-      filterUnpaid: "Lacag La'aan",
-      searchByNamePH: "Ka raadi magaca...",
-      reminderWA: "WhatsApp",
-      reminderSMS: "SMS",
-      sendAllReminders: "Dir Digniinaha oo dhan",
-      noInvoicesYet: "Weli ma jiraan rasiidyo.",
-
-      // Products
-      searchProductsPH: "Raadi alaabta...",
-      addProductBtn: "+ Kudar Alaab",
-      shoppingCartTitle: "Gaadhiga Iibka",
-      cancelAll: "Bixi Dhammaan",
-      cancel: "Bax",
-      sellBtn: "Iibso",
-      invoiceModalTitle: "Rasiid",
-      backBtn: "Dib u noqo",
-      buyRecord: "Iibso & Diiwaangeli Rasiidka",
-      buyOnly: "Iibso Kaliya",
-      emptyProductsTitle: "Weli ma jiraan alaabo",
-      emptyProductsDesc: 'Guji "Kudar Alaab" si aad u abuurto kii ugu horreeyay.',
-      thName: "Alaabta",
-      thCost: "Qiimaha Asalka",
-      thPrice: "Qiimo",
-      thQty: "Tirada",
-      thActions: "Ficillo",
-      productModalTitle: "Kudar Alaab",
-      lblName: "Magaca Alaabta *",
-      lblCost: "Qiimaha Asalka",
-      lblPrice: "Qiimo *",
-      lblQty: "Tirada *",
-      saveProductBtn: "Keydi Alaabta",
-      productNamePH: "tusaale: Bariis 25kg",
-      productCostPH: "0.00",
-      productPricePH: "0.00",
-      productQtyPH: "0",
-
-      // Reports
-      reportsTitle: "Warbixinno",
-      reportsSub: "Diiwaanka iibka oo dhexe — nool & la dhoofin karo",
-      exportPdf: "Dhoofin PDF",
-      deleteAllReports: "Tirtir Dhammaan",
-      reportsFilterLabel: "Sifee:",
-      reportsPeriod: ["Waqtiga oo dhan","Maalinle","Toddobaadle (7 maalmood)","Bishii","Sannadle"],
-      reportsDateLabel: "Taariikh:",
-      reportsSearchPH: "Alaab ama macmiil...",
-      totalItemsLabel: "Wadar Shay:",
-      totalSalesLabel: "Wadar Iib:",
-      reportsTable: {
-        no: "#", products: "Alaabooyinka", qty: "Tirada", total: "Wadar",
-        paid: "La bixiyay", due: "Lacag la bixin", status: "Xaalad", customer: "Macmiil",
-        phone: "Telefoon", timestamp: "Waqtiga", actions: "Ficillo"
-      },
-      reportsEmpty: "Warbixin ma jiro.",
-      confirmDeleteReportsTitle: "Miyaad rabtaa inaad tirtirto dhammaan warbixinada?",
-      confirmDeleteReportsText: "Tani waxay si joogto ah u tirtiri doontaa dhammaan rikoorrada warbixinta ee dukaankan.",
-      confirmCancel: "Bax",
-      confirmDeleteAll: "Tirtir Dhammaan",
-
-      // Recycle bin
-      recycleTitle: "Qashinka Dib-u-celinta",
-      restoreAll: "Soo Celin Dhammaan",
-      rbDeleteAll: "Tirtir Dhammaan",
-      rbClose: "Xidh",
-      rbInvoices: "Rasiidada",
-      rbProducts: "Alaabooyinka",
-      rbReports: "Warbixinada",
-
-      // Footer & bottom nav
-      footerCopy: "Dhammaan xuquuqdu way kaydsan tahay.",
-      navDashboard: "Guddiga",
-      navInvoices: "Rasiidada",
-      navProducts: "Alaabooyinka",
-      navReports: "Warbixinada"
-    }
-  };
-
-  // mapping DOM selectors -> translation keys and where to set
-  const mapping = [
-    // AUTH
-    { sel: '#registrationForm h1', prop: 'text', key: 'registrationTitle' },
-    { sel: '#regName', prop: 'placeholder', key: 'regName' },
-    { sel: '#regAddress', prop: 'placeholder', key: 'regAddress' },
-    { sel: '#regPhone', prop: 'placeholder', key: 'regPhone' },
-    { sel: '#regEmail', prop: 'placeholder', key: 'regEmail' },
-    { sel: '#regPassword', prop: 'placeholder', key: 'regPassword' },
-    { sel: '#regConfirm', prop: 'placeholder', key: 'regConfirm' },
-    { sel: '#registerBtn', prop: 'text', key: 'registerBtn' },
-    { sel: '#registrationForm p .text-blue-600', prop: 'text', key: 'loginHere' }, // small selector for 'Login here'
-
-    { sel: '#loginForm h1', prop: 'text', key: 'loginTitle' },
-    { sel: '#loginName', prop: 'placeholder', key: 'regName' },
-    { sel: '#loginPassword', prop: 'placeholder', key: 'regPassword' },
-    { sel: '#loginBtn', prop: 'text', key: 'loginBtn' },
-    { sel: '#loginForm p .text-blue-600', prop: 'text', key: 'registerHere' },
-
-    // top header / settings / logout
-    { sel: '#logoutBtn', prop: 'text', key: 'logoutBtn' },
-    { sel: '#btnRecycleBinTop', prop: 'title', key: 'recycleBinTitle' },
-
-    // dashboard controls
-    { sel: 'label.text-sm.text-gray-600', prop: 'textExact', key: 'viewLabel' }, // first matching label "View:"
-    { sel: '#dashboardPeriod', prop: 'options', key: 'dashboardPeriod' },
-
-    // cards
-    { sel: '#dashboardContent h3.text-lg', prop: 'textByIndex', key: [
-      { index: 0, key: 'totalInvoices' },
-      { index: 1, key: 'totalProducts' },
-      { index: 2, key: 'totalSalesPaid' },
-      { index: 3, key: 'totalRevenue' }
-    ] },
-    { sel: '#dashboardContent .text-xs.text-gray-400', prop: 'textByOrder', key: [
-      { order: 0, key: 'productsNote' },
-      { order: 1, key: 'revenueNote' },
-      { order: 2, key: 'profitNote' },
-      { order: 3, key: 'expensesNote' }
-    ] },
-
-    // manage expenses
-    { sel: '#manageExpensesModal h4', prop: 'text', key: 'manageExpensesTitle' },
-    { sel: '#openAddExpense', prop: 'text', key: 'addExpense' },
-    { sel: '#showAllExpenses', prop: 'text', key: 'manageSaved' },
-    { sel: '#expensesFormWrap input[type="text"]', prop: 'placeholder', key: 'expenseNamePH' },
-    { sel: '#expensesFormWrap input[type="number"]', prop: 'placeholder', key: 'expenseAmountPH' },
-    { sel: '#expensesFormWrap select option:first-child', prop: 'text', key: 'expenseCategoryDefault' },
-    { sel: '#expensesFormWrap select option[value="utilities"]', prop: 'text', key: 'expenseCategories.0' },
-    { sel: '#expensesFormWrap select option[value="rent"]', prop: 'text', key: 'expenseCategories.1' },
-    { sel: '#expensesFormWrap select option[value="supplies"]', prop: 'text', key: 'expenseCategories.2' },
-    { sel: '#expensesFormWrap select option[value="salary"]', prop: 'text', key: 'expenseCategories.3' },
-    { sel: '#addExpenseRowBtn', prop: 'text', key: 'addMore' },
-    { sel: '#saveExpensesBtn', prop: 'text', key: 'saveBtn' },
-    { sel: '#cancelExpensesBtn', prop: 'text', key: 'cancelBtn' },
-    { sel: '#closeSavedExpenses', prop: 'text', key: 'closeBtn' },
-
-    // chart
-    { sel: '.mt-6 .text-lg.font-semibold', prop: 'text', key: 'salesChart' },
-    { sel: '.mt-6 .text-sm.text-gray-500', prop: 'text', key: 'basedOnPeriod' },
-
-    // invoices UI
-    { sel: '#createInvoiceBtn', prop: 'text', key: 'createInvoice' },
-    { sel: '#createInvoiceSection h2', prop: 'text', key: 'createInvoiceTitle' },
-    { sel: '#customerName', prop: 'placeholder', key: 'customerNamePH' },
-    { sel: '#customerPhone', prop: 'placeholder', key: 'customerPhonePH' },
-    { sel: '#addItemBtn', prop: 'text', key: 'addItem' },
-    { sel: '#amount', prop: 'placeholder', key: 'totalAmountLabel' },
-    { sel: '#paid', prop: 'placeholder', key: 'amountPaidLabel' },
-    { sel: '#saveInvoiceBtn', prop: 'text', key: 'saveInvoice' },
-    { sel: '#invoicesTitle', prop: 'text', key: 'invoicesTitle' },
-    { sel: '#clearPaidBtn', prop: 'text', key: 'clearPaid' },
-    { sel: '#filterStatus option[value="all"]', prop: 'text', key: 'filterAll' },
-    { sel: '#filterStatus option[value="paid"]', prop: 'text', key: 'filterPaid' },
-    { sel: '#filterStatus option[value="unpaid"]', prop: 'text', key: 'filterUnpaid' },
-    { sel: '#searchName', prop: 'placeholder', key: 'searchByNamePH' },
-    { sel: '#reminderMethod option[value="wa"]', prop: 'text', key: 'reminderWA' },
-    { sel: '#reminderMethod option[value="sms"]', prop: 'text', key: 'reminderSMS' },
-    { sel: '#sendAllReminders', prop: 'text', key: 'sendAllReminders' },
-    { sel: '#emptyState', prop: 'text', key: 'noInvoicesYet' },
-
-    // invoices table headers
-    { sel: 'thead tr th', prop: 'textByOrderGeneric', key: ['reportsTable.no','tableInvoice','tableDate','tableCustomer','tablePhone','tableAmount','tablePaid','tableBalance','tableStatus','tableActions'] },
-
-    // products section
-    { sel: '#searchInput', prop: 'placeholder', key: 'searchProductsPH' },
-    { sel: '#addProductBtn', prop: 'text', key: 'addProductBtn' },
-    { sel: '#openCartHeader', prop: 'title', key: 'shoppingCartTitle' },
-    { sel: '#clearCart', prop: 'text', key: 'cancelAll' },
-    { sel: '#closeCart', prop: 'text', key: 'cancel' },
-    { sel: '#sellCart', prop: 'text', key: 'sellBtn' },
-
-    // empty products
-    { sel: '#emptyTitle', prop: 'text', key: 'emptyProductsTitle' },
-    { sel: '#emptyDesc', prop: 'text', key: 'emptyProductsDesc' },
-    { sel: '#emptyAddBtn', prop: 'text', key: 'addProductBtn' },
-
-    // product table headers
-    { sel: '#thName', prop: 'text', key: 'thName' },
-    { sel: '#thCost', prop: 'text', key: 'thCost' },
-    { sel: '#thPrice', prop: 'text', key: 'thPrice' },
-    { sel: '#thQty', prop: 'text', key: 'thQty' },
-    { sel: '#thActions', prop: 'text', key: 'thActions' },
-
-    // product modal
-    { sel: '#modalTitle', prop: 'text', key: 'productModalTitle' },
-    { sel: '#lblName', prop: 'text', key: 'lblName' },
-    { sel: '#productName', prop: 'placeholder', key: 'productNamePH' },
-    { sel: '#lblCost', prop: 'text', key: 'lblCost' },
-    { sel: '#productCost', prop: 'placeholder', key: 'productCostPH' },
-    { sel: '#lblPrice', prop: 'text', key: 'lblPrice' },
-    { sel: '#productPrice', prop: 'placeholder', key: 'productPricePH' },
-    { sel: '#lblQty', prop: 'text', key: 'lblQty' },
-    { sel: '#productQty', prop: 'placeholder', key: 'productQtyPH' },
-    { sel: '#cancelModal', prop: 'text', key: 'cancelBtn' },
-    { sel: '#saveProductBtn', prop: 'text', key: 'saveProductBtn' },
-
-    // reports
-    { sel: '#reportsSection h1', prop: 'text', key: 'reportsTitle' },
-    { sel: '#reportsSection p.text-sm', prop: 'text', key: 'reportsSub' },
-    { sel: '#reportsExportPdf', prop: 'text', key: 'exportPdf' },
-    { sel: '#reportsDeleteAll', prop: 'text', key: 'deleteAllReports' },
-    { sel: '#reportsPeriod', prop: 'options', key: 'reportsPeriod' },
-    { sel: '#reportsSearchInput', prop: 'placeholder', key: 'reportsSearchPH' },
-    { sel: '#reportsTotalItems', prop: 'text', key: 'totalItemsLabel' },
-    { sel: '#reportsTotalSales', prop: 'text', key: 'totalSalesLabel' },
-    { sel: '#reportsEmptyMsg', prop: 'text', key: 'reportsEmpty' },
-
-    // reports confirm modal
-    { sel: '#reportsConfirmDeleteAll h3', prop: 'text', key: 'confirmDeleteReportsTitle' },
-    { sel: '#reportsConfirmDeleteAll p', prop: 'text', key: 'confirmDeleteReportsText' },
-    { sel: '#reportsCancelDeleteAll', prop: 'text', key: 'confirmCancel' },
-    { sel: '#reportsConfirmDeleteAllBtn', prop: 'text', key: 'confirmDeleteAll' },
-
-    // recycle modal
-    { sel: '#recycleBinModal h4', prop: 'text', key: 'recycleTitle' },
-    { sel: '#rbRestoreAll', prop: 'text', key: 'restoreAll' },
-    { sel: '#rbDeleteAll', prop: 'text', key: 'rbDeleteAll' },
-    { sel: '#closeRecycleBin', prop: 'text', key: 'rbClose' },
-    { sel: '#rbInvoicesWrap h5', prop: 'text', key: 'rbInvoices' },
-    { sel: '#rbProductsWrap h5', prop: 'text', key: 'rbProducts' },
-    { sel: '#rbReportsWrap h5', prop: 'text', key: 'rbReports' },
-
-    // footer
-    { sel: 'footer .text-sm', prop: 'html', key: 'footerHtml' },
-
-    // bottom nav
-    { sel: 'nav#bottomNav button.navBtn:nth-child(1) span', prop: 'text', key: 'navDashboard' },
-    { sel: 'nav#bottomNav button.navBtn:nth-child(2) span', prop: 'text', key: 'navInvoices' },
-    { sel: 'nav#bottomNav button.navBtn:nth-child(3) span', prop: 'text', key: 'navProducts' },
-    { sel: 'nav#bottomNav button.navBtn:nth-child(4) span', prop: 'text', key: 'navReports' }
-  ];
-
-  // helper to read nested key paths (e.g. 'reportsTable.products' or 'expenseCategories.0')
-  function getKey(obj, path){
-    if (!path) return undefined;
-    const parts = String(path).split('.');
-    let cur = obj;
-    for (const p of parts){
-      if (cur === undefined || cur === null) return undefined;
-      // numeric index?
-      if (/^\d+$/.test(p)) {
-        cur = cur[Number(p)];
-      } else {
-        cur = cur[p];
-      }
-    }
-    return cur;
-  }
-
-  function setProp(node, prop, value){
-    if (!node) return;
-    try {
-      if (prop === 'text') node.textContent = value;
-      else if (prop === 'html') node.innerHTML = value;
-      else if (prop === 'placeholder') node.placeholder = value;
-      else if (prop === 'title') node.title = value;
-      else if (prop === 'value') node.value = value;
-    } catch(e){}
-  }
-
-  function applyOptions(selectNode, arr){
-    if (!selectNode) return;
-    selectNode.innerHTML = '';
-    arr.forEach(v => {
-      const o = document.createElement('option');
-      o.value = v;
-      o.textContent = v;
-      selectNode.appendChild(o);
-    });
-  }
-
-  function applyTranslations(lang) {
-    const dict = translations[lang] || translations.en;
-
-    mapping.forEach(item => {
-      try {
-        const nodes = Array.from(document.querySelectorAll(item.sel));
-        if (!nodes.length) return;
-
-        if (item.prop === 'text') {
-          const v = getKey(dict, item.key);
-          if (v !== undefined) nodes.forEach(n => setProp(n, 'text', v));
-        } else if (item.prop === 'html') {
-          // support footer custom HTML
-          if (item.key === 'footerHtml') {
-            const copy = dict.footerCopy || '';
-            nodes.forEach(n => {
-              // keep owner name "Zakariye"
-              const name = '<span class="font-semibold">Zakariye</span>';
-              n.innerHTML = `&copy; 2025 ${name}. ${copy}`;
-            });
-          } else {
-            const v = getKey(dict, item.key);
-            if (v !== undefined) nodes.forEach(n => setProp(n, 'html', v));
-          }
-        } else if (item.prop === 'placeholder') {
-          const v = getKey(dict, item.key);
-          if (v !== undefined) nodes.forEach(n => setProp(n, 'placeholder', v));
-        } else if (item.prop === 'title') {
-          const v = getKey(dict, item.key);
-          if (v !== undefined) nodes.forEach(n => setProp(n, 'title', v));
-        } else if (item.prop === 'options') {
-          const arr = getKey(dict, item.key) || [];
-          nodes.forEach(n => applyOptions(n, arr));
-        } else if (item.prop === 'textByIndex') {
-          const arr = item.key;
-          nodes.forEach((n, idx) => {
-            const entry = arr[idx];
-            if (!entry) return;
-            const v = getKey(dict, entry.key);
-            if (v !== undefined) setProp(n, 'text', v);
-          });
-        } else if (item.prop === 'textByOrder') {
-          // nodes is list of elements (e.g. notes), item.key is array with order keys
-          const list = item.key || [];
-          list.forEach((entry, i) => {
-            const el = nodes[i];
-            if (!el) return;
-            const v = getKey(dict, entry.key);
-            if (v !== undefined) setProp(el, 'text', v);
-          });
-        } else if (item.prop === 'textByOrderGeneric') {
-          // generic mapping array of keys
-          const keys = item.key || [];
-          nodes.forEach((n, i) => {
-            const k = keys[i];
-            if (!k) return;
-            // support nested keys in reportsTable maybe
-            let v = getKey(dict, k);
-            // try fallback: if key doesn't exist, try direct mapping name
-            if (v === undefined) v = dict[k];
-            if (v !== undefined) setProp(n, 'text', v);
-          });
-        } else if (item.prop === 'textExact') {
-          // set first matched element
-          const v = getKey(dict, item.key);
-          if (v !== undefined) nodes[0] && setProp(nodes[0], 'text', v);
-        }
-      } catch (e) {
-        // ignore individual mapping errors so page doesn't break
-        console.error('i18n mapping error', e, item);
-      }
-    });
-
-    // additional manual / specific updates not covered by mapping:
-    // status select options
-    const statusSel = document.getElementById('status');
-    if (statusSel) {
-      const soStatus = getKey(dict, 'statusOptions') || {};
-      Array.from(statusSel.options).forEach(opt => {
-        if (opt.value && soStatus[opt.value]) opt.textContent = soStatus[opt.value];
-        else {
-          // if not a predefined key, for english keep same
-          const maybe = getKey(dict, `statusOptions.${opt.value}`);
-          if (maybe) opt.textContent = maybe;
-        }
-      });
-    }
-
-    // reports table headers (if present)
-    const reportsThead = document.querySelectorAll('#reportsTable thead th');
-    if (reportsThead && reportsThead.length) {
-      const rt = dict.reportsTable || {};
-      const keys = ['no','products','qty','total','paid','due','status','customer','phone','timestamp','actions'];
-      reportsThead.forEach((th, i) => {
-        const k = keys[i];
-        if (rt && rt[k]) th.textContent = rt[k];
-      });
-    }
-
-    // bottom nav explicit
-    const navMap = {
-      'nav#bottomNav button.navBtn:nth-child(1) span': dict.navDashboard,
-      'nav#bottomNav button.navBtn:nth-child(2) span': dict.navInvoices,
-      'nav#bottomNav button.navBtn:nth-child(3) span': dict.navProducts,
-      'nav#bottomNav button.navBtn:nth-child(4) span': dict.navReports
-    };
-    Object.entries(navMap).forEach(([sel, txt])=>{
-      const el = document.querySelector(sel);
-      if (el && txt) el.textContent = txt;
-    });
-
-    // set saved language
-    if (lang) localStorage.setItem(LS_KEY, lang);
-  }
-
-  // initialize on DOM ready
-  document.addEventListener('DOMContentLoaded', ()=>{
-    const saved = localStorage.getItem(LS_KEY) || 'so'; // default to Somali (per request)
-    applyTranslations(saved);
-    // expose globally for settings modal or other scripts
-    window.applyTranslations = applyTranslations;
-  });
-
-  // convenience: immediately available function for manual switching
-  window.setAppLanguage = function(lang){
-    if (!lang) return;
-    applyTranslations(lang);
-  };
-
-})();
-
-
-
+  
 
   /* =========================
     /* ---------- Dashboard: totals, filtering and charts ---------- */
@@ -1852,6 +1239,722 @@ window.addEventListener('DOMContentLoaded', () => {
     console.warn('Chart.js not found — include Chart.js library for charts to render.');
   }
 });
+
+
+//translation:
+
+(function(){
+  const LS_KEY = 'preferredLang';
+
+  const translations = {
+    en: {
+      // Auth
+      registrationTitle: "Supermarket Registration",
+      regName: "Supermarket Name",
+      regAddress: "Address",
+      regPhone: "Phone",
+      regEmail: "Email",
+      regPassword: "Password",
+      regConfirm: "Confirm Password",
+      registerBtn: "Register",
+      loginHere: "Login here",
+      loginTitle: "Supermarket Login",
+      loginBtn: "Login",
+      registerHere: "Register here",
+      logoutBtn: "Logout",
+
+      // Dashboard / general
+      viewLabel: "View:",
+      dashboardPeriod: ["Lifetime","Today","Last 7 days","This month","This year","Live (auto)"],
+      refresh: "Refresh",
+      manageExpensesIconTitle: "Manage Expenses",
+      recycleBinTitle: "Recycle Bin",
+
+      totalInvoices: "Total Invoices",
+      totalProducts: "Total Products",
+      productsNote: "Products are global (no created date)",
+      totalSalesPaid: "Total Sales (Paid)",
+      totalRevenue: "Total Revenue",
+      revenueNote: "Sum of invoice totals (amount)",
+      totalProfit: "Total Profit",
+      profitNote: "Revenue minus expenses",
+      totalExpenses: "Total Expenses",
+      expensesNote: "Total of saved expenses",
+
+      manageExpensesTitle: "Manage Expenses",
+      addExpense: "Add Expense",
+      manageSaved: "Manage Saved",
+      expenseNamePH: "Expense Name",
+      expenseAmountPH: "Amount",
+      expenseCategoryDefault: "Category",
+      expenseCategories: ["Utilities","Rent","Supplies","Salary"],
+      addMore: "Add More",
+      saveBtn: "Save",
+      cancelBtn: "Cancel",
+      closeBtn: "Close",
+
+      salesChart: "Sales chart",
+      basedOnPeriod: "Based on selected period",
+
+      // Invoices
+      createInvoice: "+ Create Invoice",
+      createInvoiceTitle: "Create Invoice",
+      customerNameLabel: "Customer Name",
+      customerPhoneLabel: "Customer Phone",
+      invoiceDateLabel: "Invoice Date",
+      customerNamePH: "e.g. Zakariye Salah",
+      customerPhonePH: "e.g. 617125558",
+      addItem: "+ Add Item",
+      totalAmountLabel: "Total Amount",
+      amountPaidLabel: "Amount Paid",
+      statusLabel: "Status",
+      statusOptions: { unpaid: "Unpaid", paid: "Paid" },
+      saveInvoice: "Save Invoice",
+      invoicesTitle: "Invoices",
+      clearPaid: "Clear Paid",
+      filterAll: "All",
+      filterPaid: "Paid",
+      filterUnpaid: "Unpaid",
+      searchByNamePH: "Search by name...",
+      reminderWA: "WhatsApp",
+      reminderSMS: "SMS",
+      sendAllReminders: "Send All Reminders",
+      noInvoicesYet: "No invoices yet.",
+
+      // Products
+      searchProductsPH: "Search products...",
+      addProductBtn: "+ Add Product",
+      shoppingCartTitle: "Shopping Cart",
+      cancelAll: "Cancel All",
+      cancel: "Cancel",
+      sellBtn: "Sell",
+      invoiceModalTitle: "Invoice",
+      backBtn: "Back",
+      buyRecord: "Buy & Record Invoice",
+      buyOnly: "Buy Only",
+      emptyProductsTitle: "No products yet",
+      emptyProductsDesc: 'Click "Add Product" to create your first one.',
+      thName: "Product",
+      thCost: "Original Price",
+      thPrice: "Price",
+      thQty: "Qty",
+      thActions: "Actions",
+      productModalTitle: "Add Product",
+      lblName: "Product Name *",
+      lblCost: "Original Price",
+      lblPrice: "Price *",
+      lblQty: "Quantity *",
+      saveProductBtn: "Save Product",
+      productNamePH: "e.g. Rice 25kg",
+      productCostPH: "0.00",
+      productPricePH: "0.00",
+      productQtyPH: "0",
+
+      // Reports
+      reportsTitle: "Reports",
+      reportsSub: "Centralized sales records — live & exportable",
+      exportPdf: "Export PDF",
+      deleteAllReports: "Delete All",
+      reportsFilterLabel: "Filter:",
+      reportsPeriod: ["All time","Daily","Weekly (7 days)","Monthly","Yearly"],
+      reportsDateLabel: "Date:",
+      reportsSearchPH: "Product or customer...",
+      totalItemsLabel: "Total Items:",
+      totalSalesLabel: "Total Sales:",
+      reportsTable: {
+        no: "#", products: "Products", qty: "Qty", total: "Total",
+        paid: "Paid", due: "Due", status: "Status", customer: "Customer",
+        phone: "Phone", timestamp: "Timestamp", actions: "Actions"
+      },
+      reportsEmpty: "No reports to show.",
+      confirmDeleteReportsTitle: "Delete all reports?",
+      confirmDeleteReportsText: "This will permanently remove all report records for this store.",
+      confirmCancel: "Cancel",
+      confirmDeleteAll: "Delete All",
+
+      // Recycle bin
+      recycleTitle: "Recycle Bin",
+      restoreAll: "Restore All",
+      rbDeleteAll: "Delete All",
+      rbClose: "Close",
+      rbInvoices: "Invoices",
+      rbProducts: "Products",
+      rbReports: "Reports",
+
+      // Footer & bottom nav
+      footerCopy: "All rights reserved.",
+      navDashboard: "Dashboard",
+      navInvoices: "Invoices",
+      navProducts: "Products",
+      navReports: "Reports"
+    },
+
+    so: {
+      // Auth
+      registrationTitle: "Diiwaangelinta Suuqa",
+      regName: "Magaca Suuqa",
+      regAddress: "Cinwaanka",
+      regPhone: "Telefoon",
+      regEmail: "Iimayl",
+      regPassword: "Furaha",
+      regConfirm: "Xaqiiji Furaha",
+      registerBtn: "Diiwaangeli",
+      loginHere: "Halkan Gali",
+      loginTitle: "Geli Dukaan",
+      loginBtn: "Gali",
+      registerHere: "Diiwaangeli halkan",
+      logoutBtn: "Ka Bax",
+
+      // Dashboard / general
+      viewLabel: "Muuqaal:",
+      dashboardPeriod: ["Guud","Maanta","7-kii Maalmood","Bisha","Sannadka","Nool (si toos ah)"],
+      refresh: "Cusboonaysii",
+      manageExpensesIconTitle: "Maamul Kharashyada",
+      recycleBinTitle: "Qashinka Dib-u-celinta",
+
+      totalInvoices: "Wadar Rasiidada",
+      totalProducts: "Wadar Alaabta",
+      productsNote: "Alaabtu guud ayay tahay (ma jiro taariikh abuuris)",
+      totalSalesPaid: "Wadar Iib (La Bixiyay)",
+      totalRevenue: "Wadar Dakhliga",
+      revenueNote: "Wadar qiimaha rasiidyada (lacagta)",
+      totalProfit: "Wadar Faa'iido",
+      profitNote: "Dakhliga ka jar kharashyada",
+      totalExpenses: "Wadar Kharashyada",
+      expensesNote: "Wadar kharashyada la keydiyey",
+
+      manageExpensesTitle: "Maamul Kharashyada",
+      addExpense: "Kudar Kharash",
+      manageSaved: "Maamul kuwa la keydiyey",
+      expenseNamePH: "Magaca Kharashka",
+      expenseAmountPH: "Qadarka",
+      expenseCategoryDefault: "Qaybta",
+      expenseCategories: ["Adeegyo","Kiro","Agabka","Mushahar"],
+      addMore: "Kudar Inta Kale",
+      saveBtn: "Keydi",
+      cancelBtn: "Bax",
+      closeBtn: "Xidh",
+
+      salesChart: "Jaantuska Iibka",
+      basedOnPeriod: "Iyada oo ku salaysan mudada la dooray",
+
+      // Invoices
+      createInvoice: "+ Abuur Rasiid",
+      createInvoiceTitle: "Abuur Rasiid",
+      customerNameLabel: "Magaca Macmiilka",
+      customerPhoneLabel: "Telefoonka Macmiilka",
+      invoiceDateLabel: "Taariikhda Rasiidka",
+      customerNamePH: "tusaale: Zakariye Salah",
+      customerPhonePH: "tusaale: 617125558",
+      addItem: "+ Kudar Shay",
+      totalAmountLabel: "Wadar Lacagta",
+      amountPaidLabel: "Lacagta La Bixiyay",
+      statusLabel: "Xaaladda",
+      statusOptions: { unpaid: "Lacag la'aan", paid: "La Bixiyay" },
+      saveInvoice: "Keydi Rasiidka",
+      invoicesTitle: "Rasiidada",
+      clearPaid: "Nadiifi Ku Bixid",
+      filterAll: "Dhammaan",
+      filterPaid: "La Bixiyay",
+      filterUnpaid: "Lacag La'aan",
+      searchByNamePH: "Ka raadi magaca...",
+      reminderWA: "WhatsApp",
+      reminderSMS: "SMS",
+      sendAllReminders: "Dir Digniinaha oo dhan",
+      noInvoicesYet: "Weli ma jiraan rasiidyo.",
+
+      // Products
+      searchProductsPH: "Raadi alaabta...",
+      addProductBtn: "+ Kudar Alaab",
+      shoppingCartTitle: "Gaadhiga Iibka",
+      cancelAll: "Bixi Dhammaan",
+      cancel: "Bax",
+      sellBtn: "Iibso",
+      invoiceModalTitle: "Rasiid",
+      backBtn: "Dib u noqo",
+      buyRecord: "Iibso & Diiwaangeli Rasiidka",
+      buyOnly: "Iibso Kaliya",
+      emptyProductsTitle: "Weli ma jiraan alaabo",
+      emptyProductsDesc: 'Guji "Kudar Alaab" si aad u abuurto kii ugu horreeyay.',
+      thName: "Alaabta",
+      thCost: "Qiimaha Asalka",
+      thPrice: "Qiimo",
+      thQty: "Tirada",
+      thActions: "Ficillo",
+      productModalTitle: "Kudar Alaab",
+      lblName: "Magaca Alaabta *",
+      lblCost: "Qiimaha Asalka",
+      lblPrice: "Qiimo *",
+      lblQty: "Tirada *",
+      saveProductBtn: "Keydi Alaabta",
+      productNamePH: "tusaale: Bariis 25kg",
+      productCostPH: "0.00",
+      productPricePH: "0.00",
+      productQtyPH: "0",
+
+      // Reports
+      reportsTitle: "Warbixinno",
+      reportsSub: "Diiwaanka iibka oo dhexe — nool & la dhoofin karo",
+      exportPdf: "Dhoofin PDF",
+      deleteAllReports: "Tirtir Dhammaan",
+      reportsFilterLabel: "Sifee:",
+      reportsPeriod: ["Waqtiga oo dhan","Maalinle","Toddobaadle (7 maalmood)","Bishii","Sannadle"],
+      reportsDateLabel: "Taariikh:",
+      reportsSearchPH: "Alaab ama macmiil...",
+      totalItemsLabel: "Wadar Shay:",
+      totalSalesLabel: "Wadar Iib:",
+      reportsTable: {
+        no: "#", products: "Alaabooyinka", qty: "Tirada", total: "Wadar",
+        paid: "La bixiyay", due: "Lacag la bixin", status: "Xaalad", customer: "Macmiil",
+        phone: "Telefoon", timestamp: "Waqtiga", actions: "Ficillo"
+      },
+      reportsEmpty: "Warbixin ma jiro.",
+      confirmDeleteReportsTitle: "Miyaad rabtaa inaad tirtirto dhammaan warbixinada?",
+      confirmDeleteReportsText: "Tani waxay si joogto ah u tirtiri doontaa dhammaan rikoorrada warbixinta ee dukaankan.",
+      confirmCancel: "Bax",
+      confirmDeleteAll: "Tirtir Dhammaan",
+
+      // Recycle bin
+      recycleTitle: "Qashinka Dib-u-celinta",
+      restoreAll: "Soo Celin Dhammaan",
+      rbDeleteAll: "Tirtir Dhammaan",
+      rbClose: "Xidh",
+      rbInvoices: "Rasiidada",
+      rbProducts: "Alaabooyinka",
+      rbReports: "Warbixinada",
+
+      // Footer & bottom nav
+      footerCopy: "Dhammaan xuquuqdu way kaydsan tahay.",
+      navDashboard: "Guddiga",
+      navInvoices: "Rasiidada",
+      navProducts: "Alaabooyinka",
+      navReports: "Warbixinada"
+    }
+  };
+
+  // mapping DOM selectors -> translation keys and where to set
+  const mapping = [
+    // AUTH
+    { sel: '#registrationForm h1', prop: 'text', key: 'registrationTitle' },
+    { sel: '#regName', prop: 'placeholder', key: 'regName' },
+    { sel: '#regAddress', prop: 'placeholder', key: 'regAddress' },
+    { sel: '#regPhone', prop: 'placeholder', key: 'regPhone' },
+    { sel: '#regEmail', prop: 'placeholder', key: 'regEmail' },
+    { sel: '#regPassword', prop: 'placeholder', key: 'regPassword' },
+    { sel: '#regConfirm', prop: 'placeholder', key: 'regConfirm' },
+    { sel: '#registerBtn', prop: 'text', key: 'registerBtn' },
+    { sel: '#registrationForm p .text-blue-600', prop: 'text', key: 'loginHere' },
+
+    { sel: '#loginForm h1', prop: 'text', key: 'loginTitle' },
+    { sel: '#loginName', prop: 'placeholder', key: 'regName' },
+    { sel: '#loginPassword', prop: 'placeholder', key: 'regPassword' },
+    { sel: '#loginBtn', prop: 'text', key: 'loginBtn' },
+    { sel: '#loginForm p .text-blue-600', prop: 'text', key: 'registerHere' },
+
+    // top header / settings / logout
+    { sel: '#logoutBtn', prop: 'text', key: 'logoutBtn' },
+    { sel: '#btnRecycleBinTop', prop: 'title', key: 'recycleBinTitle' },
+
+    // dashboard controls
+    { sel: 'label[data-i18n="viewLabel"], label.text-sm.text-gray-600', prop: 'textExact', key: 'viewLabel' },
+
+    // Use data-i18n on the headings and notes (we annotate them on DOM ready)
+    { sel: '[data-i18n="totalInvoices"]', prop: 'text', key: 'totalInvoices' },
+    { sel: '[data-i18n="totalProducts"]', prop: 'text', key: 'totalProducts' },
+    { sel: '[data-i18n="totalSalesPaid"]', prop: 'text', key: 'totalSalesPaid' },
+    { sel: '[data-i18n="totalRevenue"]', prop: 'text', key: 'totalRevenue' },
+    { sel: '[data-i18n="totalProfit"]', prop: 'text', key: 'totalProfit' },
+    { sel: '[data-i18n="totalExpenses"]', prop: 'text', key: 'totalExpenses' },
+
+    { sel: '[data-i18n="productsNote"]', prop: 'text', key: 'productsNote' },
+    { sel: '[data-i18n="revenueNote"]', prop: 'text', key: 'revenueNote' },
+    { sel: '[data-i18n="profitNote"]', prop: 'text', key: 'profitNote' },
+    { sel: '[data-i18n="expensesNote"]', prop: 'text', key: 'expensesNote' },
+
+    { sel: '[data-i18n="salesChart"]', prop: 'text', key: 'salesChart' },
+
+    // manage expenses
+    { sel: '#manageExpensesModal h4', prop: 'text', key: 'manageExpensesTitle' },
+    { sel: '#openAddExpense', prop: 'text', key: 'addExpense' },
+    { sel: '#showAllExpenses', prop: 'text', key: 'manageSaved' },
+    { sel: '#expensesFormWrap input[type="text"]', prop: 'placeholder', key: 'expenseNamePH' },
+    { sel: '#expensesFormWrap input[type="number"]', prop: 'placeholder', key: 'expenseAmountPH' },
+    { sel: '#expensesFormWrap select option:first-child', prop: 'text', key: 'expenseCategoryDefault' },
+    { sel: '#expensesFormWrap select option[value="utilities"]', prop: 'text', key: 'expenseCategories.0' },
+    { sel: '#expensesFormWrap select option[value="rent"]', prop: 'text', key: 'expenseCategories.1' },
+    { sel: '#expensesFormWrap select option[value="supplies"]', prop: 'text', key: 'expenseCategories.2' },
+    { sel: '#expensesFormWrap select option[value="salary"]', prop: 'text', key: 'expenseCategories.3' },
+    { sel: '#addExpenseRowBtn', prop: 'text', key: 'addMore' },
+    { sel: '#saveExpensesBtn', prop: 'text', key: 'saveBtn' },
+    { sel: '#cancelExpensesBtn', prop: 'text', key: 'cancelBtn' },
+    { sel: '#closeSavedExpenses', prop: 'text', key: 'closeBtn' },
+
+    // invoices UI
+    { sel: '#createInvoiceBtn', prop: 'text', key: 'createInvoice' },
+    { sel: '#createInvoiceSection h2', prop: 'text', key: 'createInvoiceTitle' },
+    { sel: '#customerName', prop: 'placeholder', key: 'customerNamePH' },
+    { sel: '#customerPhone', prop: 'placeholder', key: 'customerPhonePH' },
+    { sel: '#addItemBtn', prop: 'text', key: 'addItem' },
+    { sel: '#amount', prop: 'placeholder', key: 'totalAmountLabel' },
+    { sel: '#paid', prop: 'placeholder', key: 'amountPaidLabel' },
+    { sel: '#saveInvoiceBtn', prop: 'text', key: 'saveInvoice' },
+    { sel: '#invoicesTitle', prop: 'text', key: 'invoicesTitle' },
+    { sel: '#clearPaidBtn', prop: 'text', key: 'clearPaid' },
+    { sel: '#filterStatus option[value="all"]', prop: 'text', key: 'filterAll' },
+    { sel: '#filterStatus option[value="paid"]', prop: 'text', key: 'filterPaid' },
+    { sel: '#filterStatus option[value="unpaid"]', prop: 'text', key: 'filterUnpaid' },
+    { sel: '#searchName', prop: 'placeholder', key: 'searchByNamePH' },
+    { sel: '#reminderMethod option[value="wa"]', prop: 'text', key: 'reminderWA' },
+    { sel: '#reminderMethod option[value="sms"]', prop: 'text', key: 'reminderSMS' },
+    { sel: '#sendAllReminders', prop: 'text', key: 'sendAllReminders' },
+    { sel: '#emptyState', prop: 'text', key: 'noInvoicesYet' },
+
+    // invoices table headers mapping left intact
+    { sel: 'thead tr th', prop: 'textByOrderGeneric', key: ['reportsTable.no','tableInvoice','tableDate','tableCustomer','tablePhone','tableAmount','tablePaid','tableBalance','tableStatus','tableActions'] },
+
+    // products section
+    { sel: '#searchInput', prop: 'placeholder', key: 'searchProductsPH' },
+    { sel: '#addProductBtn', prop: 'text', key: 'addProductBtn' },
+    { sel: '#openCartHeader', prop: 'title', key: 'shoppingCartTitle' },
+    { sel: '#clearCart', prop: 'text', key: 'cancelAll' },
+    { sel: '#closeCart', prop: 'text', key: 'cancel' },
+    { sel: '#sellCart', prop: 'text', key: 'sellBtn' },
+
+    // empty products
+    { sel: '#emptyTitle', prop: 'text', key: 'emptyProductsTitle' },
+    { sel: '#emptyDesc', prop: 'text', key: 'emptyProductsDesc' },
+    { sel: '#emptyAddBtn', prop: 'text', key: 'addProductBtn' },
+
+    // product table headers
+    { sel: '#thName', prop: 'text', key: 'thName' },
+    { sel: '#thCost', prop: 'text', key: 'thCost' },
+    { sel: '#thPrice', prop: 'text', key: 'thPrice' },
+    { sel: '#thQty', prop: 'text', key: 'thQty' },
+    { sel: '#thActions', prop: 'text', key: 'thActions' },
+
+    // product modal
+    { sel: '#modalTitle', prop: 'text', key: 'productModalTitle' },
+    { sel: '#lblName', prop: 'text', key: 'lblName' },
+    { sel: '#productName', prop: 'placeholder', key: 'productNamePH' },
+    { sel: '#lblCost', prop: 'text', key: 'lblCost' },
+    { sel: '#productCost', prop: 'placeholder', key: 'productCostPH' },
+    { sel: '#lblPrice', prop: 'text', key: 'lblPrice' },
+    { sel: '#productPrice', prop: 'placeholder', key: 'productPricePH' },
+    { sel: '#lblQty', prop: 'text', key: 'lblQty' },
+    { sel: '#productQty', prop: 'placeholder', key: 'productQtyPH' },
+    { sel: '#cancelModal', prop: 'text', key: 'cancelBtn' },
+    { sel: '#saveProductBtn', prop: 'text', key: 'saveProductBtn' },
+
+    // reports
+    { sel: '#reportsSection h1', prop: 'text', key: 'reportsTitle' },
+    { sel: '#reportsSection p.text-sm', prop: 'text', key: 'reportsSub' },
+    { sel: '#reportsExportPdf', prop: 'text', key: 'exportPdf' },
+    { sel: '#reportsDeleteAll', prop: 'text', key: 'deleteAllReports' },
+    { sel: '#reportsPeriod', prop: 'options', key: 'reportsPeriod' },
+    { sel: '#reportsSearchInput', prop: 'placeholder', key: 'reportsSearchPH' },
+    { sel: '#reportsTotalItems', prop: 'text', key: 'totalItemsLabel' },
+    { sel: '#reportsTotalSales', prop: 'text', key: 'totalSalesLabel' },
+    { sel: '#reportsEmptyMsg', prop: 'text', key: 'reportsEmpty' },
+
+    // reports confirm modal
+    { sel: '#reportsConfirmDeleteAll h3', prop: 'text', key: 'confirmDeleteReportsTitle' },
+    { sel: '#reportsConfirmDeleteAll p', prop: 'text', key: 'confirmDeleteReportsText' },
+    { sel: '#reportsCancelDeleteAll', prop: 'text', key: 'confirmCancel' },
+    { sel: '#reportsConfirmDeleteAllBtn', prop: 'text', key: 'confirmDeleteAll' },
+
+    // recycle modal
+    { sel: '#recycleBinModal h4', prop: 'text', key: 'recycleTitle' },
+    { sel: '#rbRestoreAll', prop: 'text', key: 'restoreAll' },
+    { sel: '#rbDeleteAll', prop: 'text', key: 'rbDeleteAll' },
+    { sel: '#closeRecycleBin', prop: 'text', key: 'rbClose' },
+    { sel: '#rbInvoicesWrap h5', prop: 'text', key: 'rbInvoices' },
+    { sel: '#rbProductsWrap h5', prop: 'text', key: 'rbProducts' },
+    { sel: '#rbReportsWrap h5', prop: 'text', key: 'rbReports' },
+
+    // footer
+    { sel: 'footer .text-sm', prop: 'html', key: 'footerHtml' },
+
+    // bottom nav
+    { sel: 'nav#bottomNav button.navBtn:nth-child(1) span', prop: 'text', key: 'navDashboard' },
+    { sel: 'nav#bottomNav button.navBtn:nth-child(2) span', prop: 'text', key: 'navInvoices' },
+    { sel: 'nav#bottomNav button.navBtn:nth-child(3) span', prop: 'text', key: 'navProducts' },
+    { sel: 'nav#bottomNav button.navBtn:nth-child(4) span', prop: 'text', key: 'navReports' }
+  ];
+
+  // --- helpers ---
+  function getKey(obj, path){
+    if (!path) return undefined;
+    const parts = String(path).split('.');
+    let cur = obj;
+    for (const p of parts){
+      if (cur === undefined || cur === null) return undefined;
+      if (/^\d+$/.test(p)) cur = cur[Number(p)];
+      else cur = cur[p];
+    }
+    return cur;
+  }
+
+  // Safe setter for text that preserves child elements (icons/buttons/event listeners).
+  // If the target element already contains a dedicated child with attribute data-i18n-text we update it.
+  // Otherwise we create a small <span data-i18n-text> and place it after any icon children, leaving other children intact.
+  function setTextSafely(node, value){
+    if (!node) return;
+    // don't try to set text on non-text controls
+    const tag = (node.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || tag === 'canvas') {
+      // these should be set via placeholder/value elsewhere, skip
+      return;
+    }
+
+    // if element has an explicit child to hold i18n text, prefer that
+    const existingHolder = node.querySelector && node.querySelector('[data-i18n-text]');
+    if (existingHolder) {
+      existingHolder.textContent = value;
+      return;
+    }
+
+    // if element has no child elements, safe to set textContent
+    if (!node.childElementCount) {
+      node.textContent = value;
+      return;
+    }
+
+    // Otherwise preserve existing child elements (icons etc.).
+    // Find any text nodes that are direct children and remove them into a single span holder
+    // so we can update text without destroying child elements/listeners.
+    let holder = null;
+    // first try to find a direct child span.i18n-text by class
+    const byClass = Array.from(node.children).find(c => c.classList && c.classList.contains('i18n-text'));
+    if (byClass) holder = byClass;
+
+    if (!holder) {
+      // create holder
+      holder = document.createElement('span');
+      holder.setAttribute('data-i18n-text','true');
+      holder.className = 'i18n-text';
+      // place holder after any <i> or svg icon children, but before interactive grandchildren that are purely structural.
+      // heuristic: append as last child
+      node.appendChild(holder);
+    }
+
+    holder.textContent = value;
+  }
+
+  function setProp(node, prop, value){
+    if (!node) return;
+    try {
+      if (prop === 'text') setTextSafely(node, value);
+      else if (prop === 'html') node.innerHTML = value;
+      else if (prop === 'placeholder') {
+        if ('placeholder' in node) node.placeholder = value;
+      }
+      else if (prop === 'title') node.title = value;
+      else if (prop === 'value') node.value = value;
+    } catch(e){ console.error('setProp error', e); }
+  }
+
+  function applyOptions(selectNode, arr){
+    if (!selectNode) return;
+    selectNode.innerHTML = '';
+    arr.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v;
+      o.textContent = v;
+      selectNode.appendChild(o);
+    });
+  }
+
+
+
+  // Annotate fragile elements with data-i18n (BUT: annotate headings/labels, NOT numeric amounts)
+  // Improvements:
+  // - Chart annotation finds the canvas by id (#salesChart) and annotates nearby header/subtitle only.
+  // - We won't query broad selectors that might pick the canvas or chart internals.
+  function annotateKeyElements() {
+    try {
+      // Annotate dashboard card headings (h3 inside each card in the grid)
+      const cardKeys = ['totalInvoices','totalProducts','totalSalesPaid','totalRevenue','totalProfit','totalExpenses'];
+      const cardContainers = Array.from(document.querySelectorAll('#dashboardContent .grid > div'));
+      cardContainers.forEach((cardEl, idx) => {
+        const h3 = cardEl.querySelector('h3.text-lg, h3');
+        if (h3 && cardKeys[idx]) {
+          h3.setAttribute('data-i18n', cardKeys[idx]);
+        }
+        const noteEl = cardEl.querySelector('.text-xs');
+        if (noteEl) {
+          // map note keys sensibly by card index: products (1), revenue (3), profit (4), expenses (5)
+          if (idx === 1) noteEl.setAttribute('data-i18n','productsNote');
+          else if (idx === 3) noteEl.setAttribute('data-i18n','revenueNote');
+          else if (idx === 4) noteEl.setAttribute('data-i18n','profitNote');
+          else if (idx === 5) noteEl.setAttribute('data-i18n','expensesNote');
+          else {
+            // fallback: annotate if not yet annotated
+            if (!document.querySelector('[data-i18n="productsNote"]')) noteEl.setAttribute('data-i18n','productsNote');
+            else if (!document.querySelector('[data-i18n="revenueNote"]')) noteEl.setAttribute('data-i18n','revenueNote');
+            else if (!document.querySelector('[data-i18n="profitNote"]')) noteEl.setAttribute('data-i18n','profitNote');
+            else if (!document.querySelector('[data-i18n="expensesNote"]')) noteEl.setAttribute('data-i18n','expensesNote');
+          }
+        }
+      });
+
+      // Chart heading & subtitle: locate by canvas id to avoid selecting chart internals
+      const canvas = document.getElementById('salesChart');
+      if (canvas) {
+        // walk up to the card that contains the canvas
+        let candidate = canvas.closest('.mt-6') || canvas.parentElement;
+        if (candidate) {
+          // find the heading in that card (an h3) and the small subtitle
+          const h3 = candidate.querySelector('h3.text-lg.font-semibold, h3.text-lg, h3');
+          if (h3) h3.setAttribute('data-i18n','salesChart');
+          const subtitle = candidate.querySelector('.text-sm');
+          if (subtitle) subtitle.setAttribute('data-i18n','basedOnPeriod');
+        }
+      } else {
+        // fallback: try previous selector but don't touch canvas itself
+        const chartCard = document.querySelector('#dashboardContent .mt-6.bg-white, #dashboardContent .mt-6');
+        if (chartCard) {
+          const h3 = chartCard.querySelector('h3.text-lg.font-semibold, h3.text-lg, h3');
+          if (h3) h3.setAttribute('data-i18n','salesChart');
+          const smallText = chartCard.querySelector('.text-sm');
+          if (smallText) smallText.setAttribute('data-i18n','basedOnPeriod');
+        }
+      }
+
+      // Also ensure "View:" label gets a data-i18n attr if present
+      const viewLabel = document.querySelector('label.text-sm.text-gray-600');
+      if (viewLabel && !viewLabel.hasAttribute('data-i18n')) viewLabel.setAttribute('data-i18n','viewLabel');
+
+    } catch(e) {
+      console.warn('annotateKeyElements failed', e);
+    }
+  }
+
+  // Apply translations using safe setter
+  function applyTranslations(lang) {
+    const dict = translations[lang] || translations.en;
+
+    annotateKeyElements();
+
+    mapping.forEach(item => {
+      try {
+        const nodes = Array.from(document.querySelectorAll(item.sel));
+        if (!nodes.length) return;
+        if (item.prop === 'text') {
+          const v = getKey(dict, item.key);
+          if (v !== undefined) nodes.forEach(n => setProp(n, 'text', v));
+        } else if (item.prop === 'html') {
+          if (item.key === 'footerHtml') {
+            const copy = dict.footerCopy || '';
+            nodes.forEach(n => {
+              const name = '<span class="font-semibold">Zakariye</span>';
+              n.innerHTML = `&copy; 2025 ${name}. ${copy}`;
+            });
+          } else {
+            const v = getKey(dict, item.key);
+            if (v !== undefined) nodes.forEach(n => setProp(n, 'html', v));
+          }
+        } else if (item.prop === 'placeholder') {
+          const v = getKey(dict, item.key);
+          if (v !== undefined) nodes.forEach(n => setProp(n, 'placeholder', v));
+        } else if (item.prop === 'title') {
+          const v = getKey(dict, item.key);
+          if (v !== undefined) nodes.forEach(n => setProp(n, 'title', v));
+        } else if (item.prop === 'options') {
+          const arr = getKey(dict, item.key) || [];
+          nodes.forEach(n => applyOptions(n, arr));
+        } else if (item.prop === 'textByIndex') {
+          const arr = item.key;
+          nodes.forEach((n, idx) => {
+            const entry = arr[idx];
+            if (!entry) return;
+            const v = getKey(dict, entry.key);
+            if (v !== undefined) setProp(n, 'text', v);
+          });
+        } else if (item.prop === 'textByOrder') {
+          const list = item.key || [];
+          list.forEach((entry, i) => {
+            const el = nodes[i];
+            if (!el) return;
+            const v = getKey(dict, entry.key);
+            if (v !== undefined) setProp(el, 'text', v);
+          });
+        } else if (item.prop === 'textByOrderGeneric') {
+          const keys = item.key || [];
+          nodes.forEach((n, i) => {
+            const k = keys[i];
+            if (!k) return;
+            let v = getKey(dict, k);
+            if (v === undefined) v = dict[k];
+            if (v !== undefined) setProp(n, 'text', v);
+          });
+        } else if (item.prop === 'textExact') {
+          const v = getKey(dict, item.key);
+          if (v !== undefined) nodes[0] && setProp(nodes[0], 'text', v);
+        }
+      } catch (e) {
+        console.error('i18n mapping error', e, item);
+      }
+    });
+
+    // status select options
+    const statusSel = document.getElementById('status');
+    if (statusSel) {
+      const st = getKey(dict, 'statusOptions') || {};
+      Array.from(statusSel.options).forEach(opt => {
+        if (opt.value && st[opt.value]) opt.textContent = st[opt.value];
+        else {
+          const maybe = getKey(dict, `statusOptions.${opt.value}`);
+          if (maybe) opt.textContent = maybe;
+        }
+      });
+    }
+
+    // reports table headers (if present)
+    const reportsThead = document.querySelectorAll('#reportsTable thead th');
+    if (reportsThead && reportsThead.length) {
+      const rt = dict.reportsTable || {};
+      const keys = ['no','products','qty','total','paid','due','status','customer','phone','timestamp','actions'];
+      reportsThead.forEach((th, i) => {
+        const k = keys[i];
+        if (rt && rt[k]) th.textContent = rt[k];
+      });
+    }
+
+    // bottom nav explicit
+    const navMap = {
+      'nav#bottomNav button.navBtn:nth-child(1) span': dict.navDashboard,
+      'nav#bottomNav button.navBtn:nth-child(2) span': dict.navInvoices,
+      'nav#bottomNav button.navBtn:nth-child(3) span': dict.navProducts,
+      'nav#bottomNav button.navBtn:nth-child(4) span': dict.navReports
+    };
+    Object.entries(navMap).forEach(([sel, txt])=>{
+      const el = document.querySelector(sel);
+      if (el && txt) el.textContent = txt;
+    });
+
+    if (lang) localStorage.setItem(LS_KEY, lang);
+  }
+
+  // Initialize on DOM ready
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const saved = localStorage.getItem(LS_KEY) || 'so';
+    // Annotate once early (but apply translations after annotation)
+    annotateKeyElements();
+    applyTranslations(saved);
+
+    // Expose helpers
+    window.applyTranslations = applyTranslations;
+    window.annotateI18nKeys = annotateKeyElements;
+  });
+
+  // Convenience setter
+  window.setAppLanguage = function(lang){
+    if (!lang) return;
+    applyTranslations(lang);
+  };
+
+})();
+
 
 
 /* =========================
