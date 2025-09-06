@@ -1190,7 +1190,6 @@ window.addEventListener('DOMContentLoaded', () => {
       viewLabel: "View:",
       dashboardPeriod: ["Lifetime","Today","Last 7 days","This month","This year","Live (auto)"],
       refresh: "Refresh",
-      manageExpensesIconTitle: "Manage Expenses",
       recycleBinTitle: "Recycle Bin",
 
       totalInvoices: "Total Invoices",
@@ -1203,18 +1202,6 @@ window.addEventListener('DOMContentLoaded', () => {
       profitNote: "Revenue minus expenses",
       totalExpenses: "Total Expenses",
       expensesNote: "Total of saved expenses",
-
-      manageExpensesTitle: "Manage Expenses",
-      addExpense: "Add Expense",
-      manageSaved: "Manage Saved",
-      expenseNamePH: "Expense Name",
-      expenseAmountPH: "Amount",
-      expenseCategoryDefault: "Category",
-      expenseCategories: ["Utilities","Rent","Supplies","Salary"],
-      addMore: "Add More",
-      saveBtn: "Save",
-      cancelBtn: "Cancel",
-      closeBtn: "Close",
 
       salesChart: "Sales chart",
       basedOnPeriod: "Based on selected period",
@@ -1328,7 +1315,6 @@ window.addEventListener('DOMContentLoaded', () => {
       // Dashboard / general
       viewLabel: "Fiiri:",
       refresh: "Cusboonaysii",
-      manageExpensesIconTitle: "Maamul Kharashyada",
       recycleBinTitle: "Qashinka Dib-u-celinta",
 
       totalInvoices: "Wadarta Rasiidada",
@@ -1342,16 +1328,11 @@ window.addEventListener('DOMContentLoaded', () => {
       totalExpenses: "Wadarta Kharashyada",
       expensesNote: "Wadarta kharashyada la keydiyey",
 
-      manageExpensesTitle: "Maamul Kharashyada",
-      addExpense: "Kudar Kharash",
-      manageSaved: "",
       expenseNamePH: "Magaca Kharashka",
       expenseAmountPH: "Qadarka",
       expenseCategoryDefault: "Qaybta",
       expenseCategories: ["Adeegyo","Kiro","Agabka","Mushahar"],
       addMore: "Kudar Inta Kale",
-      saveBtn: "Keydi",
-      cancelBtn: "Bax",
       closeBtn: "Xidh",
 
       salesChart: "Jaantuska Iibka",
@@ -2266,116 +2247,362 @@ function restoreFromTrash(storeName, trashId) {
  * dir: 'right'  => old slides right, new comes from left
  * If dir is falsy -> no animation (instant swap)
  */
+/* ===== Modern animateSectionTransition (soft scale + fade) ===== */
 function animateSectionTransition(oldEl, newEl, dir = 'left') {
   return new Promise((resolve) => {
     if (!oldEl || !newEl || oldEl === newEl || !dir) {
-      // simple fallback
       if (oldEl && oldEl !== newEl) oldEl.classList.add('hidden');
       if (newEl) newEl.classList.remove('hidden');
       return resolve();
     }
 
-    // parent container must be set relative to allow absolutely positioned overlays
     const container = oldEl.parentElement;
-    const prevContainerPos = container.style.position || '';
-    if (!prevContainerPos) container.style.position = 'relative';
+    const prevPos = container.style.position || '';
+    if (!prevPos) container.style.position = 'relative';
 
-    // save original inline styles we will touch
-    const save = (el) => ({
+    // Save inline styles to restore after animation
+    const save = el => ({
       position: el.style.position || '',
       inset: el.style.inset || '',
-      top: el.style.top || '',
-      left: el.style.left || '',
-      right: el.style.right || '',
-      bottom: el.style.bottom || '',
-      width: el.style.width || '',
-      height: el.style.height || '',
       transition: el.style.transition || '',
       transform: el.style.transform || '',
-      zIndex: el.style.zIndex || ''
+      opacity: el.style.opacity || '',
+      zIndex: el.style.zIndex || '',
+      willChange: el.style.willChange || ''
     });
-    const oldSave = save(oldEl);
-    const newSave = save(newEl);
+    const sOld = save(oldEl), sNew = save(newEl);
 
-    // Force both elements to overlay the container
+    // overlay both elements
     [oldEl, newEl].forEach(el => {
       el.style.position = 'absolute';
       el.style.inset = '0';
       el.style.width = '100%';
       el.style.height = '100%';
-      el.style.top = '0';
-      el.style.left = '0';
-      el.style.right = '0';
-      el.style.bottom = '0';
+      // hint for GPU acceleration
+      el.style.willChange = 'transform, opacity';
     });
 
-    // Ensure new is visible and above old initially
     newEl.classList.remove('hidden');
     newEl.style.zIndex = '600';
     oldEl.style.zIndex = '500';
 
-    // set starting transforms depending on direction
-    if (dir === 'left') {
-      oldEl.style.transform = 'translateX(0)';
-      newEl.style.transform = 'translateX(100%)';
-    } else { // right
-      oldEl.style.transform = 'translateX(0)';
-      newEl.style.transform = 'translateX(-100%)';
-    }
+    const dur = 380;
+    const easing = 'cubic-bezier(.22,.9,.28,1)';
 
-    // set transitions
-    const dur = 320; // ms
-    const easing = 'cubic-bezier(.22,.9,.3,1)';
+    // initial
+    if (dir === 'left') {
+      oldEl.style.transform = 'translateX(0) scale(1)';
+      newEl.style.transform = 'translateX(12%) scale(0.975)';
+    } else {
+      oldEl.style.transform = 'translateX(0) scale(1)';
+      newEl.style.transform = 'translateX(-12%) scale(0.975)';
+    }
+    newEl.style.opacity = '0.6';
+
+    // transitions
     oldEl.style.transition = `transform ${dur}ms ${easing}, opacity ${dur}ms ${easing}`;
     newEl.style.transition = `transform ${dur}ms ${easing}, opacity ${dur}ms ${easing}`;
 
     // force paint
     void oldEl.offsetWidth;
 
-    // trigger animation on next frame
+    // animate
     requestAnimationFrame(() => {
       if (dir === 'left') {
-        oldEl.style.transform = 'translateX(-100%)';
-        newEl.style.transform = 'translateX(0)';
-      } else { // right
-        oldEl.style.transform = 'translateX(100%)';
-        newEl.style.transform = 'translateX(0)';
+        oldEl.style.transform = 'translateX(-14%) scale(0.96)';
+        newEl.style.transform = 'translateX(0) scale(1)';
+      } else {
+        oldEl.style.transform = 'translateX(14%) scale(0.96)';
+        newEl.style.transform = 'translateX(0) scale(1)';
       }
+      oldEl.style.opacity = '0.65';
+      newEl.style.opacity = '1';
     });
 
-    // handle transition end (listen on newEl to ensure animation completed)
-    function onEnd(e) {
-      if (e && e.target !== newEl) return;
-      // cleanup listeners
-      newEl.removeEventListener('transitionend', onEnd);
-      // hide old element
+    function finish(e) {
+      // ensure we listen once
+      newEl.removeEventListener('transitionend', finish);
+      // hide old, restore inline styles
       try { oldEl.classList.add('hidden'); } catch(e) {}
-      // restore original inline styles
+
       const restore = (el, s) => {
         el.style.position = s.position;
         el.style.inset = s.inset;
-        el.style.top = s.top;
-        el.style.left = s.left;
-        el.style.right = s.right;
-        el.style.bottom = s.bottom;
-        el.style.width = s.width;
-        el.style.height = s.height;
         el.style.transition = s.transition;
         el.style.transform = s.transform;
+        el.style.opacity = s.opacity;
         el.style.zIndex = s.zIndex;
+        el.style.willChange = s.willChange;
       };
-      restore(oldEl, oldSave);
-      restore(newEl, newSave);
-      // restore container position if we changed it
-      if (!prevContainerPos) container.style.position = '';
+      restore(oldEl, sOld);
+      restore(newEl, sNew);
+
+      if (!prevPos) container.style.position = '';
       resolve();
     }
 
-    // safety: use transitionend or timeout as fallback
-    newEl.addEventListener('transitionend', onEnd);
-    setTimeout(() => onEnd(), dur + 80);
+    // safety fallback
+    newEl.addEventListener('transitionend', finish);
+    setTimeout(finish, dur + 120);
   });
 }
+
+/* ===== Improved swipe navigation with live drag (modern feel) ===== */
+function enableSectionSwipeNavigation(opts = {}) {
+  const threshold = opts.threshold || 60; // px to trigger change
+  const maxVerticalRatio = opts.maxVerticalRatio || 0.6;
+  const minViewportWidth = typeof opts.minViewportWidth === 'number' ? opts.minViewportWidth : 0;
+  const onlyTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  if (!onlyTouch) return () => {}; // noop disable
+
+  const firstSection = document.getElementById(SECTIONS[0]);
+  const container = (firstSection && firstSection.parentElement) || document.body;
+  let startX = 0, startY = 0, startTime = 0;
+  let isDragging = false, dragged = false;
+  let currentIndex = -1;
+  let curEl = null, nextEl = null, prevEl = null;
+  const saved = new WeakMap();
+  const width = () => container.clientWidth || window.innerWidth || 360;
+
+  function canNavigate() {
+    // keep your previous modal/select checks
+    if (document.querySelector('.modal, [role="dialog"], #reminderBulkModal:not(.hidden)')) return false;
+    return true;
+  }
+
+  function saveInline(el) {
+    if (!el || saved.has(el)) return;
+    saved.set(el, {
+      position: el.style.position || '',
+      inset: el.style.inset || '',
+      transition: el.style.transition || '',
+      transform: el.style.transform || '',
+      opacity: el.style.opacity || '',
+      zIndex: el.style.zIndex || '',
+      willChange: el.style.willChange || ''
+    });
+  }
+  function restoreInline(el) {
+    if (!el || !saved.has(el)) return;
+    const s = saved.get(el);
+    el.style.position = s.position;
+    el.style.inset = s.inset;
+    el.style.transition = s.transition;
+    el.style.transform = s.transform;
+    el.style.opacity = s.opacity;
+    el.style.zIndex = s.zIndex;
+    el.style.willChange = s.willChange;
+    saved.delete(el);
+  }
+
+  function getCurrentVisibleIndex() {
+    const cur = SECTIONS.map(id => document.getElementById(id)).find(el => el && !el.classList.contains('hidden'));
+    return cur ? SECTIONS.indexOf(cur.id) : -1;
+  }
+
+  function prepareForDrag() {
+    currentIndex = getCurrentVisibleIndex();
+    if (currentIndex < 0) return false;
+    curEl = document.getElementById(SECTIONS[currentIndex]);
+    nextEl = document.getElementById(SECTIONS[Math.min(SECTIONS.length - 1, currentIndex + 1)]);
+    prevEl = document.getElementById(SECTIONS[Math.max(0, currentIndex - 1)]);
+    // save inline styles and put in overlay mode
+    [curEl, nextEl, prevEl].forEach(el => {
+      if (!el) return;
+      saveInline(el);
+      el.style.position = 'absolute';
+      el.style.inset = '0';
+      el.style.width = '100%';
+      el.style.height = '100%';
+      el.style.willChange = 'transform, opacity';
+      el.style.transition = 'none';
+      el.style.zIndex = el === curEl ? 500 : 480;
+      // ensure visible (don't hide)
+      el.classList.remove('hidden');
+    });
+    // initial positions (next to the right, prev to the left)
+    const w = width();
+    if (nextEl) nextEl.style.transform = `translateX(${w}px) scale(0.98)`, nextEl.style.opacity = '0.9';
+    if (prevEl) prevEl.style.transform = `translateX(${-w}px) scale(0.98)`, prevEl.style.opacity = '0.9';
+    if (curEl) curEl.style.transform = 'translateX(0) scale(1)', curEl.style.opacity = '1';
+    return true;
+  }
+
+  function onTouchStart(e) {
+    if (!canNavigate()) return;
+    if (minViewportWidth > 0 && window.innerWidth > minViewportWidth) return;
+    if (!e.touches || e.touches.length !== 1) return;
+    // ignore start over form controls
+    const tag = (e.target && e.target.tagName && e.target.tagName.toLowerCase()) || '';
+    if (['input','textarea','select','button'].includes(tag)) return;
+
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    startTime = Date.now();
+    isDragging = false;
+    dragged = false;
+    // prepare DOM only lazily when we detect enough horizontal movement (cheap)
+  }
+
+  function onTouchMove(e) {
+    if (!e.touches || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    // early cancel if vertical dominance
+    if (!isDragging && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      // begin horizontal drag
+      if (!prepareForDrag()) { startX = 0; startY = 0; return; }
+      isDragging = true;
+      // prevent scroll
+      e.preventDefault && e.preventDefault();
+    }
+
+    if (!isDragging) return;
+
+    dragged = true;
+    e.preventDefault && e.preventDefault();
+
+    const w = width();
+    // compute capped dx for resistance at edges
+    let cappedDx = dx;
+    const atLeftEdge = (dx > 0 && !prevEl);
+    const atRightEdge = (dx < 0 && !nextEl);
+    if (atLeftEdge || atRightEdge) {
+      // resistance (rubber-band)
+      const sign = Math.sign(dx);
+      cappedDx = sign * (Math.pow(Math.abs(dx), 0.85));
+    }
+
+    // apply transforms: current moves with finger, neighbor follows
+    const percent = cappedDx / w;
+    // subtle scale effect based on distance
+    const curScale = Math.max(0.95, 1 - Math.abs(percent) * 0.05);
+    curEl.style.transform = `translateX(${cappedDx}px) scale(${curScale})`;
+    curEl.style.opacity = `${Math.max(0.6, 1 - Math.abs(percent) * 0.5)}`;
+
+    if (cappedDx < 0 && nextEl) {
+      // dragging to left -> reveal next (from right)
+      const nextX = w + cappedDx; // starts at +w
+      const nextScale = Math.min(1, 0.98 + Math.abs(percent) * 0.02);
+      nextEl.style.transform = `translateX(${nextX}px) scale(${nextScale})`;
+      nextEl.style.opacity = `${Math.min(1, 0.9 + Math.abs(percent) * 0.1)}`;
+    } else if (cappedDx > 0 && prevEl) {
+      // dragging to right -> reveal prev (from left)
+      const prevX = -w + cappedDx; // starts at -w
+      const prevScale = Math.min(1, 0.98 + Math.abs(percent) * 0.02);
+      prevEl.style.transform = `translateX(${prevX}px) scale(${prevScale})`;
+      prevEl.style.opacity = `${Math.min(1, 0.9 + Math.abs(percent) * 0.1)}`;
+    }
+  }
+
+  function finishDragCommit(dir) {
+    // dir: 'left' means move to next (swiped left), 'right' means move prev
+    let targetId = null;
+    if (dir === 'left' && nextEl) targetId = SECTIONS[currentIndex + 1];
+    if (dir === 'right' && prevEl) targetId = SECTIONS[currentIndex - 1];
+
+    // If we have a target, run the animated transition using existing function (keeps behavior consistent)
+    if (targetId) {
+      // restore inline for elements we don't want to animate double (animateSectionTransition will manage overlays)
+      [curEl, nextEl, prevEl].forEach(el => {
+        if (!el) return;
+        // quick cleanup: remove inline transitions to let animateSectionTransition handle it
+        el.style.transition = '';
+      });
+      // call showSection because it triggers animateSectionTransition and refresh hooks
+      showSection(targetId);
+    } else {
+      // no target (edge) -> revert visually to original
+      revertDrag(); // triggers small revert animation then cleanup
+    }
+    // cleanup will be handled by showSection or revertDrag
+  }
+
+  function revertDrag() {
+    const dur = 280;
+    const easing = 'cubic-bezier(.22,.9,.28,1)';
+    // restore with a short transition
+    [curEl, nextEl, prevEl].forEach(el => {
+      if (!el || !saved.has(el)) return;
+      el.style.transition = `transform ${dur}ms ${easing}, opacity ${dur}ms ${easing}`;
+      const s = saved.get(el);
+      // request frame to ensure transition takes effect
+      requestAnimationFrame(() => {
+        el.style.transform = s.transform || '';
+        el.style.opacity = s.opacity || '';
+      });
+    });
+
+    // cleanup after transition
+    setTimeout(() => {
+      [curEl, nextEl, prevEl].forEach(el => restoreInline(el));
+      curEl = nextEl = prevEl = null;
+      isDragging = false;
+      dragged = false;
+    }, dur + 40);
+  }
+
+  function onTouchEnd(e) {
+    if (!startTime) return;
+    const touch = (e.changedTouches && e.changedTouches[0]) || null;
+    if (!touch) { startTime = 0; return; }
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+    startTime = 0;
+
+    // If we never entered dragging, ignore
+    if (!dragged || !isDragging || !curEl) {
+      isDragging = false;
+      dragged = false;
+      return;
+    }
+
+    const absDx = Math.abs(dx);
+    // If movement passes threshold and horizontal dominates -> commit; otherwise revert
+    if (absDx >= threshold && Math.abs(dy) <= Math.abs(dx) * (1 / maxVerticalRatio)) {
+      // decide direction based on sign
+      if (dx < 0) {
+        // swipe left => go to next
+        if (nextEl) {
+          finishDragCommit('left');
+        } else {
+          revertDrag();
+        }
+      } else {
+        // swipe right => go to prev
+        if (prevEl) {
+          finishDragCommit('right');
+        } else {
+          revertDrag();
+        }
+      }
+    } else {
+      // not enough movement -> revert
+      revertDrag();
+    }
+  }
+
+  // attach with appropriate passive flags
+  container.addEventListener('touchstart', onTouchStart, { passive: true });
+  container.addEventListener('touchmove', onTouchMove, { passive: false });
+  container.addEventListener('touchend', onTouchEnd, { passive: true });
+
+  // return disable function
+  return function disableSwipe() {
+    container.removeEventListener('touchstart', onTouchStart);
+    container.removeEventListener('touchmove', onTouchMove);
+    container.removeEventListener('touchend', onTouchEnd);
+  };
+}
+
+// Example enable (update params as you like)
+const disableSectionSwipe = enableSectionSwipeNavigation({
+  threshold: 60,
+  maxVerticalRatio: 0.6,
+  minViewportWidth: 1024 // keep your current behavior (only enable when viewport <= 1024)
+});
 
 /* Section list: ordering determines animation direction */
 const SECTIONS = [
@@ -2476,113 +2703,7 @@ navButtons.forEach(btn => btn.addEventListener('click', () => {
    (lightweight, non-invasive)
    ========================= */
 
-   function enableSectionSwipeNavigation(opts = {}) {
-    const threshold = opts.threshold || 60; // px required to trigger
-    const maxVerticalRatio = opts.maxVerticalRatio || 0.6; // horizontal must dominate
-    const minViewportWidth = opts.minViewportWidth || 0; // set >0 to require small screens (0 = no limit)
-    const onlyTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-  
-    if (!onlyTouch) return; // not a touch device
-  
-    // pick container to listen on: parent of sections or body fallback
-    const firstSection = document.getElementById(SECTIONS[0]);
-    const container = (firstSection && firstSection.parentElement) || document.body;
-  
-    let startX = 0, startY = 0, startTime = 0, isSwiping = false;
-  
-    function getCurrentVisibleIndex() {
-      const curEl = SECTIONS.map(id => document.getElementById(id)).find(el => el && !el.classList.contains('hidden'));
-      return curEl ? SECTIONS.indexOf(curEl.id) : -1;
-    }
-  
-    function canNavigate() {
-      // prevent swipe while modals are open or when interacting with inputs
-      if (document.querySelector('.modal, [role="dialog"], #reminderBulkModal:not(.hidden)')) return false;
-      return true;
-    }
-  
-    function onTouchStart(e) {
-      if (!canNavigate()) return;
-      if (minViewportWidth > 0 && window.innerWidth > minViewportWidth) return;
-      if (!e.touches || e.touches.length !== 1) return;
-      const t = e.touches[0];
-      // ignore when starting over an input/select/textarea
-      const tag = (e.target && e.target.tagName && e.target.tagName.toLowerCase()) || '';
-      if (['input','textarea','select','button'].includes(tag)) return;
-      startX = t.clientX;
-      startY = t.clientY;
-      startTime = Date.now();
-      isSwiping = false;
-    }
-  
-    function onTouchMove(e) {
-      if (!e.touches || e.touches.length !== 1) return;
-      const t = e.touches[0];
-      const dx = t.clientX - startX;
-      const dy = t.clientY - startY;
-      // if vertical movement dominates, cancel swipe detection
-      if (!isSwiping && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-        isSwiping = true;
-        // prevent page from horizontally scrolling while swiping
-        e.preventDefault && e.preventDefault();
-      }
-      if (isSwiping) {
-        // preventDefault so the page doesn't accidentally scroll horizontally on some browsers
-        e.preventDefault && e.preventDefault();
-      }
-    }
-  
-    function onTouchEnd(e) {
-      if (!startTime) return;
-      const touch = (e.changedTouches && e.changedTouches[0]) || null;
-      if (!touch) { startTime = 0; return; }
-      const dx = touch.clientX - startX;
-      const dy = touch.clientY - startY;
-      const dt = Date.now() - startTime;
-      startTime = 0;
-  
-      // small vertical movement or long press -> ignore
-      if (Math.abs(dx) < threshold) return;
-      if (Math.abs(dy) > Math.abs(dx) * (1 / maxVerticalRatio)) return;
-  
-      // get current index
-      const curIndex = getCurrentVisibleIndex();
-      if (curIndex < 0) return;
-  
-      if (dx < 0) {
-        // swipe left -> go to next section (if exists)
-        const nextIndex = Math.min(SECTIONS.length - 1, curIndex + 1);
-        if (nextIndex !== curIndex) {
-          showSection(SECTIONS[nextIndex]);
-        }
-      } else {
-        // swipe right -> go to previous section
-        const prevIndex = Math.max(0, curIndex - 1);
-        if (prevIndex !== curIndex) {
-          showSection(SECTIONS[prevIndex]);
-        }
-      }
-    }
-  
-    // Attach listeners with passive: false so we can preventDefault during horizontal swipes
-    container.addEventListener('touchstart', onTouchStart, { passive: true });
-    container.addEventListener('touchmove', onTouchMove, { passive: false });
-    container.addEventListener('touchend', onTouchEnd, { passive: true });
-  
-    // Expose a way to disable if necessary
-    return function disableSwipe() {
-      container.removeEventListener('touchstart', onTouchStart);
-      container.removeEventListener('touchmove', onTouchMove);
-      container.removeEventListener('touchend', onTouchEnd);
-    };
-  }
-  
-  // // enable swipe navigation (call once)
-  // const disableSectionSwipe = enableSectionSwipeNavigation({
-  //   threshold: 60,
-  //   maxVerticalRatio: 0.6,
-  //   minViewportWidth: 1024 // optional: only enable on narrow screens; set 0 to always enable on touch devices
-  // });
+
   
 /* =========================
    Show/hide auth (login/register)
@@ -4314,45 +4435,7 @@ function getStatusLabel(status) {
   reportsPeriod?.addEventListener('change', renderReports);
   reportsDate?.addEventListener('change', renderReports);
 
-  function renderReportsTrash() {
-    const storeName = getCurrentUser()?.name;
-    if (!storeName || !reportsTrashRows) return;
-  
-    const trash = JSON.parse(localStorage.getItem(`${storeName}_trash_report`) || "[]");
-    reportsTrashRows.innerHTML = '';
-  
-    if (!trash.length) {
-      document.getElementById('reportsTrashEmpty')?.classList.remove('hidden');
-      return;
-    } else {
-      document.getElementById('reportsTrashEmpty')?.classList.add('hidden');
-    }
-  
-    trash.forEach((rpt, idx) => {
-      const tr = document.createElement('tr');
-      const products = (rpt.items || []).map(it => escapeHtml(it.name || '')).join(', ');
-      tr.innerHTML = `
-        <td class="p-2">${idx + 1}</td>
-        <td class="p-2">${products}</td>
-        <td class="p-2">${fmtMoney(rpt.amount)}</td>
-        <td class="p-2">${fmtMoney(rpt.paid)}</td>
-        <td class="p-2">${fmtMoney(rpt.due || 0)}</td>
-        <td class="p-2">${escapeHtml(rpt.status)}</td>
-        <td class="p-2">${escapeHtml(rpt.customer || '')}</td>
-        <td class="p-2 no-print">
-          <div class="flex gap-2">
-            <button class="action-icon text-green-600" data-action="restore-report" data-id="${rpt.id}" title="Restore">
-              <i class="fas fa-undo"></i>
-            </button>
-            <button class="action-icon text-red-600" data-action="permanent-delete-report" data-id="${rpt.id}" title="Delete Permanently">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
-        </td>
-      `;
-      reportsTrashRows.appendChild(tr);
-    });
-  }
+
 
   
   // reports action delegation (print/delete)
@@ -4512,19 +4595,15 @@ function getStatusLabel(status) {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
   
-      // localized header: use visible label text instead of hard-coded strings
       const reportsTitleLabel = (document.querySelector('#reportsSection h1')?.textContent || 'Reports').trim();
-      // For period show the selected option's text (localized label), not its value
       const periodLabelText = (reportsPeriod?.options && reportsPeriod.options[reportsPeriod.selectedIndex]) ? reportsPeriod.options[reportsPeriod.selectedIndex].text : (reportsPeriod?.value || 'lifetime');
   
       doc.setFontSize(14);
       doc.text(`${reportsTitleLabel} (${periodLabelText}) - ${fmtDate(new Date())}`, 10, 10);
   
-      // Column labels: prefer thead text if present (already localized), otherwise fallback
       const headerNodes = document.querySelectorAll('#reportsTable thead th');
       const colLabels = headerNodes && headerNodes.length ? Array.from(headerNodes).map(th => th.textContent.trim()) : ['#','Products','Qty','Total','Paid','Due','Status','Customer','Phone','Timestamp'];
   
-      // Column layout
       const columns = [
         { key: 'no',        label: colLabels[0] || '#',        width: 7,   align: 'right' },
         { key: 'products',  label: colLabels[1] || 'Products', width: 40,  align: 'left'  },
@@ -4538,7 +4617,6 @@ function getStatusLabel(status) {
         { key: 'time',      label: colLabels[9] || 'Timestamp',width: 36,  align: 'left'  },
       ];
   
-      // rest of code uses these columns, identical to your previous logic but with localized labels
       const marginLeft = 10;
       const marginTop  = 16;
       const lineH = 6;
@@ -4574,9 +4652,13 @@ function getStatusLabel(status) {
       y += lineH;
   
       list.forEach((r, i) => {
+        // <<=== KEY CHANGE: do NOT truncate the products array; show the full list
+        const allProductNames = (Array.isArray(r.items) ? r.items.map(it => it?.name).filter(Boolean) : []);
+        const productsFull = allProductNames.join(', ');
+  
         const row = {
           no: i + 1,
-          products: (Array.isArray(r.items) ? r.items.map(it => it?.name).filter(Boolean) : []).slice(0,3).join(', '),
+          products: productsFull,                                  // <-- full list, no .slice()
           qty: (Array.isArray(r.items) ? r.items.reduce((a,it)=>a + (Number(it.qty)||0),0) : (Number(r.qty)||0)),
           total: fmtMoney(Number(r.total != null ? r.total : r.amount || 0)),
           paid: fmtMoney(Number(r.paid || 0)),
@@ -5882,4 +5964,5 @@ function openSettingsModal(){
   
   })(); // end auth.js
   
+
 
