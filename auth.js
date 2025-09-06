@@ -321,86 +321,9 @@
      Creates AppSettings.open() etc.
      ========================= */
   // lightweight ensure button + modal builder
-  function ensureSettingsBtn() {
-    // if already created do nothing (but update visibility)
-    let btn = document.querySelector('.storeSettingsBtn');
-    if (!btn) {
-      const target = document.querySelector('#storeDisplayDesktop') ||
-                     document.querySelector('.store-display') ||
-                     document.querySelector('.store-name') ||
-                     document.querySelector('[data-store-name]');
-      btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'storeSettingsBtn inline-flex items-center gap-2 ml-2 px-2 py-1 rounded bg-emerald-600 text-white';
-      btn.title = 'Settings';
-      btn.setAttribute('aria-label', 'Open settings');
-      btn.innerHTML = '<i class="fa-solid fa-cog"></i>';
-      btn.style.cursor = 'pointer';
-      // click opens modal
-      btn.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        openSettingsModal();
-      });
-      // insert near target if exists
-      if (target && target.parentNode) {
-        try { target.insertAdjacentElement('afterend', btn); } catch (e) { target.parentNode.appendChild(btn); }
-      } else {
-        btn.classList.add('fixed', 'right-4', 'top-4', 'z-60');
-        document.body.appendChild(btn);
-      }
-    }
-
-    // Update visibility based on logged-in state
-    function updateVisibility() {
-      const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
-      if (!btn) return;
-      if (user) btn.style.display = ''; else btn.style.display = 'none';
-    }
-
-    updateVisibility();
-    window.addEventListener('dataUpdated', updateVisibility);
-    document.addEventListener('DOMContentLoaded', updateVisibility);
-
-    return btn;
-  }
-
-  // openSettingsModal: creates modal if missing, wires up behaviors
-  function openSettingsModal() {
-    let modal = document.getElementById('appSettingsModal');
+ 
 
 
-    // show it and populate fields
-    modal.classList.remove('hidden');
-    const current = getCurrentUser() || {};
-    const langSelect = document.getElementById('settingsLangSelect');
-    if (langSelect) langSelect.value = lsGet(LS_APP_LANG, 'en') || 'en';
-    document.getElementById('settingsUserName') && (document.getElementById('settingsUserName').value = current.name || '');
-    document.getElementById('settingsUserPhone') && (document.getElementById('settingsUserPhone').value = current.phone || '');
-    document.getElementById('settingsUserAddress') && (document.getElementById('settingsUserAddress').value = current.address || '');
-    document.getElementById('settingsUserEmail') && (document.getElementById('settingsUserEmail').value = current.email || '');
-    const tpl = lsGet(LS_MSG_TPL) || {};
-    document.getElementById('settingsWaTpl') && (document.getElementById('settingsWaTpl').value = tpl.reminder_wa || '');
-    document.getElementById('settingsSmsTpl') && (document.getElementById('settingsSmsTpl').value = tpl.reminder_sms || '');
-    const dark = lsGet(LS_DARK) || false;
-    const darkToggle = document.getElementById('settingsDarkMode');
-    if (dark) document.body.classList.add('dark'); else document.body.classList.remove('dark');
-    if (darkToggle) darkToggle.checked = !!dark;
-    // default to user panel
-    modal.querySelectorAll('.settings-panel').forEach(p => p.dataset.panel === 'user' ? p.classList.remove('hidden') : p.classList.add('hidden'));
-  }
-
-  // expose AppSettings helpers
-  window.AppSettings = {
-    open: openSettingsModal,
-    close: () => { const m = document.getElementById('appSettingsModal'); if (m) m.classList.add('hidden'); },
-    getTemplates: () => lsGet(LS_MSG_TPL),
-    applyLanguage: (lang) => { lsSet(LS_APP_LANG, lang); applyLanguage(lang); },
-    createStoreSettingsBtn: function () { const b = ensureSettingsBtn(); if (b) b.style.display = ''; },
-    ensure: ensureSettingsBtn
-  };
-
-  // ensure button exists now
-  ensureSettingsBtn();
 
   /* =========================
      AUTH (registration/login/logout) - updated to use stable ids
@@ -1323,7 +1246,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
       // Products
       searchProductsPH: "Search products...",
-      addProductBtn: "+ Add Product",
+      addProductBtn: "",
       shoppingCartTitle: "Shopping Cart",
       cancelAll: "Cancel All",
       cancel: "Cancel",
@@ -1339,7 +1262,6 @@ window.addEventListener('DOMContentLoaded', () => {
       thPrice: "Price",
       thQty: "Qty",
       thActions: "Actions",
-      productModalTitle: "Add Product",
       lblName: "Product Name *",
       lblCost: "Original Price",
       lblPrice: "Price *",
@@ -1353,8 +1275,6 @@ window.addEventListener('DOMContentLoaded', () => {
       // Reports
       reportsTitle: "Reports",
       reportsSub: "Centralized sales records — live & exportable",
-      exportPdf: "Export PDF",
-      deleteAllReports: "Delete All",
       reportsFilterLabel: "Filter:",
       reportsPeriod: ["All time","Daily","Weekly (7 days)","Monthly","Yearly"],
       reportsDateLabel: "Date:",
@@ -1406,26 +1326,25 @@ window.addEventListener('DOMContentLoaded', () => {
       logoutBtn: "Ka Bax",
 
       // Dashboard / general
-      viewLabel: "Muuqaal:",
-      dashboardPeriod: ["Guud","Maanta","7-kii Maalmood","Bisha","Sannadka","Nool (si toos ah)"],
+      viewLabel: "Fiiri:",
       refresh: "Cusboonaysii",
       manageExpensesIconTitle: "Maamul Kharashyada",
       recycleBinTitle: "Qashinka Dib-u-celinta",
 
-      totalInvoices: "Wadar Rasiidada",
-      totalProducts: "Wadar Alaabta",
+      totalInvoices: "Wadarta Rasiidada",
+      totalProducts: "Wadarta Alaabta",
       productsNote: "Alaabtu guud ayay tahay (ma jiro taariikh abuuris)",
-      totalSalesPaid: "Wadar Iib (La Bixiyay)",
-      totalRevenue: "Wadar Dakhliga",
-      revenueNote: "Wadar qiimaha rasiidyada (lacagta)",
-      totalProfit: "Wadar Faa'iido",
+      totalSalesPaid: "Wadarta Iib (La Bixiyay)",
+      totalRevenue: "Wadarta Dakhliga",
+      revenueNote: "Wadarta qiimaha rasiidyada (lacagta)",
+      totalProfit: "Wadarta Faa'iido",
       profitNote: "Dakhliga ka jar kharashyada",
-      totalExpenses: "Wadar Kharashyada",
-      expensesNote: "Wadar kharashyada la keydiyey",
+      totalExpenses: "Wadarta Kharashyada",
+      expensesNote: "Wadarta kharashyada la keydiyey",
 
       manageExpensesTitle: "Maamul Kharashyada",
       addExpense: "Kudar Kharash",
-      manageSaved: "Maamul kuwa la keydiyey",
+      manageSaved: "",
       expenseNamePH: "Magaca Kharashka",
       expenseAmountPH: "Qadarka",
       expenseCategoryDefault: "Qaybta",
@@ -1439,21 +1358,21 @@ window.addEventListener('DOMContentLoaded', () => {
       basedOnPeriod: "Iyada oo ku salaysan mudada la dooray",
 
       // Invoices
-      createInvoice: "+ Abuur Rasiid",
+      createInvoice: "Abuur Rasiid",
       createInvoiceTitle: "Abuur Rasiid",
       customerNameLabel: "Magaca Macmiilka",
       customerPhoneLabel: "Telefoonka Macmiilka",
       invoiceDateLabel: "Taariikhda Rasiidka",
       customerNamePH: "tusaale: Zakariye Salah",
       customerPhonePH: "tusaale: 617125558",
-      addItem: "+ Kudar Shay",
-      totalAmountLabel: "Wadar Lacagta",
+      addItem: "Kudar Shay",
+      totalAmountLabel: "Wadarta Lacagta",
       amountPaidLabel: "Lacagta La Bixiyay",
       statusLabel: "Xaaladda",
       statusOptions: { unpaid: "Lacag la'aan", paid: "La Bixiyay" },
       saveInvoice: "Keydi Rasiidka",
       invoicesTitle: "Rasiidada",
-      clearPaid: "Nadiifi Ku Bixid",
+      clearPaid: "Nadiifi Bixiyaasha",
       filterAll: "Dhammaan",
       filterPaid: "La Bixiyay",
       filterUnpaid: "Lacag La'aan",
@@ -1465,7 +1384,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
       // Products
       searchProductsPH: "Raadi alaabta...",
-      addProductBtn: "+ Kudar Alaab",
+      addProductBtn: " Kudar Alaab",
       shoppingCartTitle: "Gaadhiga Iibka",
       cancelAll: "Bixi Dhammaan",
       cancel: "Bax",
@@ -1478,7 +1397,7 @@ window.addEventListener('DOMContentLoaded', () => {
       emptyProductsDesc: 'Guji "Kudar Alaab" si aad u abuurto kii ugu horreeyay.',
       thName: "Alaabta",
       thCost: "Qiimaha Asalka",
-      thPrice: "Qiimo",
+      thPrice: "Qiimaha",
       thQty: "Tirada",
       thActions: "Ficillo",
       productModalTitle: "Kudar Alaab",
@@ -1495,8 +1414,7 @@ window.addEventListener('DOMContentLoaded', () => {
       // Reports
       reportsTitle: "Warbixinno",
       reportsSub: "Diiwaanka iibka oo dhexe — nool & la dhoofin karo",
-      exportPdf: "Dhoofin PDF",
-      deleteAllReports: "Tirtir Dhammaan",
+   
       reportsFilterLabel: "Sifee:",
       reportsPeriod: ["Waqtiga oo dhan","Maalinle","Toddobaadle (7 maalmood)","Bishii","Sannadle"],
       reportsDateLabel: "Taariikh:",
@@ -1753,16 +1671,23 @@ window.addEventListener('DOMContentLoaded', () => {
     } catch(e){ console.error('setProp error', e); }
   }
 
-  function applyOptions(selectNode, arr){
-    if (!selectNode) return;
-    selectNode.innerHTML = '';
-    arr.forEach(v => {
-      const o = document.createElement('option');
-      o.value = v;
-      o.textContent = v;
-      selectNode.appendChild(o);
-    });
-  }
+    // replace old applyOptions with this improved version
+    function applyOptions(selectNode, arr, optsValues) {
+      if (!selectNode) return;
+      // preserve previous selected index (so switching language doesn't unexpectedly change selected option)
+      const prevIndex = (typeof selectNode.selectedIndex === 'number') ? selectNode.selectedIndex : 0;
+      selectNode.innerHTML = '';
+      arr.forEach((label, i) => {
+        const o = document.createElement('option');
+        // if optsValues provided use that as the option value (canonical keys), otherwise use label (fallback)
+        o.value = (optsValues && typeof optsValues[i] !== 'undefined') ? optsValues[i] : label;
+        o.textContent = label;
+        selectNode.appendChild(o);
+      });
+      // restore selection by index (clamped)
+      selectNode.selectedIndex = Math.max(0, Math.min(prevIndex, selectNode.options.length - 1));
+    }
+  
 
 
 
@@ -1861,8 +1786,16 @@ window.addEventListener('DOMContentLoaded', () => {
           if (v !== undefined) nodes.forEach(n => setProp(n, 'title', v));
         } else if (item.prop === 'options') {
           const arr = getKey(dict, item.key) || [];
-          nodes.forEach(n => applyOptions(n, arr));
-        } else if (item.prop === 'textByIndex') {
+          // Special-case reportsPeriod: keep canonical option values for filtering logic
+          if (item.key === 'reportsPeriod') {
+            // canonical keys your filtering expects
+            const canonical = ['lifetime','daily','weekly','monthly','yearly'];
+            nodes.forEach(n => applyOptions(n, arr, canonical));
+          } else {
+            nodes.forEach(n => applyOptions(n, arr));
+          }
+        }
+ else if (item.prop === 'textByIndex') {
           const arr = item.key;
           nodes.forEach((n, idx) => {
             const entry = arr[idx];
@@ -2644,12 +2577,12 @@ navButtons.forEach(btn => btn.addEventListener('click', () => {
     };
   }
   
-  // enable swipe navigation (call once)
-  const disableSectionSwipe = enableSectionSwipeNavigation({
-    threshold: 60,
-    maxVerticalRatio: 0.6,
-    minViewportWidth: 1024 // optional: only enable on narrow screens; set 0 to always enable on touch devices
-  });
+  // // enable swipe navigation (call once)
+  // const disableSectionSwipe = enableSectionSwipeNavigation({
+  //   threshold: 60,
+  //   maxVerticalRatio: 0.6,
+  //   minViewportWidth: 1024 // optional: only enable on narrow screens; set 0 to always enable on touch devices
+  // });
   
 /* =========================
    Show/hide auth (login/register)
@@ -3328,18 +3261,18 @@ buyOnlyBtn?.addEventListener('click', () => {
     }
   
 
-    // Example: when showing invoice create modal
-function openInvoiceCreateModal(totalAmount) {
-  const modal = document.getElementById('createInvoiceModal');
-  modal.classList.remove('hidden');
+//     // Example: when showing invoice create modal
+// function openInvoiceCreateModal(totalAmount) {
+//   const modal = document.getElementById('createInvoiceModal');
+//   modal.classList.remove('hidden');
 
-  // Fill total
-  const totalEl = modal.querySelector('#invoiceTotal');
-  if (totalEl) totalEl.value = fmtMoney(totalAmount);
+//   // Fill total
+//   const totalEl = modal.querySelector('#invoiceTotal');
+//   if (totalEl) totalEl.value = fmtMoney(totalAmount);
 
-  // Apply status behavior
-  applyStatusPaidBehavior(modal, totalAmount);
-}
+//   // Apply status behavior
+//   applyStatusPaidBehavior(modal, totalAmount);
+// }
 
     // create/open invoice toggle - hidden until clicked; createInvoiceSection has hidden-section default
     createInvoiceBtn?.addEventListener('click', () => {
@@ -3609,41 +3542,77 @@ function openInvoiceCreateModal(totalAmount) {
     /* =========================
        PRINT / CAPTURE
        ========================= */
-    function printInvoice(inv) {
-      const balance = Math.max(0, (Number(inv.amount) || 0) - (Number(inv.paid) || 0));
-      const win = window.open('', 'PRINT', 'height=650,width=900');
-      const store = getCurrentUser() || {};
-      const head = `
-        <html><head><title>Invoice ${escapeHtml(inv.id)}</title>
-        <style>
-          body{font-family:sans-serif;padding:20px;color:#111}
-          table{width:100%;border-collapse:collapse;margin-top:10px}
-          td,th{border:1px solid #ddd;padding:8px}
-          th{background:#f4f4f4}
-        </style>
-        </head><body>`;
-      const footer = `</body></html>`;
-      const content = `
-        <h1>Invoice ${escapeHtml(inv.id)}</h1>
-        <p><strong>Store:</strong> ${escapeHtml(store.name||'Supermarket')}<br/>
-        <strong>Date:</strong> ${fmtDate(inv.date)}<br/>
-        <strong>Customer:</strong> ${escapeHtml(inv.customer||'Walk-in')}<br/>
-        <strong>Phone:</strong> ${escapeHtml(inv.phone||'')}</p>
-        <table><thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
-        <tbody>
-        ${(inv.items||[]).map(it => `<tr><td>${escapeHtml(it.name||it.product||'Item')}</td><td>${it.qty||1}</td><td>${fmtMoney(it.price||0)}</td><td>${fmtMoney(it.total||((it.price||0)*(it.qty||1)))}</td></tr>`).join('')}
-        </tbody></table>
-        <p><strong>Amount:</strong> ${fmtMoney(inv.amount)}<br/>
-        <strong>Paid:</strong> ${fmtMoney(inv.paid)}<br/>
-        <strong>Balance:</strong> ${fmtMoney(balance)}<br/>
-        <strong>Status:</strong> ${escapeHtml(inv.status)}</p>
-      `;
-      win.document.write(head + content + footer);
-      win.document.close();
-      win.focus();
-      // small delay to ensure render
-      setTimeout(() => { try { win.print(); } catch (e) { toast('Print failed', 'error'); } }, 250);
-    }
+   /* -------------------------
+   1) printInvoice (localized title/labels read from page)
+   ------------------------- */
+function printInvoice(inv) {
+  const balance = Math.max(0, (Number(inv.amount) || 0) - (Number(inv.paid) || 0));
+  const win = window.open('', 'PRINT', 'height=650,width=900');
+  const store = getCurrentUser() || {};
+
+  // get localized labels from DOM (fallback to english)
+  const invoiceLabel = (document.querySelector('#createInvoiceSection h2')?.textContent || 'Invoice').trim();
+  const storeLabel   = (document.querySelector('[data-i18n="storeLabel"]')?.textContent || 'Store').trim(); // optional element if you have one
+  const dateLabel    = (document.querySelector('[data-i18n="invoiceDateLabel"]')?.textContent || 'Date').trim();
+  const customerLabel = (document.querySelector('[data-i18n="customerNameLabel"]')?.textContent || 'Customer').trim();
+  const phoneLabel   = (document.querySelector('[data-i18n="customerPhoneLabel"]')?.textContent || 'Phone').trim();
+  const productHdr   = (document.querySelector('#thName')?.textContent || 'Product').trim();
+  const qtyHdr       = (document.querySelector('#thQty')?.textContent || 'Qty').trim();
+  const priceHdr     = (document.querySelector('#thPrice')?.textContent || 'Price').trim();
+  const totalHdr     = (document.querySelector('#reportsTable thead th:nth-child(4)')?.textContent || 'Total').trim();
+
+  const head = `
+    <html><head><title>${escapeHtml(invoiceLabel)} ${escapeHtml(inv.id)}</title>
+    <meta charset="utf-8">
+    <style>
+      body{font-family:sans-serif;padding:20px;color:#111}
+      table{width:100%;border-collapse:collapse;margin-top:10px}
+      th,td{padding:8px;border:1px solid #ddd;text-align:left}
+      th{background:#f4f4f4}
+      h1{font-size:18px;margin-bottom:6px}
+      .meta{color:#444;font-size:13px;margin-bottom:12px}
+    </style>
+    </head><body>
+  `;
+  const content = `
+    <h1>${escapeHtml(invoiceLabel)} ${escapeHtml(inv.id)}</h1>
+    <p class="meta">
+      <strong>${escapeHtml(storeLabel)}:</strong> ${escapeHtml(store.name||'Supermarket')}<br/>
+      <strong>${escapeHtml(dateLabel)}:</strong> ${fmtDate(inv.date)}<br/>
+      <strong>${escapeHtml(customerLabel)}:</strong> ${escapeHtml(inv.customer||'Walk-in')}<br/>
+      <strong>${escapeHtml(phoneLabel)}:</strong> ${escapeHtml(inv.phone||'')}
+    </p>
+    <table>
+      <thead><tr>
+        <th>${escapeHtml(productHdr)}</th>
+        <th>${escapeHtml(qtyHdr)}</th>
+        <th>${escapeHtml(priceHdr)}</th>
+        <th>${escapeHtml(totalHdr)}</th>
+      </tr></thead>
+      <tbody>
+        ${(inv.items||[]).map(it => `<tr>
+          <td>${escapeHtml(it.name||it.product||'Item')}</td>
+          <td>${escapeHtml(String(it.qty||1))}</td>
+          <td>${fmtMoney(it.price||0)}</td>
+          <td>${fmtMoney(it.total||((it.price||0)*(it.qty||1)))}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <p class="meta">
+      <strong>${escapeHtml(document.querySelector('[data-i18n="totalAmountLabel"]')?.textContent || 'Amount')}:</strong> ${fmtMoney(inv.amount)}<br/>
+      <strong>${escapeHtml(document.querySelector('[data-i18n="amountPaidLabel"]')?.textContent || 'Paid')}:</strong> ${fmtMoney(inv.paid)}<br/>
+      <strong>${escapeHtml(document.querySelector('[data-i18n="balanceLabel"]')?.textContent || 'Balance')}:</strong> ${fmtMoney(balance)}<br/>
+      <strong>${escapeHtml(document.querySelector('[data-i18n="statusLabel"]')?.textContent || 'Status')}:</strong> ${escapeHtml(inv.status || '')}
+    </p>
+  `;
+  const footer = `</body></html>`;
+
+  win.document.write(head + content + footer);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { try { win.print(); } catch (e) { toast('Print failed', 'error'); } }, 250);
+}
+
   
     function captureElementAsImage(el, filename = 'capture.png') {
       if (!el) return toast('Nothing to capture', 'error');
@@ -4320,6 +4289,25 @@ function sendReminderFor(target, method) {
     }
   }
 
+/* ---------- Helper: status label (localized) ---------- */
+function getStatusLabel(status) {
+  if (!status) return '';
+  // prefer whatever text the #status select shows (so switching language updates labels)
+  const statusSel = document.getElementById('status');
+  if (statusSel) {
+    const opt = Array.from(statusSel.options).find(o => String(o.value) === String(status));
+    if (opt && opt.textContent) return opt.textContent.trim();
+  }
+  // fallback mapping for en/so
+  const lang = localStorage.getItem('preferredLang') || 'en';
+  const FALLBACK = {
+    en: { unpaid: 'Unpaid', paid: 'Paid', partial: 'Partial' },
+    so: { unpaid: 'La Bixnin', paid: 'Bixixyay', partial: 'Qeyb la bixixyay' }
+  };
+  return (FALLBACK[lang] && FALLBACK[lang][status]) || String(status);
+}
+
+
 
   // hook search input so it updates results live
   reportsSearchInput?.addEventListener('input', renderReports);
@@ -4392,126 +4380,131 @@ function sendReminderFor(target, method) {
       toast('Report moved to recycle bin', 'success');
     } 
 
-     else if (action === 'print-report') {
-      const rpt = reports[idx];
-    
-      // open print window
-      const win = window.open('', 'PRINT', 'height=650,width=900');
-      const head = `
-        <html>
-          <head>
-            <title>Report ${escapeHtml(rpt.id)}</title>
-            <style>
-              body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial; padding: 20px; color: #111; }
-              h1 { font-size: 18px; margin-bottom: 6px; }
-              p.meta { margin: 0 0 12px 0; color: #444; font-size: 13px; }
-              table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; }
-              th { background: #f4f4f4; font-weight: 600; }
-              tfoot th { background: #fff; font-weight: 700; text-align: right; }
-              .summary-label { text-align: right; }
-            </style>
-          </head>
-          <body>
-      `;
-    
-      // build product rows
-      const rowsHtml = (rpt.items || []).map(it => {
-        const name = escapeHtml(it.name || '');
-        const qty = Number(it.qty) || 1;
-        const price = Number(it.price) || 0;
-        const total = (Number(it.total) || (price * qty)) || 0;
-        return `<tr>
-          <td>${name}</td>
-          <td style="text-align:right">${qty}</td>
-          <td style="text-align:right">${fmtMoney(price)}</td>
-          <td style="text-align:right">${fmtMoney(total)}</td>
-        </tr>`;
-      }).join('');
-    
-      // compute totals (safe fallbacks)
-      const sumItemsTotal = (rpt.items || []).reduce((s, it) => {
-        const qty = Number(it.qty) || 1;
-        const price = Number(it.price) || 0;
-        const total = Number(it.total);
-        return s + (isFinite(total) && total > 0 ? total : (price * qty));
-      }, 0);
-    
-      const totalAmount = Number(rpt.amount) || sumItemsTotal || 0;
-      const paidAmount = Number(rpt.paid) || 0;
-      const dueAmount = Number((totalAmount - paidAmount).toFixed(2));
-    
-      // updated status logic: unpaid / partial paid / paid / overpaid
-      let status = '';
-      if (rpt.status && String(rpt.status).trim()) {
-        status = escapeHtml(rpt.status);
-      } else {
-        if (paidAmount <= 0) status = 'unpaid';
-        else if (paidAmount >= totalAmount && totalAmount > 0) status = 'paid';
-        else if (paidAmount > 0 && paidAmount < totalAmount) status = 'partial paid';
-        else if (totalAmount === 0 && paidAmount > 0) status = 'paid';
-        else status = 'unpaid';
-        // optional: mark overpaid explicitly
-        if (paidAmount > totalAmount) status = 'overpaid';
-      }
-    
-      // content with table + footer summary
-      const content = `
-        <h1>Report ${escapeHtml(rpt.id)}</h1>
-        <p class="meta">${fmtDateTime(rpt.date)}${rpt.customer ? ' | ' + escapeHtml(rpt.customer) : ''}${rpt.phone ? ' | ' + escapeHtml(rpt.phone) : ''}</p>
-    
-        <table>
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th style="text-align:right">Qty</th>
-              <th style="text-align:right">Price</th>
-              <th style="text-align:right">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-          <tfoot>
-            <tr>
-              <th class="summary-label" colspan="3">Total Amount</th>
-              <th style="text-align:right">${fmtMoney(totalAmount)}</th>
-            </tr>
-            <tr>
-              <th class="summary-label" colspan="3">Paid Amount</th>
-              <th style="text-align:right">${fmtMoney(paidAmount)}</th>
-            </tr>
-            <tr>
-              <th class="summary-label" colspan="3">Due / Balance</th>
-              <th style="text-align:right">${fmtMoney(dueAmount)}</th>
-            </tr>
-            <tr>
-              <th class="summary-label" colspan="3">Status</th>
-              <th style="text-align:right">${escapeHtml(status)}</th>
-            </tr>
-          </tfoot>
-        </table>
-      `;
-    
-      // write and print
-      win.document.write(head + content + '</body></html>');
-      win.document.close();
-      setTimeout(()=> {
-        try { win.print(); } catch(e) { toast('Print failed','error'); console.error(e); }
-      }, 300);
-    }
-    
+   
+/* -------------------------
+   3) print-report branch (single report print) - localized labels
+   ------------------------- */
+   else if (action === 'print-report') {
+    const rpt = reports[idx];
+    const win = window.open('', 'PRINT', 'height=650,width=900');
+  
+    // get localized header labels from DOM (thead if present)
+    const headerNodes = document.querySelectorAll('#reportsTable thead th');
+    const productsHdr = headerNodes && headerNodes[1] ? headerNodes[1].textContent.trim() : 'Products';
+    const qtyHdr      = headerNodes && headerNodes[2] ? headerNodes[2].textContent.trim() : 'Qty';
+    const totalHdr    = headerNodes && headerNodes[3] ? headerNodes[3].textContent.trim() : 'Total';
+    // Paid column label (if exists)
+    const paidHdr     = headerNodes && headerNodes[4] ? headerNodes[4].textContent.trim() : 'Paid';
+    const statusHdr   = (document.querySelector('[data-i18n="statusLabel"]')?.textContent) || 'Status';
+    const reportLabel = (document.querySelector('#reportsSection h1')?.textContent || 'Report').trim();
+  
+    // compute product totals sum, paid, balance
+    const items = Array.isArray(rpt.items) ? rpt.items : [];
+    const sumProducts = items.reduce((s, it) => {
+      const price = Number(it.price || 0);
+      const qty = Number(it.qty || 1);
+      const total = (it.total != null) ? Number(it.total) : (price * qty);
+      return s + (isFinite(total) ? total : 0);
+    }, 0);
+    const paid = Number(rpt.paid || 0);
+    const balance = Math.max(0, sumProducts - paid);
+  
+    // localized status label
+    const statusLabel = getStatusLabel(rpt.status);
+  
+    const head = `
+      <html><head><meta charset="utf-8"><title>${escapeHtml(reportLabel)} ${escapeHtml(rpt.id)}</title>
+      <style>
+        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;padding:20px;color:#111}
+        h1{font-size:18px;margin-bottom:6px}
+        p.meta{margin:0 0 12px 0;color:#444;font-size:13px}
+        table{width:100%;border-collapse:collapse;margin-top:8px}
+        th,td{border:1px solid #ddd;padding:8px;text-align:left;font-size:13px}
+        th{background:#f4f4f4;font-weight:600}
+        tfoot td { font-weight:700; text-align:right; }
+        .status-paid { color: #059669; }      /* emerald-600 */
+        .status-partial { color: #b45309; }   /* yellow-ish */
+        .status-unpaid { color: #dc2626; }    /* rose-600 */
+      </style></head><body>
+    `;
+  
+    const rowsHtml = items.map(it => {
+      const name = escapeHtml(it.name || it.product || '');
+      const qty = escapeHtml(String(it.qty || 1));
+      const rowTotal = Number(it.total != null ? it.total : ((Number(it.price||0) * Number(it.qty||1)) || 0));
+      return `<tr>
+        <td>${name}</td>
+        <td style="text-align:right">${qty}</td>
+        <td style="text-align:right">${fmtMoney(rowTotal)}</td>
+        <td style="text-align:right">${fmtMoney(rpt.paid != null ? rpt.paid : 0)}</td>
+      </tr>`;
+    }).join('');
+  
+    // status css class
+    let statusClass = 'status-unpaid';
+    if (rpt.status === 'paid') statusClass = 'status-paid';
+    else if (rpt.status === 'partial') statusClass = 'status-partial';
+  
+    const content = `
+      <h1>${escapeHtml(reportLabel)} ${escapeHtml(rpt.id)}</h1>
+      <p class="meta">${escapeHtml(fmtDateTime(rpt.date))} • ${escapeHtml(rpt.customer||'')}</p>
+  
+      <table>
+        <thead>
+          <tr>
+            <th>${escapeHtml(productsHdr)}</th>
+            <th style="text-align:right">${escapeHtml(qtyHdr)}</th>
+            <th style="text-align:right">${escapeHtml(totalHdr)}</th>
+            <th style="text-align:right">${escapeHtml(paidHdr)}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2"></td>
+            <td style="text-align:right">Total Amount:</td>
+            <td style="text-align:right">${fmtMoney(sumProducts)}</td>
+          </tr>
+          <tr>
+            <td colspan="2"></td>
+            <td style="text-align:right">Paid:</td>
+            <td style="text-align:right">${fmtMoney(paid)}</td>
+          </tr>
+          <tr>
+            <td colspan="2"></td>
+            <td style="text-align:right">Balance:</td>
+            <td style="text-align:right">${fmtMoney(balance)}</td>
+          </tr>
+          <tr>
+            <td colspan="2"></td>
+            <td style="text-align:right">${escapeHtml(statusHdr)}:</td>
+            <td style="text-align:right"><span class="${statusClass}">${escapeHtml(statusLabel)}</span></td>
+          </tr>
+        </tfoot>
+      </table>
+    `;
+  
+    win.document.write(head + content + '</body></html>');
+    win.document.close();
+    win.focus();
+    setTimeout(()=>{ try { win.print(); } catch(e) { toast('Print failed','error'); } }, 250);
+  }
   });
 
   // reports export all / delete all controls
-  reportsExportPdf?.addEventListener('click', async () => {
+/* -------------------------
+   2) reportsExportPdf (use visible labels + option text)
+   ------------------------- */
+   reportsExportPdf?.addEventListener('click', async () => {
     const list = getReportsFiltered(
       reportsPeriod?.value || 'lifetime',
       reportsDate?.value || '',
       reportsSearchInput?.value || ''
     );
     if (!list.length) {
-      toast('No reports to export', 'error');
+      toast((document.getElementById('reportsEmptyMsg')?.textContent || 'No reports to export'), 'error');
       return;
     }
   
@@ -4519,103 +4512,82 @@ function sendReminderFor(target, method) {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
   
-      // Helpers
-      const money = v => fmtMoney(Number(v || 0));
-      const sumQty = r => (Array.isArray(r.items) ? r.items.reduce((a, it) => a + (Number(it.qty) || 0), 0) : (Number(r.qty) || 0));
-      const totalOf = r => (r.total != null ? Number(r.total) : (r.amount != null ? Number(r.amount) : 0));
-      const paidOf  = r => Number(r.paid || 0);
-      const dueOf   = r => Math.max(0, totalOf(r) - paidOf(r));
-      const productsOf = r => {
-        const names = Array.isArray(r.items) ? r.items.map(it => it?.name).filter(Boolean) : [];
-        if (names.length === 0 && r.product) return String(r.product);
-        if (names.length <= 2) return names.join(', ');
-        return `${names[0]}, ${names[1]} +${names.length - 2}`;
-      };
-      const statusOf = r => (r.status ? String(r.status) : (dueOf(r) > 0 ? 'due' : 'paid'));
-      const phoneOf  = r => (r.phone ? String(r.phone) : '');
-      const timeOf   = r => fmtDateTime(r.date);
+      // localized header: use visible label text instead of hard-coded strings
+      const reportsTitleLabel = (document.querySelector('#reportsSection h1')?.textContent || 'Reports').trim();
+      // For period show the selected option's text (localized label), not its value
+      const periodLabelText = (reportsPeriod?.options && reportsPeriod.options[reportsPeriod.selectedIndex]) ? reportsPeriod.options[reportsPeriod.selectedIndex].text : (reportsPeriod?.value || 'lifetime');
   
-      // Title
       doc.setFontSize(14);
-      doc.text(`Reports (${reportsPeriod?.value || 'lifetime'}) - ${fmtDate(new Date())}`, 10, 10);
+      doc.text(`${reportsTitleLabel} (${periodLabelText}) - ${fmtDate(new Date())}`, 10, 10);
   
-      // Column layout (A4 portrait, mm)
-      // widths sum = 174 mm, fits inside 190 mm usable area (10 mm margins)
+      // Column labels: prefer thead text if present (already localized), otherwise fallback
+      const headerNodes = document.querySelectorAll('#reportsTable thead th');
+      const colLabels = headerNodes && headerNodes.length ? Array.from(headerNodes).map(th => th.textContent.trim()) : ['#','Products','Qty','Total','Paid','Due','Status','Customer','Phone','Timestamp'];
+  
+      // Column layout
       const columns = [
-        { key: 'no',        label: '#',         width: 7,   align: 'right' },
-        { key: 'products',  label: 'Products',  width: 28,  align: 'left'  },
-        { key: 'qty',       label: 'Qty',       width: 8,   align: 'right' },
-        { key: 'total',     label: 'Total',     width: 17,  align: 'right' },
-        { key: 'paid',      label: 'Paid',      width: 17,  align: 'right' },
-        { key: 'due',       label: 'Due',       width: 17,  align: 'right' },
-        { key: 'status',    label: 'Status',    width: 17,  align: 'left'  },
-        { key: 'customer',  label: 'Customer',  width: 24,  align: 'left'  },
-        { key: 'phone',     label: 'Phone',     width: 15,  align: 'left'  },
-        { key: 'time',      label: 'Timestamp', width: 24,  align: 'left'  },
+        { key: 'no',        label: colLabels[0] || '#',        width: 7,   align: 'right' },
+        { key: 'products',  label: colLabels[1] || 'Products', width: 40,  align: 'left'  },
+        { key: 'qty',       label: colLabels[2] || 'Qty',      width: 12,  align: 'right' },
+        { key: 'total',     label: colLabels[3] || 'Total',    width: 20,  align: 'right' },
+        { key: 'paid',      label: colLabels[4] || 'Paid',     width: 20,  align: 'right' },
+        { key: 'due',       label: colLabels[5] || 'Due',      width: 20,  align: 'right' },
+        { key: 'status',    label: colLabels[6] || 'Status',   width: 20,  align: 'left'  },
+        { key: 'customer',  label: colLabels[7] || 'Customer', width: 30,  align: 'left'  },
+        { key: 'phone',     label: colLabels[8] || 'Phone',    width: 22,  align: 'left'  },
+        { key: 'time',      label: colLabels[9] || 'Timestamp',width: 36,  align: 'left'  },
       ];
   
+      // rest of code uses these columns, identical to your previous logic but with localized labels
       const marginLeft = 10;
       const marginTop  = 16;
       const lineH = 6;
-  
-      // Precompute x positions
       let x = marginLeft;
       columns.forEach(col => { col.x = x; x += col.width; });
   
       function drawHeaders(y) {
         doc.setFontSize(11);
-        columns.forEach(col => {
-          drawText(col.label, col, y, /*isHeader*/true);
-        });
+        columns.forEach(col => drawText(col.label, col, y));
       }
-  
-      function drawText(text, col, y, isHeader = false) {
-        const maxW = col.width - 1; // small padding
+      function drawText(text, col, y) {
+        const maxW = col.width - 1;
         const lines = doc.splitTextToSize(String(text ?? ''), maxW);
         const textWidth = doc.getTextWidth(lines[0] || '');
-        let tx = col.x + 1; // left padding
+        let tx = col.x + 1;
         if (col.align === 'right') tx = col.x + col.width - 1 - textWidth;
         doc.text(lines, tx, y);
         return lines.length;
       }
-  
       function drawRow(rowValues, y) {
-        // wrap-aware row height
         let maxLines = 1;
         doc.setFontSize(10);
         columns.forEach(col => {
           const lines = doc.splitTextToSize(String(rowValues[col.key] ?? ''), col.width - 1);
           maxLines = Math.max(maxLines, lines.length);
         });
-        // draw cells
-        columns.forEach(col => {
-          drawText(rowValues[col.key], col, y);
-        });
+        columns.forEach(col => drawText(rowValues[col.key], col, y));
         return maxLines * lineH;
       }
   
-      // Start
       let y = marginTop + 4;
       drawHeaders(y);
       y += lineH;
   
-      // Rows
       list.forEach((r, i) => {
         const row = {
           no: i + 1,
-          products: productsOf(r),
-          qty: sumQty(r),
-          total: money(totalOf(r)),
-          paid: money(paidOf(r)),
-          due: money(dueOf(r)),
-          status: statusOf(r),
+          products: (Array.isArray(r.items) ? r.items.map(it => it?.name).filter(Boolean) : []).slice(0,3).join(', '),
+          qty: (Array.isArray(r.items) ? r.items.reduce((a,it)=>a + (Number(it.qty)||0),0) : (Number(r.qty)||0)),
+          total: fmtMoney(Number(r.total != null ? r.total : r.amount || 0)),
+          paid: fmtMoney(Number(r.paid || 0)),
+          due: fmtMoney(Math.max(0, (Number(r.total != null ? r.total : r.amount || 0)) - Number(r.paid || 0))),
+          status: r.status || '',
           customer: r.customer || '',
-          phone: phoneOf(r),
-          time: timeOf(r),
+          phone: r.phone || '',
+          time: fmtDateTime(r.date)
         };
   
-        // page break check (estimate height by wrapping)
-        // compute row height first without drawing
+        // page break estimate
         let maxLines = 1;
         doc.setFontSize(10);
         columns.forEach(col => {
@@ -4623,22 +4595,18 @@ function sendReminderFor(target, method) {
           maxLines = Math.max(maxLines, lines.length);
         });
         const rowH = Math.max(lineH, maxLines * lineH);
-  
         if (y + rowH > 285) {
           doc.addPage();
           y = marginTop + 4;
           drawHeaders(y);
           y += lineH;
         }
-  
-        // draw the row for real
         y += drawRow(row, y);
       });
   
       doc.save(`reports_${Date.now()}.pdf`);
-      toast('PDF exported', 'success');
+      toast((document.getElementById('reportsExportPdf')?.textContent || 'PDF exported') , 'success');
     } else {
-      // fallback JSON
       const blob = new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -4647,7 +4615,6 @@ function sendReminderFor(target, method) {
       toast('Reports exported as JSON', 'success');
     }
   });
-  
   
 
   reportsDeleteAll?.addEventListener('click', () => {
@@ -4683,7 +4650,6 @@ function sendReminderFor(target, method) {
     if (createInvoiceSection && !createInvoiceSection.classList.contains('hidden')) createInvoiceSection.classList.add('hidden');
 
     // ensure settings cog next to store
-    ensureSettingsBtn();
   }
   document.addEventListener('DOMContentLoaded', initAfterLoad);
 
@@ -4821,6 +4787,9 @@ function sendReminderFor(target, method) {
       try { driveTokenClient.requestAccessToken({ prompt: '' }); } catch(e){ console.error(e); toast('Drive token request failed', 'error'); }
     }
   // Updated openSettingsModal with animated help notice, expanded help content, and non-gray palette
+// ========================
+// Robust openSettingsModal (keeps your original content + translations)
+// ========================
 function openSettingsModal(){
   let modal = document.getElementById('appSettingsModal');
 
@@ -4840,574 +4809,627 @@ function openSettingsModal(){
     document.head.appendChild(style);
   }
 
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'appSettingsModal';
-    modal.className = 'hidden fixed inset-0 z-90 flex items-start justify-center p-4';
-    modal.innerHTML = `
-      <div id="appSettingsModalBackdrop" class="absolute inset-0 bg-black/60"></div>
+  // Helper to ensure nav visible on mobile small-screen
+  function ensureSettingsNavVisible() {
+    const nav = document.getElementById('settingsNav');
+    if (!nav) return;
+    nav.classList.remove('hidden');
+    nav.style.display = 'flex';
+    nav.style.flexDirection = 'row';
+    nav.style.gap = '8px';
+    nav.style.padding = '8px';
+    nav.style.borderRight = 'none';
+    nav.querySelectorAll('.settings-tab').forEach(tb => {
+      tb.style.whiteSpace = 'nowrap';
+      tb.style.flex = '0 0 auto';
+    });
+  }
 
-      <div class="relative w-full max-w-3xl bg-white dark:bg-sky-900/6 rounded-lg shadow-lg overflow-auto max-h-[92vh]">
-        <!-- Header -->
-        <div class="flex items-center justify-between p-4 border-b border-sky-100 dark:border-sky-800">
-          <div class="flex items-center gap-4">
-            <h2 id="settingsTitle" class="text-lg font-semibold text-sky-800 dark:text-sky-100">Settings & Utilities</h2>
+  // If modal already exists -> refresh UI and show (this is the fix)
+  if (modal) {
+    // make sure we operate on the current modal reference
+    modal = document.getElementById('appSettingsModal');
 
-            <!-- Modern language pill toggle (sky) -->
-            <div id="langToggle" class="inline-flex items-center bg-sky-50 dark:bg-sky-900/10 rounded-full p-1">
-              <button id="langEnBtn" class="px-3 py-1 rounded-full text-xs font-semibold">EN</button>
-              <button id="langSoBtn" class="px-3 py-1 rounded-full text-xs font-semibold">SO</button>
-            </div>
-          </div>
+    // fill templates into textareas (if any)
+    const tpl = lsGet(LS_MSG_TPL) || {};
+    modal.querySelector('#settingsWaTpl') && (modal.querySelector('#settingsWaTpl').value = tpl.reminder_wa || '');
+    modal.querySelector('#settingsSmsTpl') && (modal.querySelector('#settingsSmsTpl').value = tpl.reminder_sms || '');
 
-          <div class="flex items-center gap-2">
-            <button id="settingsHelpOpen" title="Help" class="p-2 rounded bg-sky-50 dark:bg-sky-900/10 text-sky-700"><i class="fa-solid fa-question"></i></button>
-            <button id="settingsCloseBtn" class="px-3 py-1 rounded bg-sky-100 dark:bg-sky-800 text-sky-800 dark:text-sky-100">Close</button>
-          </div>
-        </div>
+    // ensure notices and translations are refreshed if functions exist
+    try { renderNoticesUI && renderNoticesUI(); } catch(e) {}
+    try { 
+      const saved = localStorage.getItem('preferredLang') || 'en';
+      if (typeof applyLanguage === 'function') applyLanguage(saved, false);
+      else if (typeof applyLangToModal === 'function') applyLangToModal(saved);
+    } catch(e){}
 
-        <div class="md:flex md:gap-4">
-          <!-- Left nav (sidebar on md+) -->
-          <nav id="settingsNav" class="md:w-56 p-3 border-r border-sky-100 hidden md:block">
-            <ul class="space-y-2 text-sm">
-              <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="helpNotice"><i class="fa-solid fa-lightbulb mr-2 text-amber-500"></i> Help Notice</button></li>
-              <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="messages"><i class="fa-solid fa-message mr-2 text-sky-500"></i> Messages</button></li>
-              <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="helpNav"><i class="fa-solid fa-circle-info mr-2 text-emerald-500"></i> Help</button></li>
-              <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="notices"><i class="fa-solid fa-bell mr-2 text-amber-600"></i> Notices</button></li>
-              <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="export"><i class="fa-solid fa-download mr-2 text-indigo-600"></i> Export</button></li>
-              <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="drive"><i class="fa-brands fa-google-drive mr-2 text-emerald-600"></i> Drive Backup</button></li>
-            </ul>
-          </nav>
-
-          <!-- Content -->
-          <div id="settingsContent" class="p-4 md:flex-1">
-            <!-- Help Notice panel (modern animated card) -->
-            <div class="settings-panel" data-panel="helpNotice" style="display:none">
-              <div id="helpNoticeCard" class="help-notice-card flex items-start gap-3 p-4 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800">
-                <div class="text-2xl">💡</div>
-                <div class="flex-1">
-                  <div class="flex items-start justify-between">
-                    <div>
-                      <h4 id="helpNoticeTitle" class="font-semibold text-lg text-sky-800 dark:text-sky-100">Quick Tips</h4>
-                      <div id="helpNoticeBody" class="text-sm text-sky-600 dark:text-sky-200 mt-1">Short helpful context appears here.</div>
-                    </div>
-                    <div class="ml-3">
-                      <button id="dismissHelpNotice" class="text-xs px-2 py-1 rounded bg-white/90 dark:bg-sky-800 text-sky-700">Dismiss</button>
-                    </div>
-                  </div>
-                  <div class="mt-3 flex gap-2">
-                    <button id="moreHelpBtn" class="px-3 py-1 bg-sky-600 text-white rounded text-sm"><i class="fa-solid fa-book-open mr-1"></i> Full Guide</button>
-                    <button id="showHelpPanelBtn" class="px-3 py-1 bg-sky-100 rounded text-sm text-sky-800">Open Help</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Messages -->
-            <div class="settings-panel" data-panel="messages" style="display:none">
-              <h4 class="font-semibold mb-2 text-sky-800 dark:text-sky-100">WhatsApp / SMS Templates</h4>
-              <div class="text-sm mb-2 text-sky-600 dark:text-sky-200">Placeholders: <code>{customer}</code> <code>{id}</code> <code>{balance}</code> <code>{store}</code></div>
-              <div class="space-y-2">
-                <textarea id="settingsWaTpl" rows="3" class="w-full border rounded p-2"></textarea>
-                <textarea id="settingsSmsTpl" rows="3" class="w-full border rounded p-2"></textarea>
-                <div class="flex gap-2 mt-2">
-                  <button id="settingsSaveMsgBtn" class="px-3 py-2 bg-sky-600 text-white rounded">Save</button>
-                  <button id="settingsResetMsgBtn" class="px-3 py-2 bg-sky-100 text-sky-800 rounded">Reset</button>
-                  <div id="settingsMsgStatus" class="text-sm text-sky-600 hidden ml-2">Saved</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Full Help -->
-            <div class="settings-panel" data-panel="helpNav" style="display:none">
-              <h4 class="font-semibold mb-2 text-sky-800 dark:text-sky-100">Help & Full Guide</h4>
-              <div class="space-y-3 text-sm">
-                <div id="helpFullContent" class="prose max-w-none text-sm text-sky-600 dark:text-sky-200">
-                  <div id="helpIntro"><!-- localized HTML filled later --></div>
-
-                  <h5 class="text-sky-700">Invoices</h5>
-                  <ol class="text-sky-600">
-                    <li>Create Invoice → Add customer name & phone → add items (choose product or type) → set qty & price.</li>
-                    <li>Set Amount Paid and Status (Paid / Unpaid). Save to add to Reports.</li>
-                    <li>To send invoice: use WhatsApp or SMS from invoice row (buttons appear on invoice actions) — ensures phone formatting (+252) when available.</li>
-                  </ol>
-
-                  <h5 class="text-sky-700">Send Messages / Call</h5>
-                  <ul class="text-sky-600">
-                    <li><b>WhatsApp:</b> Click the WhatsApp icon on an invoice — it opens WhatsApp Web/mobile with the templated message. Customize templates in Settings → Messages.</li>
-                    <li><b>SMS:</b> Click SMS to copy or open an SMS composer (depends on device/browser).</li>
-                    <li><b>Call:</b> Use the phone icon to initiate a call on devices that support tel: links.</li>
-                  </ul>
-
-                  <h5 class="text-sky-700">Products</h5>
-                  <ul class="text-sky-600">
-                    <li>Add Product → set Name, Price, Quantity. Products are available when creating invoices.</li>
-                    <li>Edit stock directly from the product list. Use search to quickly find items.</li>
-                  </ul>
-
-                  <h5 class="text-sky-700">Dashboard & Reports</h5>
-                  <ul class="text-sky-600">
-                    <li>Dashboard shows totals (Invoices, Products, Sales, Revenue, Profit, Expenses) — change period (Today / Weekly / Monthly / Yearly / Live).</li>
-                    <li>Reports lists all saved invoices and can be exported to PDF/CSV or printed.</li>
-                    <li>Use Drive Backup to snapshot your localStorage so you can restore later.</li>
-                  </ul>
-                </div>
-
-                <div class="mt-3 text-xs text-sky-500 dark:text-sky-400">
-                  Tip: On mobile, use the <b>Help</b> button (top-right) for quick access. Rotate to landscape for wider tables.
-                </div>
-              </div>
-            </div>
-
-            <!-- Notices -->
-            <div class="settings-panel" data-panel="notices" style="display:none">
-              <div class="flex items-center justify-between mb-2">
-                <h4 class="font-semibold text-sky-800 dark:text-sky-100">Notices</h4>
-                <div class="flex items-center gap-2">
-                  <button id="translateProgrammaticNotices" class="px-2 py-1 text-xs rounded bg-sky-100 text-sky-800">Translate Notices</button>
-                  <button id="clearNoticesBtn" class="px-2 py-1 text-xs rounded bg-red-600 text-white">Clear All</button>
-                </div>
-              </div>
-              <div id="settingsNotices" class="space-y-2 max-h-56 overflow-auto p-1"></div>
-            </div>
-
-            <!-- Export -->
-            <div class="settings-panel" data-panel="export" style="display:none">
-              <h4 class="font-semibold mb-2 text-sky-800 dark:text-sky-100">Export</h4>
-              <div class="flex gap-2 flex-wrap">
-                <button id="exportInvoicesPdf" class="px-3 py-2 bg-sky-600 text-white rounded"><i class="fa-solid fa-file-pdf mr-1"></i> PDF</button>
-                <button id="exportInvoicesExcel" class="px-3 py-2 bg-emerald-600 text-white rounded"><i class="fa-solid fa-file-csv mr-1"></i> CSV</button>
-              </div>
-            </div>
-
-            <!-- Drive -->
-            <div class="settings-panel" data-panel="drive" style="display:none">
-              <h4 class="font-semibold mb-2 text-sky-800 dark:text-sky-100">Google Drive Backup</h4>
-              <div class="text-sm mb-2 text-sky-600 dark:text-sky-200">Requires Google OAuth (GSI) & acceptance as test user. Backups store a JSON snapshot of localStorage.</div>
-              <div class="space-y-2">
-                <label class="flex items-center gap-2"><input id="optAutoRestoreLogin" type="checkbox"> Auto-check Drive on login (opt-in)</label>
-                <label class="flex items-center gap-2">
-                  <input id="optAutoBackupEnabled" type="checkbox"> Auto backup every
-                  <input id="optAutoBackupDays" type="number" min="1" value="7" style="width:64px;margin-left:6px"> days
-                </label>
-                <div class="text-xs text-sky-500 dark:text-sky-400">Auto backups run while the app is open (background timers). Last run stored in settings.</div>
-                <div class="flex gap-2 mt-2 flex-wrap">
-                  <button id="driveBackupBtn" class="px-3 py-2 bg-indigo-600 text-white rounded"><i class="fa-brands fa-google-drive mr-1"></i> Backup to Drive</button>
-                  <button id="driveRefreshBtn" class="px-3 py-2 bg-amber-500 text-white rounded"><i class="fa-solid fa-refresh mr-1"></i> Refresh List</button>
-                  <button id="driveRestoreLatestBtn" class="px-3 py-2 bg-red-600 text-white rounded"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Restore Latest</button>
-                </div>
-                <div id="driveStatus" class="mt-2 text-sm text-sky-600 dark:text-sky-200">Drive: not initialized</div>
-                <div id="driveBackupList" class="mt-3 space-y-2 max-h-48 overflow-auto"></div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    `;
-
-
-    document.body.appendChild(modal);
-
-    /* -------------------------
-       Translations + language logic
-       ------------------------- */
-    const LS_LANG_KEY = 'preferredLang';
-    const translations = {
-      en: {
-        settingsTitle: "Settings & Utilities",
-        closeBtn: "Close",
-        helpBtnTitle: "Help",
-        tabs: { helpNotice: "Help Notice", messages: "Messages", helpNav: "Help", notices: "Notices", export: "Export", drive: "Drive Backup" },
-        helpNoticeTitle: "Quick Tips",
-        helpNoticeBody: "Need a quick refresher? Use 'Create Invoice' to start, 'Add Product' to populate stock, and 'Drive Backup' to protect your data.",
-        helpFullIntro: "<strong>Getting started:</strong> Add products, create invoices, send reminders, and export reports. Below are step-by-step help items.",
-        tplDefaults: {
-          reminder_wa: "Reminder: {customer}, your balance is {balance}. Please pay at {store} ({phone}).",
-          reminder_sms: "Reminder: {customer}, your balance is {balance}."
-        },
-        savedText: "Saved",
-        exportPdf: "PDF",
-        exportCsv: "CSV",
-        driveNotInit: "Drive: not initialized",
-        noticesEmpty: "No notices.",
-        programmaticNotices: {
-          backup_done: { title: "Backup complete", body: "Your backup was saved to Drive." },
-          restore_done: { title: "Restore complete", body: "Data restored from Drive successfully." },
-          welcome: { title: "Welcome", body: "Welcome to your supermarket dashboard — quick tips available in Settings." }
-        },
-        translateNoticesBtn: "Translate Notices",
-        clearNoticesBtn: "Clear All"
-      },
-      so: {
-        settingsTitle: "Dejimaha & Adeegyada",
-        closeBtn: "Xidh",
-        helpBtnTitle: "Caawimo",
-        tabs: { helpNotice: "Ogeysiis Caawimo", messages: "Fariimaha", helpNav: "Caawimo", notices: "Ogeysiisyo", export: "Dhoofin", drive: "Kaydin Drive" },
-        helpNoticeTitle: "Talooyin Degdeg ah",
-        helpNoticeBody: "U baahan tahay xasuusin kooban? Isticmaal 'Abuur Rasiid' si aad u bilowdo, 'Kudar Alaab' si aad u buuxiso kaydka, iyo 'Kaydin Drive' si aad xogta u ilaaliso.",
-        helpFullIntro: "<strong>Sida loo bilaabo:</strong> Kudar alaabo, abuuro rasiidyo, dir xasuusin, oo dhoofso warbixinno. Hoos ka hel tallabo-tallabo caawimo.",
-        tplDefaults: {
-          reminder_wa: "Xasuusin: {customer}, lacagta lagugu leeyahay waa: {balance}. Fadlan iska bixi dukaanka {store} ({phone}).",
-          reminder_sms: "Xasuusin: {customer}, lacagta lagugu leeyahay waa: {balance}."
-        },
-        savedText: "La keydiyey",
-        exportPdf: "PDF",
-        exportCsv: "CSV",
-        driveNotInit: "Drive: lama diyaarin",
-        noticesEmpty: "Ogeysiis ma jiro.",
-        programmaticNotices: {
-          backup_done: { title: "Kaydin dhameystiran", body: "Kaydintaada waxaa lagu badbaadiyey Drive." },
-          restore_done: { title: "Soo celin dhameystiran", body: "Xogta si guul leh ayaa looga soo celiyey Drive." },
-          welcome: { title: "Soo Dhawoow", body: "Ku soo dhawoow guddiga suuqa — talooyin kooban ka hel Dejimaha." }
-        },
-        translateNoticesBtn: "Tarjum Ogeysiisyada",
-        clearNoticesBtn: "Masax Dhammaan"
-      }
-    };
-
-    /* apply translations into modal */
-    function applyLangToModal(lang) {
-      const t = translations[lang] || translations.en;
-      document.getElementById('settingsTitle') && (document.getElementById('settingsTitle').textContent = t.settingsTitle);
-      document.getElementById('settingsCloseBtn') && (document.getElementById('settingsCloseBtn').textContent = t.closeBtn);
-      document.getElementById('settingsHelpOpen') && (document.getElementById('settingsHelpOpen').title = t.helpBtnTitle);
-
-      // tabs
-      Object.entries(t.tabs).forEach(([k, v]) => {
-        const el = modal.querySelector(`.settings-tab[data-tab="${k}"]`);
-        if (el) {
-          const icon = el.querySelector('i') ? el.querySelector('i').outerHTML + ' ' : '';
-          el.innerHTML = icon + v;
-        }
-      });
-
-      // help content
-      document.getElementById('helpNoticeTitle') && (document.getElementById('helpNoticeTitle').textContent = t.helpNoticeTitle);
-      document.getElementById('helpNoticeBody') && (document.getElementById('helpNoticeBody').innerHTML = t.helpNoticeBody);
-      document.getElementById('helpIntro') && (document.getElementById('helpIntro').innerHTML = t.helpFullIntro);
-
-      // messages templates default
-      const tpl = lsGet(LS_MSG_TPL) || {};
-      if (!tpl.reminder_wa && !tpl.reminder_sms) {
-        lsSet(LS_MSG_TPL, { reminder_wa: t.tplDefaults.reminder_wa, reminder_sms: t.tplDefaults.reminder_sms });
-      }
-      const storedTpl = lsGet(LS_MSG_TPL) || {};
-      document.getElementById('settingsWaTpl') && (document.getElementById('settingsWaTpl').value = storedTpl.reminder_wa || t.tplDefaults.reminder_wa);
-      document.getElementById('settingsSmsTpl') && (document.getElementById('settingsSmsTpl').value = storedTpl.reminder_sms || t.tplDefaults.reminder_sms);
-
-      // export & notices UI
-      document.getElementById('exportInvoicesPdf') && (document.getElementById('exportInvoicesPdf').innerHTML = `<i class="fa-solid fa-file-pdf mr-1"></i> ${t.exportPdf}`);
-      document.getElementById('exportInvoicesExcel') && (document.getElementById('exportInvoicesExcel').innerHTML = `<i class="fa-solid fa-file-csv mr-1"></i> ${t.exportCsv}`);
-      document.getElementById('driveStatus') && (document.getElementById('driveStatus').textContent = t.driveNotInit);
-      document.getElementById('translateProgrammaticNotices') && (document.getElementById('translateProgrammaticNotices').textContent = t.translateNoticesBtn);
-      document.getElementById('clearNoticesBtn') && (document.getElementById('clearNoticesBtn').textContent = t.clearNoticesBtn);
-
-      if (lang) localStorage.setItem(LS_LANG_KEY, lang);
-    }
-
-    function setActiveLangButton(lang) {
-      const en = document.getElementById('langEnBtn'), so = document.getElementById('langSoBtn');
-      if (!en || !so) return;
-      en.classList.remove('bg-sky-600','text-white','shadow');
-      so.classList.remove('bg-sky-600','text-white','shadow');
-      if (lang === 'so') so.classList.add('bg-sky-600','text-white','shadow'); else en.classList.add('bg-sky-600','text-white','shadow');
-    }
-
-    function applyLanguage(lang, save = true) {
-      if (!lang) lang = localStorage.getItem(LS_LANG_KEY) || 'en';
-      if (save) localStorage.setItem(LS_LANG_KEY, lang);
-      setActiveLangButton(lang);
-      applyLangToModal(lang);
-      try { renderNoticesUI(); } catch(e) {}
-      try { if (typeof window.applyTranslations === 'function') window.applyTranslations(lang); } catch(e) {}
-    }
-
-    // wire language buttons
-    modal.querySelector('#langEnBtn')?.addEventListener('click', () => applyLanguage('en', true));
-    modal.querySelector('#langSoBtn')?.addEventListener('click', () => applyLanguage('so', true));
-
-    /* -------------------------
-       Panels/tab wiring & helpers
-       ------------------------- */
-    function showTab(name){
-      modal.querySelectorAll('.settings-panel').forEach(p => p.dataset.panel === name ? (p.style.display='block') : (p.style.display='none'));
+    // unhide and ensure panels default to helpNotice if none visible
+    modal.classList.remove('hidden');
+    const activePanel = modal.querySelector('.settings-panel[style*="display: block"]');
+    if (!activePanel) {
+      modal.querySelectorAll('.settings-panel').forEach(p => p.style.display = p.dataset.panel === 'helpNotice' ? 'block' : 'none');
       modal.querySelectorAll('.settings-tab').forEach(x => x.classList.remove('bg-sky-50','dark:bg-sky-800'));
-      const btn = modal.querySelector(`.settings-tab[data-tab="${name}"]`);
+      const btn = modal.querySelector(`.settings-tab[data-tab="helpNotice"]`);
       if (btn) btn.classList.add('bg-sky-50');
     }
-    modal.querySelectorAll('.settings-tab').forEach(tb => tb.addEventListener('click', function(){
-      showTab(this.dataset.tab);
-    }));
 
-    // close/backdrop
-    modal.querySelector('#settingsCloseBtn')?.addEventListener('click', ()=> modal.classList.add('hidden'));
-    modal.addEventListener('click', (e)=> { if (e.target === modal || e.target.id === 'appSettingsModalBackdrop') modal.classList.add('hidden'); });
+    // replay help card animation so it looks "alive" each open
+    const helpCard = modal.querySelector('#helpNoticeCard');
+    if (helpCard) {
+      helpCard.classList.remove('help-notice-enter','help-notice-enter-active');
+      void helpCard.offsetWidth;
+      helpCard.classList.add('help-notice-enter');
+      setTimeout(()=> { helpCard.classList.add('help-notice-enter-active'); }, 20);
+      setTimeout(()=> { helpCard.classList.remove('help-notice-enter','help-notice-enter-active'); }, 420);
+    }
 
-    /* -------------------------
-       Messages save/reset
-       ------------------------- */
-    modal.querySelector('#settingsSaveMsgBtn')?.addEventListener('click', ()=>{
-      const wa = (document.getElementById('settingsWaTpl')||{}).value || '';
-      const sms = (document.getElementById('settingsSmsTpl')||{}).value || '';
-      lsSet(LS_MSG_TPL, { reminder_wa: wa, reminder_sms: sms });
-      const s = document.getElementById('settingsMsgStatus'); if (s){ s.classList.remove('hidden'); setTimeout(()=> s.classList.add('hidden'), 1200); }
-      const lang = localStorage.getItem(LS_LANG_KEY) || 'en';
-      const msg = (translations[lang] && translations[lang].savedText) ? translations[lang].savedText : 'Saved';
-      toast(msg, 'success');
-    });
-    modal.querySelector('#settingsResetMsgBtn')?.addEventListener('click', ()=>{
-      if (!confirm('Reset message templates to defaults?')) return;
-      const lang = localStorage.getItem(LS_LANG_KEY) || 'en';
-      const t = translations[lang] || translations.en;
-      lsSet(LS_MSG_TPL, { reminder_wa: t.tplDefaults.reminder_wa, reminder_sms: t.tplDefaults.reminder_sms });
-      const tpl = lsGet(LS_MSG_TPL) || {};
-      document.getElementById('settingsWaTpl') && (document.getElementById('settingsWaTpl').value = tpl.reminder_wa || '');
-      document.getElementById('settingsSmsTpl') && (document.getElementById('settingsSmsTpl').value = tpl.reminder_sms || '');
-      toast(t.savedText || 'Saved', 'success');
-    });
+    // ensure nav is visible on small screens (small delay to wait for modal DOM paint)
+    setTimeout(ensureSettingsNavVisible, 80);
+    return;
+  }
 
-    /* -------------------------
-       Export wiring (unchanged)
-       ------------------------- */
-    modal.querySelector('#exportInvoicesPdf')?.addEventListener('click', ()=>{
-      const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
-      if (!user) { toast('Login required','error'); return; }
-      const inv = (typeof getStoreInvoices === 'function') ? getStoreInvoices(user.name) : [];
-      if (!inv || !inv.length) { toast('No invoices','error'); return; }
-      if (!window.jspdf) { alert('jsPDF required'); return; }
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.text(`${user.name} - Invoices`, 14, 16);
-      if (doc.autoTable) {
-        doc.autoTable({ head: [['ID','Date','Customer','Phone','Amount','Paid','Status']], body: inv.map(i => [i.id, i.date, i.customer, i.phone, i.amount, i.paid, i.status]), startY: 22 });
-      } else {
-        let y = 22;
-        inv.forEach(i => { doc.text(`${i.id} ${i.date} ${i.customer} ${i.amount}`, 14, y); y+=8; });
-      }
-      doc.save(`invoices_${user.name}_${Date.now()}.pdf`);
-      toast('PDF exported','success');
-    });
-    modal.querySelector('#exportInvoicesExcel')?.addEventListener('click', ()=>{
-      const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
-      if (!user) { toast('Login required','error'); return; }
-      const inv = (typeof getStoreInvoices === 'function') ? getStoreInvoices(user.name) : [];
-      if (!inv || !inv.length) { toast('No invoices','error'); return; }
-      const rows = [['ID','Date','Customer','Phone','Amount','Paid','Status']]; inv.forEach(i => rows.push([i.id, i.date, i.customer, i.phone, i.amount, i.paid, i.status]));
-      const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-      const blob = new Blob([csv], { type:'text/csv' });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `invoices_${user.name}_${Date.now()}.csv`; document.body.appendChild(a); a.click(); a.remove();
-      toast('CSV exported','success');
-    });
+  // --- Modal not present: create it (your original markup + wiring preserved) ---
+  modal = document.createElement('div');
+  modal.id = 'appSettingsModal';
+  modal.className = 'hidden fixed inset-0 z-90 flex items-start justify-center p-4';
+  modal.innerHTML = `
+    <div id="appSettingsModalBackdrop" class="absolute inset-0 bg-black/60"></div>
 
-    /* -------------------------
-       Notices UI (with programmatic i18n support)
-       ------------------------- */
-    function renderNoticesUI() {
-      const notices = lsGet(LS_NOTICES) || [];
-      const noticesEl = document.getElementById('settingsNotices');
-      if (!noticesEl) return;
-      const lang = localStorage.getItem(LS_LANG_KEY) || 'en';
-      const progI18n = (translations[lang] && translations[lang].programmaticNotices) ? translations[lang].programmaticNotices : {};
+    <div class="relative w-full max-w-3xl bg-white dark:bg-sky-900/6 rounded-lg shadow-lg overflow-auto max-h-[92vh]">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-4 border-b border-sky-100 dark:border-sky-800">
+        <div class="flex items-center gap-4">
+          <h2 id="settingsTitle" class="text-lg font-semibold text-sky-800 dark:text-sky-100">Settings & Utilities</h2>
 
-      if (!notices.length) {
-        const t = translations[lang] || translations.en;
-        noticesEl.innerHTML = `<div class="text-sm text-slate-600 dark:text-slate-400">${t.noticesEmpty}</div>`;
-        return;
-      }
+          <!-- Modern language pill toggle (sky) -->
+          <div id="langToggle" class="inline-flex items-center bg-sky-50 dark:bg-sky-900/10 rounded-full p-1">
+            <button id="langEnBtn" class="px-3 py-1 rounded-full text-xs font-semibold">EN</button>
+            <button id="langSoBtn" class="px-3 py-1 rounded-full text-xs font-semibold">SO</button>
+          </div>
+        </div>
 
-      noticesEl.innerHTML = notices.map(n => {
-        let title = escapeHtml(n.title || '');
-        let body = escapeHtml(n.body || '');
-        if (n.i18nKey && progI18n[n.i18nKey]) {
-          title = escapeHtml(progI18n[n.i18nKey].title || title);
-          body = escapeHtml(progI18n[n.i18nKey].body || body);
-        }
-        return `
-          <div class="rounded-lg p-3 bg-white dark:bg-sky-900/6 shadow-sm border border-sky-100">
-            <div class="flex items-start justify-between gap-3">
-              <div>
-                <div class="font-semibold text-sm text-slate-900 dark:text-slate-100">${title}</div>
-                <div class="text-sm text-slate-600 dark:text-slate-300 mt-1">${body}</div>
+        <div class="flex items-center gap-2">
+          <button id="settingsHelpOpen" title="Help" class="p-2 rounded bg-sky-50 dark:bg-sky-900/10 text-sky-700"><i class="fa-solid fa-question"></i></button>
+          <button id="settingsCloseBtn" class="px-3 py-1 rounded bg-sky-100 dark:bg-sky-800 text-sky-800 dark:text-sky-100">Close</button>
+        </div>
+      </div>
+
+      <div class="md:flex md:gap-4">
+        <!-- Left nav (sidebar on md+) -->
+        <nav id="settingsNav" class="md:w-56 p-3 border-r border-sky-100 hidden md:block">
+          <ul class="space-y-2 text-sm">
+            <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="helpNotice"><i class="fa-solid fa-lightbulb mr-2 text-amber-500"></i> Help Notice</button></li>
+            <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="messages"><i class="fa-solid fa-message mr-2 text-sky-500"></i> Messages</button></li>
+            <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="helpNav"><i class="fa-solid fa-circle-info mr-2 text-emerald-500"></i> Help</button></li>
+            <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="notices"><i class="fa-solid fa-bell mr-2 text-amber-600"></i> Notices</button></li>
+            <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="export"><i class="fa-solid fa-download mr-2 text-indigo-600"></i> Export</button></li>
+            <li><button class="settings-tab w-full text-left px-3 py-2 rounded hover:bg-sky-50 dark:hover:bg-sky-800 text-sky-700" data-tab="drive"><i class="fa-brands fa-google-drive mr-2 text-emerald-600"></i> Drive Backup</button></li>
+          </ul>
+        </nav>
+
+        <!-- Content -->
+        <div id="settingsContent" class="p-4 md:flex-1">
+          <!-- Help Notice panel (modern animated card) -->
+          <div class="settings-panel" data-panel="helpNotice" style="display:none">
+            <div id="helpNoticeCard" class="help-notice-card flex items-start gap-3 p-4 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800">
+              <div class="text-2xl">💡</div>
+              <div class="flex-1">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <h4 id="helpNoticeTitle" class="font-semibold text-lg text-sky-800 dark:text-sky-100">Quick Tips</h4>
+                    <div id="helpNoticeBody" class="text-sm text-sky-600 dark:text-sky-200 mt-1">Short helpful context appears here.</div>
+                  </div>
+                  <div class="ml-3">
+                    <button id="dismissHelpNotice" class="text-xs px-2 py-1 rounded bg-white/90 dark:bg-sky-800 text-sky-700">Dismiss</button>
+                  </div>
+                </div>
+                <div class="mt-3 flex gap-2">
+                  <button id="moreHelpBtn" class="px-3 py-1 bg-sky-600 text-white rounded text-sm"><i class="fa-solid fa-book-open mr-1"></i> Full Guide</button>
+                  <button id="showHelpPanelBtn" class="px-3 py-1 bg-sky-100 rounded text-sm text-sky-800">Open Help</button>
+                </div>
               </div>
-              <div class="text-xs text-slate-400">${new Date(n.created||Date.now()).toLocaleString()}</div>
             </div>
           </div>
-        `;
-      }).join('');
-    }
 
-    window.Notices = {
-      add: function({ title = 'Notice', body = '', i18nKey = null } = {}) {
-        const all = lsGet(LS_NOTICES) || [];
-        const payload = { id: `N-${Date.now()}-${Math.floor(Math.random()*9000)}`, title: String(title), body: String(body), created: Date.now() };
-        if (i18nKey) payload.i18nKey = i18nKey;
-        all.unshift(payload);
-        lsSet(LS_NOTICES, all);
-        try { renderNoticesUI(); } catch (e) {}
-        try { window.dispatchEvent(new Event('noticesUpdated')); } catch (e) {}
-        try { localStorage.setItem('__notices_sync', Date.now().toString()); } catch (e) {}
-        return payload;
+          <!-- Messages -->
+          <div class="settings-panel" data-panel="messages" style="display:none">
+            <h4 class="font-semibold mb-2 text-sky-800 dark:text-sky-100">WhatsApp / SMS Templates</h4>
+            <div class="text-sm mb-2 text-sky-600 dark:text-sky-200">Placeholders: <code>{customer}</code> <code>{id}</code> <code>{balance}</code> <code>{store}</code></div>
+            <div class="space-y-2">
+              <textarea id="settingsWaTpl" rows="3" class="w-full border rounded p-2"></textarea>
+              <textarea id="settingsSmsTpl" rows="3" class="w-full border rounded p-2"></textarea>
+              <div class="flex gap-2 mt-2">
+                <button id="settingsSaveMsgBtn" class="px-3 py-2 bg-sky-600 text-white rounded">Save</button>
+                <button id="settingsResetMsgBtn" class="px-3 py-2 bg-sky-100 text-sky-800 rounded">Reset</button>
+                <div id="settingsMsgStatus" class="text-sm text-sky-600 hidden ml-2">Saved</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Full Help -->
+          <div class="settings-panel" data-panel="helpNav" style="display:none">
+            <h4 class="font-semibold mb-2 text-sky-800 dark:text-sky-100">Help & Full Guide</h4>
+            <div class="space-y-3 text-sm">
+              <div id="helpFullContent" class="prose max-w-none text-sm text-sky-600 dark:text-sky-200">
+                <div id="helpIntro"><!-- localized HTML filled later --></div>
+
+                <h5 class="text-sky-700">Invoices</h5>
+                <ol class="text-sky-600">
+                  <li>Create Invoice → Add customer name & phone → add items (choose product or type) → set qty & price.</li>
+                  <li>Set Amount Paid and Status (Paid / Unpaid). Save to add to Reports.</li>
+                  <li>To send invoice: use WhatsApp or SMS from invoice row (buttons appear on invoice actions) — ensures phone formatting (+252) when available.</li>
+                </ol>
+
+                <h5 class="text-sky-700">Send Messages / Call</h5>
+                <ul class="text-sky-600">
+                  <li><b>WhatsApp:</b> Click the WhatsApp icon on an invoice — it opens WhatsApp Web/mobile with the templated message. Customize templates in Settings → Messages.</li>
+                  <li><b>SMS:</b> Click SMS to copy or open an SMS composer (depends on device/browser).</li>
+                  <li><b>Call:</b> Use the phone icon to initiate a call on devices that support tel: links.</li>
+                </ul>
+
+                <h5 class="text-sky-700">Products</h5>
+                <ul class="text-sky-600">
+                  <li>Add Product → set Name, Price, Quantity. Products are available when creating invoices.</li>
+                  <li>Edit stock directly from the product list. Use search to quickly find items.</li>
+                </ul>
+
+                <h5 class="text-sky-700">Dashboard & Reports</h5>
+                <ul class="text-sky-600">
+                  <li>Dashboard shows totals (Invoices, Products, Sales, Revenue, Profit, Expenses) — change period (Today / Weekly / Monthly / Yearly / Live).</li>
+                  <li>Reports lists all saved invoices and can be exported to PDF/CSV or printed.</li>
+                  <li>Use Drive Backup to snapshot your localStorage so you can restore later.</li>
+                </ul>
+              </div>
+
+              <div class="mt-3 text-xs text-sky-500 dark:text-sky-400">
+                Tip: On mobile, use the <b>Help</b> button (top-right) for quick access. Rotate to landscape for wider tables.
+              </div>
+            </div>
+          </div>
+
+          <!-- Notices -->
+          <div class="settings-panel" data-panel="notices" style="display:none">
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="font-semibold text-sky-800 dark:text-sky-100">Notices</h4>
+              <div class="flex items-center gap-2">
+                <button id="translateProgrammaticNotices" class="px-2 py-1 text-xs rounded bg-sky-100 text-sky-800">Translate Notices</button>
+                <button id="clearNoticesBtn" class="px-2 py-1 text-xs rounded bg-red-600 text-white">Clear All</button>
+              </div>
+            </div>
+            <div id="settingsNotices" class="space-y-2 max-h-56 overflow-auto p-1"></div>
+          </div>
+
+          <!-- Export -->
+          <div class="settings-panel" data-panel="export" style="display:none">
+            <h4 class="font-semibold mb-2 text-sky-800 dark:text-sky-100">Export</h4>
+            <div class="flex gap-2 flex-wrap">
+              <button id="exportInvoicesPdf" class="px-3 py-2 bg-sky-600 text-white rounded"><i class="fa-solid fa-file-pdf mr-1"></i> PDF</button>
+              <button id="exportInvoicesExcel" class="px-3 py-2 bg-emerald-600 text-white rounded"><i class="fa-solid fa-file-csv mr-1"></i> CSV</button>
+            </div>
+          </div>
+
+          <!-- Drive -->
+          <div class="settings-panel" data-panel="drive" style="display:none">
+            <h4 class="font-semibold mb-2 text-sky-800 dark:text-sky-100">Google Drive Backup</h4>
+            <div class="text-sm mb-2 text-sky-600 dark:text-sky-200">Requires Google OAuth (GSI) & acceptance as test user. Backups store a JSON snapshot of localStorage.</div>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2"><input id="optAutoRestoreLogin" type="checkbox"> Auto-check Drive on login (opt-in)</label>
+              <label class="flex items-center gap-2">
+                <input id="optAutoBackupEnabled" type="checkbox"> Auto backup every
+                <input id="optAutoBackupDays" type="number" min="1" value="7" style="width:64px;margin-left:6px"> days
+              </label>
+              <div class="text-xs text-sky-500 dark:text-sky-400">Auto backups run while the app is open (background timers). Last run stored in settings.</div>
+              <div class="flex gap-2 mt-2 flex-wrap">
+                <button id="driveBackupBtn" class="px-3 py-2 bg-indigo-600 text-white rounded"><i class="fa-brands fa-google-drive mr-1"></i> Backup to Drive</button>
+                <button id="driveRefreshBtn" class="px-3 py-2 bg-amber-500 text-white rounded"><i class="fa-solid fa-refresh mr-1"></i> Refresh List</button>
+                <button id="driveRestoreLatestBtn" class="px-3 py-2 bg-red-600 text-white rounded"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Restore Latest</button>
+              </div>
+              <div id="driveStatus" class="mt-2 text-sm text-sky-600 dark:text-sky-200">Drive: not initialized</div>
+              <div id="driveBackupList" class="mt-3 space-y-2 max-h-48 overflow-auto"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  /* -------------------------
+     Translations + language logic
+     ------------------------- */
+  const LS_LANG_KEY = 'preferredLang';
+  const translations = {
+    en: {
+      settingsTitle: "Settings & Utilities",
+      closeBtn: "Close",
+      helpBtnTitle: "Help",
+      tabs: { helpNotice: "Help Notice", messages: "Messages", helpNav: "Help", notices: "Notices", export: "Export", drive: "Drive Backup" },
+      helpNoticeTitle: "Quick Tips",
+      helpNoticeBody: "Need a quick refresher? Use 'Create Invoice' to start, 'Add Product' to populate stock, and 'Drive Backup' to protect your data.",
+      helpFullIntro: "<strong>Getting started:</strong> Add products, create invoices, send reminders, and export reports. Below are step-by-step help items.",
+      tplDefaults: {
+        reminder_wa: "Reminder: {customer}, your balance is {balance}. Please pay at {store} ({phone}).",
+        reminder_sms: "Reminder: {customer}, your balance is {balance}."
       },
-      list: function() { return lsGet(LS_NOTICES) || []; },
-      clear: function() { lsSet(LS_NOTICES, []); renderNoticesUI(); }
-    };
+      savedText: "Saved",
+      exportPdf: "PDF",
+      exportCsv: "CSV",
+      driveNotInit: "Drive: not initialized",
+      noticesEmpty: "No notices.",
+      programmaticNotices: {
+        backup_done: { title: "Backup complete", body: "Your backup was saved to Drive." },
+        restore_done: { title: "Restore complete", body: "Data restored from Drive successfully." },
+        welcome: { title: "Welcome", body: "Welcome to your supermarket dashboard — quick tips available in Settings." }
+      },
+      translateNoticesBtn: "Translate Notices",
+      clearNoticesBtn: "Clear All"
+    },
+    so: {
+      settingsTitle: "Dejimaha & Adeegyada",
+      closeBtn: "Xidh",
+      helpBtnTitle: "Caawimo",
+      tabs: { helpNotice: "Ogeysiis Caawimo", messages: "Fariimaha", helpNav: "Caawimo", notices: "Ogeysiisyo", export: "Dhoofin", drive: "Kaydin Drive" },
+      helpNoticeTitle: "Talooyin Degdeg ah",
+      helpNoticeBody: "U baahan tahay xasuusin kooban? Isticmaal 'Abuur Rasiid' si aad u bilowdo, 'Kudar Alaab' si aad u buuxiso kaydka, iyo 'Kaydin Drive' si aad xogta u ilaaliso.",
+      helpFullIntro: "<strong>Sida loo bilaabo:</strong> Kudar alaabo, abuuro rasiidyo, dir xasuusin, oo dhoofso warbixinno. Hoos ka hel tallabo-tallabo caawimo.",
+      tplDefaults: {
+        reminder_wa: "Xasuusin: {customer}, lacagta lagugu leeyahay waa: {balance}. Fadlan iska bixi dukaanka {store} ({phone}).",
+        reminder_sms: "Xasuusin: {customer}, lacagta lagugu leeyahay waa: {balance}."
+      },
+      savedText: "La keydiyey",
+      exportPdf: "PDF",
+      exportCsv: "CSV",
+      driveNotInit: "Drive: lama diyaarin",
+      noticesEmpty: "Ogeysiis ma jiro.",
+      programmaticNotices: {
+        backup_done: { title: "Kaydin dhameystiran", body: "Kaydintaada waxaa lagu badbaadiyey Drive." },
+        restore_done: { title: "Soo celin dhameystiran", body: "Xogta si guul leh ayaa looga soo celiyey Drive." },
+        welcome: { title: "Soo Dhawoow", body: "Ku soo dhawoow guddiga suuqa — talooyin kooban ka hel Dejimaha." }
+      },
+      translateNoticesBtn: "Tarjum Ogeysiisyada",
+      clearNoticesBtn: "Masax Dhammaan"
+    }
+  };
 
-    function ensureProgrammaticNotices() {
-      const programmatic = Array.isArray(window.PROGRAMMATIC_NOTICES) ? window.PROGRAMMATIC_NOTICES
-                        : Array.isArray(window.GLOBAL_NOTICES) ? window.GLOBAL_NOTICES
-                        : [];
-      if (!programmatic.length) return;
-      const existing = lsGet(LS_NOTICES) || [];
-      let changed = false;
-      programmatic.forEach(item => {
-        if (!item) return;
-        const id = item.id ? String(item.id) : null;
-        const i18nKey = item.i18nKey || item.key || null;
-        const found = id ? existing.find(n => n.id === id) : (i18nKey ? existing.find(n => n.i18nKey === i18nKey) : null);
-        if (!found) {
-          const payload = {
-            id: id || `N-${Date.now()}-${Math.floor(Math.random()*9000)}`,
-            title: item.title || (i18nKey ? i18nKey : 'Notice'),
-            body: item.body || '',
-            created: item.created ? Number(item.created) : Date.now(),
-            i18nKey: i18nKey || null
-          };
-          existing.unshift(payload);
-          changed = true;
-        }
-      });
-      if (changed) {
-        lsSet(LS_NOTICES, existing);
-        try { renderNoticesUI(); } catch(e) {}
-        try { window.dispatchEvent(new Event('noticesUpdated')); } catch(e) {}
-        try { localStorage.setItem('__notices_sync', Date.now().toString()); } catch(e) {}
+  /* apply translations into modal */
+  function applyLangToModal(lang) {
+    const t = translations[lang] || translations.en;
+    document.getElementById('settingsTitle') && (document.getElementById('settingsTitle').textContent = t.settingsTitle);
+    document.getElementById('settingsCloseBtn') && (document.getElementById('settingsCloseBtn').textContent = t.closeBtn);
+    document.getElementById('settingsHelpOpen') && (document.getElementById('settingsHelpOpen').title = t.helpBtnTitle);
+
+    // tabs
+    Object.entries(t.tabs).forEach(([k, v]) => {
+      const el = modal.querySelector(`.settings-tab[data-tab="${k}"]`);
+      if (el) {
+        const icon = el.querySelector('i') ? el.querySelector('i').outerHTML + ' ' : '';
+        el.innerHTML = icon + v;
       }
+    });
+
+    // help content
+    document.getElementById('helpNoticeTitle') && (document.getElementById('helpNoticeTitle').textContent = t.helpNoticeTitle);
+    document.getElementById('helpNoticeBody') && (document.getElementById('helpNoticeBody').innerHTML = t.helpNoticeBody);
+    document.getElementById('helpIntro') && (document.getElementById('helpIntro').innerHTML = t.helpFullIntro);
+
+    // messages templates default
+    const tpl = lsGet(LS_MSG_TPL) || {};
+    if (!tpl.reminder_wa && !tpl.reminder_sms) {
+      lsSet(LS_MSG_TPL, { reminder_wa: t.tplDefaults.reminder_wa, reminder_sms: t.tplDefaults.reminder_sms });
+    }
+    const storedTpl = lsGet(LS_MSG_TPL) || {};
+    modal.querySelector('#settingsWaTpl') && (modal.querySelector('#settingsWaTpl').value = storedTpl.reminder_wa || t.tplDefaults.reminder_wa);
+    modal.querySelector('#settingsSmsTpl') && (modal.querySelector('#settingsSmsTpl').value = storedTpl.reminder_sms || t.tplDefaults.reminder_sms);
+
+    // export & notices UI
+    modal.querySelector('#exportInvoicesPdf') && (modal.querySelector('#exportInvoicesPdf').innerHTML = `<i class="fa-solid fa-file-pdf mr-1"></i> ${t.exportPdf}`);
+    modal.querySelector('#exportInvoicesExcel') && (modal.querySelector('#exportInvoicesExcel').innerHTML = `<i class="fa-solid fa-file-csv mr-1"></i> ${t.exportCsv}`);
+    modal.querySelector('#driveStatus') && (modal.querySelector('#driveStatus').textContent = t.driveNotInit);
+    modal.querySelector('#translateProgrammaticNotices') && (modal.querySelector('#translateProgrammaticNotices').textContent = t.translateNoticesBtn);
+    modal.querySelector('#clearNoticesBtn') && (modal.querySelector('#clearNoticesBtn').textContent = t.clearNoticesBtn);
+
+    if (lang) localStorage.setItem(LS_LANG_KEY, lang);
+  }
+
+  function setActiveLangButton(lang) {
+    const en = document.getElementById('langEnBtn'), so = document.getElementById('langSoBtn');
+    if (!en || !so) return;
+    en.classList.remove('bg-sky-600','text-white','shadow');
+    so.classList.remove('bg-sky-600','text-white','shadow');
+    if (lang === 'so') so.classList.add('bg-sky-600','text-white','shadow'); else en.classList.add('bg-sky-600','text-white','shadow');
+  }
+
+  function applyLanguage(lang, save = true) {
+    if (!lang) lang = localStorage.getItem(LS_LANG_KEY) || 'en';
+    if (save) localStorage.setItem(LS_LANG_KEY, lang);
+    setActiveLangButton(lang);
+    applyLangToModal(lang);
+    try { renderNoticesUI(); } catch(e) {}
+    try { if (typeof window.applyTranslations === 'function') window.applyTranslations(lang); } catch(e) {}
+  }
+
+  // wire language buttons
+  modal.querySelector('#langEnBtn')?.addEventListener('click', () => applyLanguage('en', true));
+  modal.querySelector('#langSoBtn')?.addEventListener('click', () => applyLanguage('so', true));
+
+  /* -------------------------
+     Panels/tab wiring & helpers
+     ------------------------- */
+  function showTab(name){
+    modal.querySelectorAll('.settings-panel').forEach(p => p.dataset.panel === name ? (p.style.display='block') : (p.style.display='none'));
+    modal.querySelectorAll('.settings-tab').forEach(x => x.classList.remove('bg-sky-50','dark:bg-sky-800'));
+    const btn = modal.querySelector(`.settings-tab[data-tab="${name}"]`);
+    if (btn) btn.classList.add('bg-sky-50');
+  }
+  modal.querySelectorAll('.settings-tab').forEach(tb => tb.addEventListener('click', function(){
+    showTab(this.dataset.tab);
+  }));
+
+  // close/backdrop
+  modal.querySelector('#settingsCloseBtn')?.addEventListener('click', ()=> modal.classList.add('hidden'));
+  modal.addEventListener('click', (e)=> { if (e.target === modal || e.target.id === 'appSettingsModalBackdrop') modal.classList.add('hidden'); });
+
+  /* -------------------------
+     Messages save/reset
+     ------------------------- */
+  modal.querySelector('#settingsSaveMsgBtn')?.addEventListener('click', ()=>{
+    const wa = (document.getElementById('settingsWaTpl')||{}).value || '';
+    const sms = (document.getElementById('settingsSmsTpl')||{}).value || '';
+    lsSet(LS_MSG_TPL, { reminder_wa: wa, reminder_sms: sms });
+    const s = document.getElementById('settingsMsgStatus'); if (s){ s.classList.remove('hidden'); setTimeout(()=> s.classList.add('hidden'), 1200); }
+    const lang = localStorage.getItem(LS_LANG_KEY) || 'en';
+    const msg = (translations[lang] && translations[lang].savedText) ? translations[lang].savedText : 'Saved';
+    toast(msg, 'success');
+  });
+  modal.querySelector('#settingsResetMsgBtn')?.addEventListener('click', ()=>{
+    if (!confirm('Reset message templates to defaults?')) return;
+    const lang = localStorage.getItem(LS_LANG_KEY) || 'en';
+    const t = translations[lang] || translations.en;
+    lsSet(LS_MSG_TPL, { reminder_wa: t.tplDefaults.reminder_wa, reminder_sms: t.tplDefaults.reminder_sms });
+    const tpl = lsGet(LS_MSG_TPL) || {};
+    document.getElementById('settingsWaTpl') && (document.getElementById('settingsWaTpl').value = tpl.reminder_wa || '');
+    document.getElementById('settingsSmsTpl') && (document.getElementById('settingsSmsTpl').value = tpl.reminder_sms || '');
+    toast(t.savedText || 'Saved', 'success');
+  });
+
+  /* -------------------------
+     Export wiring (unchanged)
+     ------------------------- */
+  modal.querySelector('#exportInvoicesPdf')?.addEventListener('click', ()=>{
+    const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
+    if (!user) { toast('Login required','error'); return; }
+    const inv = (typeof getStoreInvoices === 'function') ? getStoreInvoices(user.name) : [];
+    if (!inv || !inv.length) { toast('No invoices','error'); return; }
+    if (!window.jspdf) { alert('jsPDF required'); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text(`${user.name} - Invoices`, 14, 16);
+    if (doc.autoTable) {
+      doc.autoTable({ head: [['ID','Date','Customer','Phone','Amount','Paid','Status']], body: inv.map(i => [i.id, i.date, i.customer, i.phone, i.amount, i.paid, i.status]), startY: 22 });
+    } else {
+      let y = 22;
+      inv.forEach(i => { doc.text(`${i.id} ${i.date} ${i.customer} ${i.amount}`, 14, y); y+=8; });
+    }
+    doc.save(`invoices_${user.name}_${Date.now()}.pdf`);
+    toast('PDF exported','success');
+  });
+  modal.querySelector('#exportInvoicesExcel')?.addEventListener('click', ()=>{
+    const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
+    if (!user) { toast('Login required','error'); return; }
+    const inv = (typeof getStoreInvoices === 'function') ? getStoreInvoices(user.name) : [];
+    if (!inv || !inv.length) { toast('No invoices','error'); return; }
+    const rows = [['ID','Date','Customer','Phone','Amount','Paid','Status']]; inv.forEach(i => rows.push([i.id, i.date, i.customer, i.phone, i.amount, i.paid, i.status]));
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type:'text/csv' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `invoices_${user.name}_${Date.now()}.csv`; document.body.appendChild(a); a.click(); a.remove();
+    toast('CSV exported','success');
+  });
+
+  /* -------------------------
+     Notices UI (with programmatic i18n support)
+     ------------------------- */
+  function renderNoticesUI() {
+    const notices = lsGet(LS_NOTICES) || [];
+    const noticesEl = document.getElementById('settingsNotices');
+    if (!noticesEl) return;
+    const lang = localStorage.getItem(LS_LANG_KEY) || 'en';
+    const progI18n = (translations[lang] && translations[lang].programmaticNotices) ? translations[lang].programmaticNotices : {};
+
+    if (!notices.length) {
+      const t = translations[lang] || translations.en;
+      noticesEl.innerHTML = `<div class="text-sm text-slate-600 dark:text-slate-400">${t.noticesEmpty}</div>`;
+      return;
     }
 
+    noticesEl.innerHTML = notices.map(n => {
+      let title = escapeHtml(n.title || '');
+      let body = escapeHtml(n.body || '');
+      if (n.i18nKey && progI18n[n.i18nKey]) {
+        title = escapeHtml(progI18n[n.i18nKey].title || title);
+        body = escapeHtml(progI18n[n.i18nKey].body || body);
+      }
+      return `
+        <div class="rounded-lg p-3 bg-white dark:bg-sky-900/6 shadow-sm border border-sky-100">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="font-semibold text-sm text-slate-900 dark:text-slate-100">${title}</div>
+              <div class="text-sm text-slate-600 dark:text-slate-300 mt-1">${body}</div>
+            </div>
+            <div class="text-xs text-slate-400">${new Date(n.created||Date.now()).toLocaleString()}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.Notices = {
+    add: function({ title = 'Notice', body = '', i18nKey = null } = {}) {
+      const all = lsGet(LS_NOTICES) || [];
+      const payload = { id: `N-${Date.now()}-${Math.floor(Math.random()*9000)}`, title: String(title), body: String(body), created: Date.now() };
+      if (i18nKey) payload.i18nKey = i18nKey;
+      all.unshift(payload);
+      lsSet(LS_NOTICES, all);
+      try { renderNoticesUI(); } catch (e) {}
+      try { window.dispatchEvent(new Event('noticesUpdated')); } catch (e) {}
+      try { localStorage.setItem('__notices_sync', Date.now().toString()); } catch (e) {}
+      return payload;
+    },
+    list: function() { return lsGet(LS_NOTICES) || []; },
+    clear: function() { lsSet(LS_NOTICES, []); renderNoticesUI(); }
+  };
+
+  function ensureProgrammaticNotices() {
+    const programmatic = Array.isArray(window.PROGRAMMATIC_NOTICES) ? window.PROGRAMMATIC_NOTICES
+                      : Array.isArray(window.GLOBAL_NOTICES) ? window.GLOBAL_NOTICES
+                      : [];
+    if (!programmatic.length) return;
+    const existing = lsGet(LS_NOTICES) || [];
+    let changed = false;
+    programmatic.forEach(item => {
+      if (!item) return;
+      const id = item.id ? String(item.id) : null;
+      const i18nKey = item.i18nKey || item.key || null;
+      const found = id ? existing.find(n => n.id === id) : (i18nKey ? existing.find(n => n.i18nKey === i18nKey) : null);
+      if (!found) {
+        const payload = {
+          id: id || `N-${Date.now()}-${Math.floor(Math.random()*9000)}`,
+          title: item.title || (i18nKey ? i18nKey : 'Notice'),
+          body: item.body || '',
+          created: item.created ? Number(item.created) : Date.now(),
+          i18nKey: i18nKey || null
+        };
+        existing.unshift(payload);
+        changed = true;
+      }
+    });
+    if (changed) {
+      lsSet(LS_NOTICES, existing);
+      try { renderNoticesUI(); } catch(e) {}
+      try { window.dispatchEvent(new Event('noticesUpdated')); } catch(e) {}
+      try { localStorage.setItem('__notices_sync', Date.now().toString()); } catch(e) {}
+    }
+  }
+
+  renderNoticesUI();
+  try { ensureProgrammaticNotices(); } catch(e){ console.error('ensureProgrammaticNotices failed', e); }
+
+  window.addEventListener('storage', (ev) => {
+    if (!ev) return;
+    if (ev.key === LS_NOTICES || ev.key === '__notices_sync') {
+      setTimeout(()=> { try { renderNoticesUI(); } catch(e){} }, 50);
+    }
+  });
+  window.addEventListener('noticesUpdated', () => { try { renderNoticesUI(); } catch(e){} });
+  window.renderNoticesUI = renderNoticesUI;
+
+  modal.querySelector('#translateProgrammaticNotices')?.addEventListener('click', () => {
     renderNoticesUI();
-    try { ensureProgrammaticNotices(); } catch(e){ console.error('ensureProgrammaticNotices failed', e); }
+    toast('Notices translated', 'success');
+  });
+  modal.querySelector('#clearNoticesBtn')?.addEventListener('click', () => {
+    if (!confirm('Clear all notices?')) return;
+    window.Notices.clear();
+    toast('Notices cleared','success');
+  });
 
-    window.addEventListener('storage', (ev) => {
-      if (!ev) return;
-      if (ev.key === LS_NOTICES || ev.key === '__notices_sync') {
-        setTimeout(()=> { try { renderNoticesUI(); } catch(e){} }, 50);
-      }
+  // example manual notice trigger
+  const someRemindBtn = document.getElementById('someRemindBtn');
+  if (someRemindBtn) {
+    someRemindBtn.addEventListener('click', () => {
+      window.Notices.add({ i18nKey: 'welcome' });
+      toast('Notice added', 'success');
     });
-    window.addEventListener('noticesUpdated', () => { try { renderNoticesUI(); } catch(e){} });
-    window.renderNoticesUI = renderNoticesUI;
+  }
 
-    document.getElementById('translateProgrammaticNotices')?.addEventListener('click', ()=> {
-      renderNoticesUI();
-      toast('Notices translated', 'success');
+  /* -------------------------
+     Drive settings wiring
+     ------------------------- */
+  const s = lsGet(LS_SETTINGS) || {};
+  const optRestore = document.getElementById('optAutoRestoreLogin');
+  const optAutoEnabled = document.getElementById('optAutoBackupEnabled');
+  const optAutoDays = document.getElementById('optAutoBackupDays');
+  if (optRestore) optRestore.checked = Boolean(s.autoRestoreOnLogin);
+  if (optAutoEnabled) optAutoEnabled.checked = Boolean(s.autoBackup && s.autoBackup.enabled);
+  if (optAutoDays) optAutoDays.value = (s.autoBackup && s.autoBackup.days) ? s.autoBackup.days : 7;
+
+  initGisIfNeeded();
+  initGapiIfNeeded().then(()=> { setDriveStatus && setDriveStatus('Drive: ready'); }).catch(()=> { setDriveStatus && setDriveStatus('Drive: client not ready'); });
+
+  modal.querySelector('#driveBackupBtn')?.addEventListener('click', driveBackup);
+  modal.querySelector('#driveRefreshBtn')?.addEventListener('click', driveListBackups);
+  modal.querySelector('#driveRestoreLatestBtn')?.addEventListener('click', driveRestoreLatest);
+
+  function persistDriveSettings(){
+    const cur = lsGet(LS_SETTINGS) || {};
+    cur.autoRestoreOnLogin = Boolean(document.getElementById('optAutoRestoreLogin')?.checked);
+    cur.autoBackup = { enabled: Boolean(document.getElementById('optAutoBackupEnabled')?.checked), days: Number(document.getElementById('optAutoBackupDays')?.value) || 7 };
+    lsSet(LS_SETTINGS, cur);
+    const lang = localStorage.getItem(LS_LANG_KEY) || 'en';
+    const msg = (translations[lang] && translations[lang].savedText) ? translations[lang].savedText : 'Saved';
+    toast(msg,'success');
+    if (cur.autoBackup && cur.autoBackup.enabled) scheduleAutoBackup(); else cancelAutoBackup();
+  }
+  document.getElementById('optAutoRestoreLogin')?.addEventListener('change', persistDriveSettings);
+  document.getElementById('optAutoBackupEnabled')?.addEventListener('change', persistDriveSettings);
+  document.getElementById('optAutoBackupDays')?.addEventListener('change', persistDriveSettings);
+
+  /* -------------------------
+     Show modal + animate help notice
+     ------------------------- */
+  modal.classList.remove('hidden');
+  modal.querySelectorAll('.settings-panel').forEach(p => p.style.display = p.dataset.panel === 'helpNotice' ? 'block' : 'none');
+
+  (function initLangOnModalOpen(){
+    const saved = localStorage.getItem(LS_LANG_KEY) || 'en';
+    setActiveLangButton(saved);
+    applyLangToModal(saved);
+
+    // wire language buttons to also call global applyTranslations
+    document.getElementById('langEnBtn')?.addEventListener('click', ()=> {
+      localStorage.setItem(LS_LANG_KEY,'en');
+      try { if (typeof window.applyTranslations === 'function') window.applyTranslations('en'); } catch(e){}
+      applyLanguage('en', true);
     });
-    document.getElementById('clearNoticesBtn')?.addEventListener('click', ()=> {
-      if (!confirm('Clear all notices?')) return;
-      window.Notices.clear();
-      toast('Notices cleared','success');
+    document.getElementById('langSoBtn')?.addEventListener('click', ()=> {
+      localStorage.setItem(LS_LANG_KEY,'so');
+      try { if (typeof window.applyTranslations === 'function') window.applyTranslations('so'); } catch(e){}
+      applyLanguage('so', true);
     });
 
-    // example manual notice trigger
-    const someRemindBtn = document.getElementById('someRemindBtn');
-    if (someRemindBtn) {
-      someRemindBtn.addEventListener('click', () => {
-        window.Notices.add({ i18nKey: 'welcome' });
-        toast('Notice added', 'success');
-      });
+    // help controls (dismiss, open full help)
+    document.getElementById('dismissHelpNotice')?.addEventListener('click', ()=> {
+      document.getElementById('helpNoticeCard')?.classList.add('hidden');
+    });
+    document.getElementById('moreHelpBtn')?.addEventListener('click', ()=> {
+      showTab('helpNav');
+    });
+    document.getElementById('showHelpPanelBtn')?.addEventListener('click', ()=> {
+      showTab('helpNav');
+    });
+
+    // animate the help notice entrance
+    const helpCard = document.getElementById('helpNoticeCard');
+    if (helpCard) {
+      helpCard.classList.add('help-notice-enter');
+      // next tick -> active
+      setTimeout(()=> {
+        helpCard.classList.add('help-notice-enter-active');
+      }, 20);
+      // remove the enter classes after animation so it can play again later
+      setTimeout(()=> {
+        helpCard.classList.remove('help-notice-enter','help-notice-enter-active');
+      }, 420);
     }
+  })();
 
-    /* -------------------------
-       Drive settings wiring
-       ------------------------- */
-    const s = lsGet(LS_SETTINGS) || {};
-    const optRestore = document.getElementById('optAutoRestoreLogin');
-    const optAutoEnabled = document.getElementById('optAutoBackupEnabled');
-    const optAutoDays = document.getElementById('optAutoBackupDays');
-    if (optRestore) optRestore.checked = Boolean(s.autoRestoreOnLogin);
-    if (optAutoEnabled) optAutoEnabled.checked = Boolean(s.autoBackup && s.autoBackup.enabled);
-    if (optAutoDays) optAutoDays.value = (s.autoBackup && s.autoBackup.days) ? s.autoBackup.days : 7;
-
-    initGisIfNeeded();
-    initGapiIfNeeded().then(()=> { setDriveStatus && setDriveStatus('Drive: ready'); }).catch(()=> { setDriveStatus && setDriveStatus('Drive: client not ready'); });
-
-    document.getElementById('driveBackupBtn')?.addEventListener('click', driveBackup);
-    document.getElementById('driveRefreshBtn')?.addEventListener('click', driveListBackups);
-    document.getElementById('driveRestoreLatestBtn')?.addEventListener('click', driveRestoreLatest);
-
-    function persistDriveSettings(){
-      const cur = lsGet(LS_SETTINGS) || {};
-      cur.autoRestoreOnLogin = Boolean(document.getElementById('optAutoRestoreLogin')?.checked);
-      cur.autoBackup = { enabled: Boolean(document.getElementById('optAutoBackupEnabled')?.checked), days: Number(document.getElementById('optAutoBackupDays')?.value) || 7 };
-      lsSet(LS_SETTINGS, cur);
-      const lang = localStorage.getItem(LS_LANG_KEY) || 'en';
-      const msg = (translations[lang] && translations[lang].savedText) ? translations[lang].savedText : 'Saved';
-      toast(msg,'success');
-      if (cur.autoBackup && cur.autoBackup.enabled) scheduleAutoBackup(); else cancelAutoBackup();
-    }
-    document.getElementById('optAutoRestoreLogin')?.addEventListener('change', persistDriveSettings);
-    document.getElementById('optAutoBackupEnabled')?.addEventListener('change', persistDriveSettings);
-    document.getElementById('optAutoBackupDays')?.addEventListener('change', persistDriveSettings);
-
-    /* -------------------------
-       Show modal + animate help notice
-       ------------------------- */
-    modal.classList.remove('hidden');
-    modal.querySelectorAll('.settings-panel').forEach(p => p.style.display = p.dataset.panel === 'helpNotice' ? 'block' : 'none');
-
-    (function initLangOnModalOpen(){
-      const saved = localStorage.getItem(LS_LANG_KEY) || 'en';
-      setActiveLangButton(saved);
-      applyLangToModal(saved);
-
-      // wire language buttons to also call global applyTranslations
-      document.getElementById('langEnBtn')?.addEventListener('click', ()=> {
-        localStorage.setItem(LS_LANG_KEY,'en');
-        try { if (typeof window.applyTranslations === 'function') window.applyTranslations('en'); } catch(e){}
-        applyLanguage('en', true);
-      });
-      document.getElementById('langSoBtn')?.addEventListener('click', ()=> {
-        localStorage.setItem(LS_LANG_KEY,'so');
-        try { if (typeof window.applyTranslations === 'function') window.applyTranslations('so'); } catch(e){}
-        applyLanguage('so', true);
-      });
-
-      // help controls (dismiss, open full help)
-      document.getElementById('dismissHelpNotice')?.addEventListener('click', ()=> {
-        document.getElementById('helpNoticeCard')?.classList.add('hidden');
-      });
-      document.getElementById('moreHelpBtn')?.addEventListener('click', ()=> {
-        showTab('helpNav');
-      });
-      document.getElementById('showHelpPanelBtn')?.addEventListener('click', ()=> {
-        showTab('helpNav');
-      });
-
-      // animate the help notice entrance
-      const helpCard = document.getElementById('helpNoticeCard');
-      if (helpCard) {
-        helpCard.classList.add('help-notice-enter');
-        // next tick -> active
-        setTimeout(()=> {
-          helpCard.classList.add('help-notice-enter-active');
-        }, 20);
-        // remove the enter classes after animation so it can play again later
-        setTimeout(()=> {
-          helpCard.classList.remove('help-notice-enter','help-notice-enter-active');
-        }, 420);
-      }
-    })();
-
-  } // end if create modal
-
-  // ensure modal element ref
-  modal = document.getElementById('appSettingsModal');
-
-  // fill templates into textareas (if any)
+  // fill templates into textareas (if any) - initial fill
   const tpl = lsGet(LS_MSG_TPL) || {};
   document.getElementById('settingsWaTpl') && (document.getElementById('settingsWaTpl').value = tpl.reminder_wa || '');
   document.getElementById('settingsSmsTpl') && (document.getElementById('settingsSmsTpl').value = tpl.reminder_sms || '');
 
-  // helper: escapeHtml
+  // helper: escapeHtml (kept local)
   function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   // expose applyLanguage helper globally for other UI
@@ -5415,8 +5437,41 @@ function openSettingsModal(){
     try { if (typeof applyLanguage === 'function') applyLanguage(lang, true); } catch(e){}
   };
 
-  // end openSettingsModal
-}
+  // ensure nav visible on initial create
+  setTimeout(ensureSettingsNavVisible, 60);
+
+} // end openSettingsModal
+
+
+// ==========================
+// Settings button attach (resilient / delegated) - replaces btn.onclick
+// ==========================
+(function attachSettingsButton(){
+  // create a button if absent (same as before)
+  let btn = document.getElementById('storeSettingsBtn');
+  if (!btn) {
+    const target = document.getElementById('storeDisplayDesktop');
+    btn = document.createElement('button');
+    btn.id = 'storeSettingsBtn';
+    btn.className = 'ml-2 px-2 py-1 rounded bg-emerald-600 text-white';
+    btn.title = 'Settings';
+    btn.innerHTML = '<i class="fa-solid fa-cog"></i>';
+    if (target && target.parentNode) target.parentNode.insertBefore(btn, target.nextSibling);
+    else document.body.appendChild(btn);
+  }
+
+  // Delegated click handler attached once on document — resilient if the button is re-created by other code
+  if (!document._settingsBtnDelegationInstalled) {
+    document.addEventListener('click', function (e) {
+      const el = e.target.closest && e.target.closest('#storeSettingsBtn');
+      if (el) {
+        try { openSettingsModal(); } catch (err) { console.error('openSettingsModal error', err); }
+      }
+    }, { capture: false, passive: true });
+    document._settingsBtnDelegationInstalled = true;
+  }
+})();
+
 
 
     // small helper to set drive status element
