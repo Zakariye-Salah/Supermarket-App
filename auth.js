@@ -167,37 +167,18 @@
     setTimeout(() => { el.style.transition = 'opacity 220ms'; el.style.opacity = '0'; setTimeout(() => el.remove(), 220); }, ms);
   }
 
-  /* small polyfills for optional libs */
-  function ensureLib(url, globalName) {
-    return new Promise((res, rej) => {
-      if (globalName && window[globalName]) return res(true);
-      const s = document.createElement('script');
-      s.src = url;
-      s.onload = () => res(true);
-      s.onerror = () => rej(new Error('Failed to load ' + url));
-      document.head.appendChild(s);
-    });
-  }
+  // /* small polyfills for optional libs */
+  // function ensureLib(url, globalName) {
+  //   return new Promise((res, rej) => {
+  //     if (globalName && window[globalName]) return res(true);
+  //     const s = document.createElement('script');
+  //     s.src = url;
+  //     s.onload = () => res(true);
+  //     s.onerror = () => rej(new Error('Failed to load ' + url));
+  //     document.head.appendChild(s);
+  //   });
+  // }
 
-  /* =========================
-     TRANSLATION (minimal)
-     ========================= */
-  const I18N = {
-    en: { dashboard: "" },
-    so: { dashboard: "" }
-  };
-  function applyLanguage(lang) {
-    if (!lang) lang = lsGet(LS_APP_LANG, 'en') || 'en';
-    lsSet(LS_APP_LANG, lang);
-    const storeEl = document.getElementById('storeDisplayDesktop');
-    if (storeEl) {
-      const name = storeEl.textContent || getCurrentUser()?.name || '';
-      const base = (I18N[lang] && I18N[lang].dashboard) || '';
-      const h = storeEl.closest && storeEl.closest('h1');
-      if (h) h.textContent = `${base} - ${name}`;
-    }
-  }
-  applyLanguage(lsGet(LS_APP_LANG, 'en'));
 
   /* =========================
      BASIC UI LOOKUPS
@@ -309,12 +290,19 @@
   /* =========================
      UI: hide nav/settings while on auth
      ========================= */
-  function setAuthVisibility(isAuthScreen) {
-    // hide nav buttons and settings cog while on login/register
-    document.querySelectorAll('.navBtn, .storeSettingsBtn').forEach(el => {
-      if (isAuthScreen) el.classList.add('hidden'); else el.classList.remove('hidden');
-    });
-  }
+     function setAuthVisibility(isAuthScreen) {
+      // hide nav buttons and settings cog while on login/register
+      // support both .navBtn and #storeSettingsBtn / .storeSettingsBtn
+      document.querySelectorAll('.navBtn').forEach(el => {
+        if (isAuthScreen) el.classList.add('hidden'); else el.classList.remove('hidden');
+      });
+      // support id and class selectors for settings button(s)
+      const settingsEls = Array.from(document.querySelectorAll('#storeSettingsBtn, .storeSettingsBtn'));
+      settingsEls.forEach(el => {
+        if (isAuthScreen) el.classList.add('hidden'); else el.classList.remove('hidden');
+      });
+    }
+    
 
   /* =========================
      SETTINGS COG + SETTINGS MODAL (drop-in replacement)
@@ -2705,35 +2693,35 @@ navButtons.forEach(btn => btn.addEventListener('click', () => {
 
 
   
-/* =========================
-   Show/hide auth (login/register)
-   ========================= */
-function showLoginForm() {
-  // show auth container and login panel, hide dashboard/other app sections
-  authSection?.classList.remove('hidden');
-  registrationForm?.classList.add('hidden');
-  loginForm?.classList.remove('hidden');
-  dashboardSection?.classList.add('hidden');
+// /* =========================
+//    Show/hide auth (login/register)
+//    ========================= */
+// function showLoginForm() {
+//   // show auth container and login panel, hide dashboard/other app sections
+//   authSection?.classList.remove('hidden');
+//   registrationForm?.classList.add('hidden');
+//   loginForm?.classList.remove('hidden');
+//   dashboardSection?.classList.add('hidden');
 
-  // hide bottom nav while on auth screens
-  document.getElementById('bottomNav')?.classList.add('hidden');
+//   // hide bottom nav while on auth screens
+//   document.getElementById('bottomNav')?.classList.add('hidden');
 
-  // mark nav as inactive
-  setActiveNav(null);
-  setAuthVisibility(true);
-}
+//   // mark nav as inactive
+//   setActiveNav(null);
+//   setAuthVisibility(true);
+// }
 
-function showRegisterForm() {
-  authSection?.classList.remove('hidden');
-  registrationForm?.classList.remove('hidden');
-  loginForm?.classList.add('hidden');
-  dashboardSection?.classList.add('hidden');
+// function showRegisterForm() {
+//   authSection?.classList.remove('hidden');
+//   registrationForm?.classList.remove('hidden');
+//   loginForm?.classList.add('hidden');
+//   dashboardSection?.classList.add('hidden');
 
-  document.getElementById('bottomNav')?.classList.add('hidden');
+//   document.getElementById('bottomNav')?.classList.add('hidden');
 
-  setActiveNav(null);
-  setAuthVisibility(true);
-}
+//   setActiveNav(null);
+//   setAuthVisibility(true);
+// }
 
 
   /* =========================
@@ -5711,21 +5699,21 @@ function openSettingsModal(){
     window.driveListBackups = driveListBackups;
     window.driveRestoreLatest = driveRestoreLatest;
   
-    // Settings button attach (safe: will not override if exists)
-    (function attachSettingsButton(){
-      let btn = document.getElementById('storeSettingsBtn');
-      if (!btn) {
-        const target = document.getElementById('storeDisplayDesktop');
-        btn = document.createElement('button');
-        btn.id = 'storeSettingsBtn';
-        btn.className = 'ml-2 px-2 py-1 rounded bg-emerald-600 text-white';
-        btn.title = 'Settings';
-        btn.innerHTML = '<i class="fa-solid fa-cog"></i>';
-        if (target && target.parentNode) target.parentNode.insertBefore(btn, target.nextSibling);
-        else document.body.appendChild(btn);
-      }
-      btn.onclick = openSettingsModal;
-    })();
+    // // Settings button attach (safe: will not override if exists)
+    // (function attachSettingsButton(){
+    //   let btn = document.getElementById('storeSettingsBtn');
+    //   if (!btn) {
+    //     const target = document.getElementById('storeDisplayDesktop');
+    //     btn = document.createElement('button');
+    //     btn.id = 'storeSettingsBtn';
+    //     btn.className = 'ml-2 px-2 py-1 rounded bg-emerald-600 text-white';
+    //     btn.title = 'Settings';
+    //     btn.innerHTML = '<i class="fa-solid fa-cog"></i>';
+    //     if (target && target.parentNode) target.parentNode.insertBefore(btn, target.nextSibling);
+    //     else document.body.appendChild(btn);
+    //   }
+    //   btn.onclick = openSettingsModal;
+    // })();
   
     // ===========================
     // Auto-backup scheduling (timers while app is open)
