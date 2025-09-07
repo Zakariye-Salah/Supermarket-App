@@ -2431,7 +2431,7 @@ function showSection(targetId) {
       document.getElementById('bottomNav')?.classList.remove('hidden');
       if (typeof authSection !== 'undefined' && authSection) authSection.classList.add('hidden');
       if (typeof setAuthVisibility === 'function') setAuthVisibility(false);
-      lastVisibleSectionId = targetId;
+      // lastVisibleSectionId = targetId;
     });
     return;
   }
@@ -4142,13 +4142,13 @@ function sendReminderFor(target, method) {
                 <div><span class="font-medium">Qty:</span> ${qty}</div>
                 <div><span class="font-medium">Total:</span> ${fmtMoney(rpt.amount)}</div>
                 <div><span class="font-medium">Paid:</span> ${fmtMoney(rpt.paid)}</div>
-                <div><span class="font-medium">Due:</span> ${fmtMoney(rpt.due || 0)}</div>
+                <div><span class="text-red-600">Balance:</span> ${fmtMoney(rpt.due || 0)}</div>
                 <div><span class="font-medium">Status:</span> 
                   <span class="${rpt.status === 'paid' ? 'text-emerald-600' : 'text-rose-600'}">
                     ${escapeHtml(rpt.status)}
                   </span>
                 </div>
-                <div><span class="font-medium">Customer:</span> ${escapeHtml(rpt.customer || '')}</div>
+<div><span class="font-medium">Customer:</span> <span class="text-blue-800">${escapeHtml(rpt.customer || '')}</span></div>
                 <div><span class="font-medium">Phone:</span> ${escapeHtml(rpt.phone || '')}</div>
               </div>
     
@@ -4181,7 +4181,7 @@ function sendReminderFor(target, method) {
           <td class="p-2">${fmtMoney(rpt.paid)}</td>
           <td class="p-2">${fmtMoney(rpt.due||0)}</td>
           <td class="p-2">${escapeHtml(rpt.status)}</td>
-          <td class="p-2">${escapeHtml(rpt.customer||'')}</td>
+<td class="p-2 text-blue-600">${escapeHtml(rpt.customer||'')}</td>
           <td class="p-2">${escapeHtml(rpt.phone||'')}</td>
           <td class="p-2">${fmtDateTime(rpt.date)}</td>
           <td class="p-2 no-print">
@@ -4386,13 +4386,23 @@ function getStatusLabel(status) {
       const doc = new jsPDF();
   
       const reportsTitleLabel = (document.querySelector('#reportsSection h1')?.textContent || 'Reports').trim();
-      const periodLabelText = (reportsPeriod?.options && reportsPeriod.options[reportsPeriod.selectedIndex]) ? reportsPeriod.options[reportsPeriod.selectedIndex].text : (reportsPeriod?.value || 'lifetime');
+      const periodLabelText =
+        (reportsPeriod?.options && reportsPeriod.options[reportsPeriod.selectedIndex])
+          ? reportsPeriod.options[reportsPeriod.selectedIndex].text
+          : (reportsPeriod?.value || 'lifetime');
   
+      // ✅ add filter date (if chosen by user)
+      const filterDate = reportsDate?.value ? ` • ${reportsDate.value}` : '';
+  
+      // PDF title
       doc.setFontSize(14);
-      doc.text(`${reportsTitleLabel} (${periodLabelText}) - ${fmtDate(new Date())}`, 10, 10);
+      doc.text(`${reportsTitleLabel} (${periodLabelText}${filterDate}) - Exported ${fmtDate(new Date())}`, 10, 10);
   
+      // table headers
       const headerNodes = document.querySelectorAll('#reportsTable thead th');
-      const colLabels = headerNodes && headerNodes.length ? Array.from(headerNodes).map(th => th.textContent.trim()) : ['#','Products','Qty','Total','Paid','Due','Status','Customer','Phone','Timestamp'];
+      const colLabels = headerNodes && headerNodes.length
+        ? Array.from(headerNodes).map(th => th.textContent.trim())
+        : ['#','Products','Qty','Total','Paid','Due','Status','Customer','Phone','Date'];
   
       const columns = [
         { key: 'no',        label: colLabels[0] || '#',        width: 7,   align: 'right' },
@@ -4404,7 +4414,7 @@ function getStatusLabel(status) {
         { key: 'status',    label: colLabels[6] || 'Status',   width: 20,  align: 'left'  },
         { key: 'customer',  label: colLabels[7] || 'Customer', width: 30,  align: 'left'  },
         { key: 'phone',     label: colLabels[8] || 'Phone',    width: 22,  align: 'left'  },
-        { key: 'time',      label: colLabels[9] || 'Timestamp',width: 36,  align: 'left'  },
+        { key: 'time',      label: colLabels[9] || 'Date',     width: 36,  align: 'left'  },
       ];
   
       const marginLeft = 10;
@@ -4442,13 +4452,12 @@ function getStatusLabel(status) {
       y += lineH;
   
       list.forEach((r, i) => {
-        // <<=== KEY CHANGE: do NOT truncate the products array; show the full list
         const allProductNames = (Array.isArray(r.items) ? r.items.map(it => it?.name).filter(Boolean) : []);
         const productsFull = allProductNames.join(', ');
   
         const row = {
           no: i + 1,
-          products: productsFull,                                  // <-- full list, no .slice()
+          products: productsFull,
           qty: (Array.isArray(r.items) ? r.items.reduce((a,it)=>a + (Number(it.qty)||0),0) : (Number(r.qty)||0)),
           total: fmtMoney(Number(r.total != null ? r.total : r.amount || 0)),
           paid: fmtMoney(Number(r.paid || 0)),
@@ -4456,10 +4465,11 @@ function getStatusLabel(status) {
           status: r.status || '',
           customer: r.customer || '',
           phone: r.phone || '',
-          time: fmtDateTime(r.date)
+          // ✅ always output a valid date
+          time: fmtDateTime(r.date || r.createdAt || r.timestamp || new Date())
         };
   
-        // page break estimate
+        // page break handling
         let maxLines = 1;
         doc.setFontSize(10);
         columns.forEach(col => {
@@ -4477,7 +4487,7 @@ function getStatusLabel(status) {
       });
   
       doc.save(`reports_${Date.now()}.pdf`);
-      toast((document.getElementById('reportsExportPdf')?.textContent || 'PDF exported') , 'success');
+      toast((document.getElementById('reportsExportPdf')?.textContent || 'PDF exported'), 'success');
     } else {
       const blob = new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
@@ -4488,16 +4498,51 @@ function getStatusLabel(status) {
     }
   });
   
+  
+// Replace existing Delete All handler with this soft-delete version
+reportsDeleteAll?.addEventListener('click', () => {
+  if (!confirm('Move ALL reports for this store to the recycle bin?')) return;
+  const user = getCurrentUser();
+  if (!user) return;
 
-  reportsDeleteAll?.addEventListener('click', () => {
-    if (!confirm('Delete all reports for this store?')) return;
-    const user = getCurrentUser(); if (!user) return;
-    let reports = getAllReports() || [];
-    reports = reports.filter(r => String(r.store || '').toLowerCase() !== String(user.name || '').toLowerCase());
-    saveAllReports(reports);
+  const storeName = String(user.name || '').toLowerCase();
+  let all = getAllReports() || [];
+
+  // find reports belonging to this store
+  const toMove = all.filter(r => String(r.store || '').toLowerCase() === storeName);
+  if (!toMove.length) {
+    toast('No reports for this store to move', 'info');
+    return;
+  }
+
+  // Prefer soft-delete if available
+  if (typeof moveToTrash === 'function') {
+    let moved = 0;
+    toMove.forEach(rpt => {
+      try {
+        moveToTrash(user.name, 'report', rpt);
+        moved++;
+      } catch (e) {
+        console.warn('moveToTrash failed for report', rpt.id, e);
+      }
+    });
+
+    // Ensure active reports no longer include those items (best-effort)
+    all = getAllReports() || [];
+    const remaining = all.filter(r => String(r.store || '').toLowerCase() !== storeName);
+    saveAllReports(remaining);
+
+    renderReports();
+    toast(`${moved} report${moved === 1 ? '' : 's'} moved to recycle bin`, 'success');
+  } else {
+    // fallback to old permanent deletion if moveToTrash missing
+    all = all.filter(r => String(r.store || '').toLowerCase() !== storeName);
+    saveAllReports(all);
     renderReports();
     toast('Reports deleted for this store', 'success');
-  });
+  }
+});
+
 
   /* =========================
      INITS
@@ -4862,8 +4907,6 @@ window.ensureSettingsBtnClass = ensureSettingsBtnClass;
       <nav id="settingsNav" class="md:w-64 p-4 border-r border-indigo-100 hidden md:block">
         <ul class="space-y-3 text-sm">
           <li><button class="settings-tab w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-indigo-800 dark:text-indigo-100" data-tab="helpNotice"><i class="fa-solid fa-lightbulb mr-2 text-amber-500"></i> Help Notice</button></li>
-          <li><button class="settings-tab w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-indigo-800 dark:text-indigo-100" data-tab="messages"><i class="fa-solid fa-message mr-2 text-indigo-500"></i> Messages</button></li>
-          <li><button class="settings-tab w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-indigo-800 dark:text-indigo-100" data-tab="helpNav"><i class="fa-solid fa-circle-info mr-2 text-emerald-500"></i> Help</button></li>
           <li><button class="settings-tab w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-indigo-800 dark:text-indigo-100" data-tab="notices"><i class="fa-solid fa-bell mr-2 text-amber-600"></i> Notices</button></li>
           <li><button class="settings-tab w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-indigo-800 dark:text-indigo-100" data-tab="export"><i class="fa-solid fa-download mr-2 text-indigo-600"></i> Export</button></li>
           <li><button class="settings-tab w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-indigo-800 dark:text-indigo-100" data-tab="drive"><i class="fa-brands fa-google-drive mr-2 text-emerald-600"></i> Drive Backup</button></li>
@@ -4897,48 +4940,91 @@ window.ensureSettingsBtnClass = ensureSettingsBtnClass;
           </div>
         </div>
 
-        <!-- Messages -->
-        <div class="settings-panel" data-panel="messages" style="display:none">
-          <h4 class="font-bold mb-3 text-indigo-900 dark:text-amber-100">WhatsApp / SMS Templates</h4>
-          <div class="text-sm mb-3 text-indigo-700 dark:text-indigo-200">Placeholders: <code class="rounded px-1 bg-amber-50">{"{customer}"}</code> <code class="rounded px-1 bg-amber-50">{"{id}"}</code> <code class="rounded px-1 bg-amber-50">{"{balance}"}</code> <code class="rounded px-1 bg-amber-50">{"{store}"}</code></div>
-          <div class="space-y-3">
-            <textarea id="settingsWaTpl" rows="3" class="w-full border rounded-lg p-3 text-indigo-800" placeholder="WhatsApp template"></textarea>
-            <textarea id="settingsSmsTpl" rows="3" class="w-full border rounded-lg p-3 text-indigo-800" placeholder="SMS template"></textarea>
-            <div class="flex gap-3 mt-1">
-              <button id="settingsSaveMsgBtn" class="px-4 py-2 bg-indigo-700 text-white rounded-md font-semibold">Save</button>
-              <button id="settingsResetMsgBtn" class="px-4 py-2 bg-amber-100 text-amber-800 rounded-md">Reset</button>
-              <div id="settingsMsgStatus" class="text-sm text-indigo-700 hidden ml-2">Saved</div>
-            </div>
-          </div>
+       
+<!-- Help Notice panel (static multiple messages for your app) -->
+<div class="settings-panel" data-panel="helpNotice" style="display:none">
+  <div class="space-y-4">
+
+    <!-- Message 1: Quick Tips -->
+    <div class="help-notice-card flex items-start gap-4 p-5 rounded-2xl bg-gradient-to-r from-emerald-50 to-amber-50 dark:from-indigo-900 dark:to-indigo-800 border border-indigo-100 dark:border-indigo-800 shadow-md">
+      <div class="text-3xl">💡</div>
+      <div class="flex-1">
+        <h4 class="font-bold text-lg md:text-xl text-indigo-900 dark:text-amber-100">Quick Tips</h4>
+        <div class="mt-2 text-sm md:text-base text-indigo-700 dark:text-indigo-200">
+          Start by adding products, then create invoices and manage stock.
         </div>
+      </div>
+    </div>
 
-        <!-- Full Help -->
-        <div class="settings-panel" data-panel="helpNav" style="display:none">
-          <h4 class="font-bold mb-3 text-indigo-900 dark:text-amber-100">Help &amp; Full Guide</h4>
-          <div class="space-y-4">
-            <div id="helpFullContent" class="prose max-w-none text-base text-indigo-700 dark:text-indigo-200 leading-relaxed">
-              <div id="helpIntro"><strong>Getting started:</strong> Add products, create invoices, send reminders, and export reports. Below are step-by-step help items.</div>
-
-              <h5 class="mt-3 text-indigo-800 dark:text-amber-100">Invoices</h5>
-              <ol class="text-indigo-700 dark:text-indigo-200 list-decimal ml-5">
-                <li>Create Invoice → Add customer name &amp; phone → add items (choose product or type) → set qty &amp; price.</li>
-                <li>Set Amount Paid and Status (Paid / Unpaid). Save to add to Reports.</li>
-                <li>To send invoice: use WhatsApp or SMS from invoice row — phone formatting (+252) will be applied when available.</li>
-              </ol>
-
-              <h5 class="mt-3 text-indigo-800 dark:text-amber-100">Send Messages / Call</h5>
-              <ul class="text-indigo-700 dark:text-indigo-200 list-disc ml-5">
-                <li><b>WhatsApp:</b> Opens WhatsApp Web/mobile with template.</li>
-                <li><b>SMS:</b> Opens SMS composer or copies text depending on device.</li>
-                <li><b>Call:</b> Uses tel: links on supported devices.</li>
-              </ul>
-            </div>
-
-            <div class="mt-2 text-sm text-indigo-500 dark:text-indigo-300">
-              Tip: On mobile, tap the <strong>Help</strong> button (top-right). Rotate to landscape for more space.
-            </div>
-          </div>
+    <!-- Message 2: Invoices -->
+    <div class="help-notice-card flex items-start gap-4 p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-emerald-50 dark:from-indigo-900 dark:to-indigo-950 border border-indigo-100 dark:border-indigo-800 shadow-md">
+      <div class="text-3xl">📝</div>
+      <div class="flex-1">
+        <h4 class="font-bold text-lg md:text-xl text-indigo-900 dark:text-amber-100">Invoices</h4>
+        <div class="mt-2 text-sm md:text-base text-indigo-700 dark:text-indigo-200">
+          Create Invoice → Add customer → Add items → Set quantity & price → Save.
         </div>
+      </div>
+    </div>
+
+    <!-- Message 3: Send Messages -->
+    <div class="help-notice-card flex items-start gap-4 p-5 rounded-2xl bg-gradient-to-r from-indigo-50 to-amber-100 dark:from-indigo-900 dark:to-indigo-800 border border-indigo-100 dark:border-indigo-800 shadow-md">
+      <div class="text-3xl">📤</div>
+      <div class="flex-1">
+        <h4 class="font-bold text-lg md:text-xl text-indigo-900 dark:text-amber-100">Send Messages</h4>
+        <div class="mt-2 text-sm md:text-base text-indigo-700 dark:text-indigo-200">
+          Send WhatsApp or SMS using templates. Placeholders like <code>{"{customer}"}</code> will be auto-replaced.
+        </div>
+      </div>
+    </div>
+
+    <!-- Message 4: Notices -->
+    <div class="help-notice-card flex items-start gap-4 p-5 rounded-2xl bg-gradient-to-r from-amber-100 to-indigo-50 dark:from-indigo-900 dark:to-indigo-950 border border-indigo-100 dark:border-indigo-800 shadow-md">
+      <div class="text-3xl">🔔</div>
+      <div class="flex-1">
+        <h4 class="font-bold text-lg md:text-xl text-indigo-900 dark:text-amber-100">Notices</h4>
+        <div class="mt-2 text-sm md:text-base text-indigo-700 dark:text-indigo-200">
+          All app notifications appear here. Clear notices or translate programmatically.
+        </div>
+      </div>
+    </div>
+
+    <!-- Message 5: Export -->
+    <div class="help-notice-card flex items-start gap-4 p-5 rounded-2xl bg-gradient-to-r from-emerald-50 to-indigo-50 dark:from-indigo-950 dark:to-indigo-900 border border-indigo-100 dark:border-indigo-800 shadow-md">
+      <div class="text-3xl">📥</div>
+      <div class="flex-1">
+        <h4 class="font-bold text-lg md:text-xl text-indigo-900 dark:text-amber-100">Export Reports</h4>
+        <div class="mt-2 text-sm md:text-base text-indigo-700 dark:text-indigo-200">
+          Export invoices as PDF or CSV. Use for sharing or accounting purposes.
+        </div>
+      </div>
+    </div>
+
+    <!-- Message 6: Google Drive Backup -->
+    <div class="help-notice-card flex items-start gap-4 p-5 rounded-2xl bg-gradient-to-r from-indigo-50 to-amber-50 dark:from-indigo-950 dark:to-indigo-900 border border-indigo-100 dark:border-indigo-800 shadow-md">
+      <div class="text-3xl">💾</div>
+      <div class="flex-1">
+        <h4 class="font-bold text-lg md:text-xl text-indigo-900 dark:text-amber-100">Google Drive Backup</h4>
+        <div class="mt-2 text-sm md:text-base text-indigo-700 dark:text-indigo-200">
+          Backup your app data to Google Drive. You can restore latest snapshots anytime.
+        </div>
+      </div>
+    </div>
+
+    <!-- Message 7: Mobile Tip -->
+    <div class="help-notice-card flex items-start gap-4 p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-emerald-50 dark:from-indigo-900 dark:to-indigo-950 border border-indigo-100 dark:border-indigo-800 shadow-md">
+      <div class="text-3xl">📱</div>
+      <div class="flex-1">
+        <h4 class="font-bold text-lg md:text-xl text-indigo-900 dark:text-amber-100">Mobile Tip</h4>
+        <div class="mt-2 text-sm md:text-base text-indigo-700 dark:text-indigo-200">
+          On mobile, tap the <strong>Help</strong> button. Rotate to landscape for more space.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 
         <!-- Notices -->
         <div class="settings-panel" data-panel="notices" style="display:none">
@@ -5156,24 +5242,60 @@ setTimeout(ensureSettingsNavVisible, 60); // you already do this at bottom too
   /* -------------------------
      Export wiring (unchanged)
      ------------------------- */
-  modal.querySelector('#exportInvoicesPdf')?.addEventListener('click', ()=>{
-    const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
-    if (!user) { toast('Login required','error'); return; }
-    const inv = (typeof getStoreInvoices === 'function') ? getStoreInvoices(user.name) : [];
-    if (!inv || !inv.length) { toast('No invoices','error'); return; }
-    if (!window.jspdf) { alert('jsPDF required'); return; }
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.text(`${user.name} - Invoices`, 14, 16);
-    if (doc.autoTable) {
-      doc.autoTable({ head: [['ID','Date','Customer','Phone','Amount','Paid','Status']], body: inv.map(i => [i.id, i.date, i.customer, i.phone, i.amount, i.paid, i.status]), startY: 22 });
-    } else {
-      let y = 22;
-      inv.forEach(i => { doc.text(`${i.id} ${i.date} ${i.customer} ${i.amount}`, 14, y); y+=8; });
-    }
-    doc.save(`invoices_${user.name}_${Date.now()}.pdf`);
-    toast('PDF exported','success');
-  });
+     modal.querySelector('#exportInvoicesPdf')?.addEventListener('click', () => {
+      const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
+      if (!user) { toast('Login required','error'); return; }
+    
+      const inv = (typeof getStoreInvoices === 'function') ? getStoreInvoices(user.name) : [];
+      if (!inv || !inv.length) { toast('No invoices','error'); return; }
+    
+      if (!window.jspdf) { alert('jsPDF required'); return; }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+    
+      doc.text(`${user.name} - Invoices`, 14, 16);
+    
+      // Calculate totals
+      let totalAmount = 0, totalPaid = 0, totalBalance = 0;
+    
+      const body = inv.map(i => {
+        const balance = (i.amount || 0) - (i.paid || 0);
+        totalAmount += (i.amount || 0);
+        totalPaid += (i.paid || 0);
+        totalBalance += balance;
+        return [i.id, i.date, i.customer, i.phone, i.amount, i.paid, balance, i.status];
+      });
+    
+      // Add table with new "Balance" column
+      if (doc.autoTable) {
+        doc.autoTable({
+          head: [['ID','Date','Customer','Phone','Amount','Paid','Balance','Status']],
+          body: body,
+          startY: 22
+        });
+    
+        // Add totals at the end
+        const finalY = doc.lastAutoTable.finalY + 8 || 22;
+        doc.text(`Total Amount: ${totalAmount}`, 14, finalY);
+        doc.text(`Total Paid: ${totalPaid}`, 14, finalY + 6);
+        doc.text(`Total Balance: ${totalBalance}`, 14, finalY + 12);
+    
+      } else {
+        let y = 22;
+        inv.forEach(i => {
+          const balance = (i.amount || 0) - (i.paid || 0);
+          doc.text(`${i.id} ${i.date} ${i.customer} ${i.amount} ${i.paid} ${balance} ${i.status}`, 14, y);
+          y += 8;
+        });
+        doc.text(`Total Amount: ${totalAmount}`, 14, y); y+=6;
+        doc.text(`Total Paid: ${totalPaid}`, 14, y); y+=6;
+        doc.text(`Total Balance: ${totalBalance}`, 14, y);
+      }
+    
+      doc.save(`invoices_${user.name}_${Date.now()}.pdf`);
+      toast('PDF exported','success');
+    });
+    
   modal.querySelector('#exportInvoicesExcel')?.addEventListener('click', ()=>{
     const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
     if (!user) { toast('Login required','error'); return; }
