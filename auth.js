@@ -4723,20 +4723,46 @@ function openSettingsModal(){
   let modal = document.getElementById('appSettingsModal');
 
   // Inject small CSS for help notice animation once
-  if (!document.getElementById('appSettingsModal-styles')) {
-    const style = document.createElement('style');
-    style.id = 'appSettingsModal-styles';
-    style.innerHTML = `
-      /* Help notice entrance */
-      .help-notice-enter { opacity: 0; transform: translateY(-10px) scale(.98); }
-      .help-notice-enter.help-notice-enter-active { opacity: 1; transform: translateY(0) scale(1); transition: all 360ms cubic-bezier(.2,.9,.25,1); }
-      /* subtle shadow for modern card */
-      .help-notice-card { box-shadow: 0 8px 28px rgba(14, 165, 233, 0.08); }
-      /* replace some default gray hover classes fallback if developer used them elsewhere */
-      .no-gray-bg { background-color: transparent !important; }
-    `;
-    document.head.appendChild(style);
-  }
+// Inject small CSS for help notice animation once
+if (!document.getElementById('appSettingsModal-styles')) {
+  const style = document.createElement('style');
+  style.id = 'appSettingsModal-styles';
+  style.innerHTML = `
+    /* Help notice entrance */
+    .help-notice-enter { opacity: 0; transform: translateY(-10px) scale(.98); }
+    .help-notice-enter.help-notice-enter-active { opacity: 1; transform: translateY(0) scale(1); transition: all 360ms cubic-bezier(.2,.9,.25,1); }
+
+    /* subtle shadow for modern card */
+    .help-notice-card { box-shadow: 0 8px 28px rgba(14, 165, 233, 0.08); }
+
+    /* replace some default gray hover classes fallback if developer used them elsewhere */
+    .no-gray-bg { background-color: transparent !important; }
+
+    /* Modal backdrop blur + accessible transition
+       - backdrop-filter blurs the content behind the backdrop element (supported in modern browsers)
+       - fallback: semi-opaque background so older browsers still dim content
+    */
+    #appSettingsModalBackdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 11, 20, 0.14); /* dim a little */
+      backdrop-filter: blur(6px) saturate(120%);
+      -webkit-backdrop-filter: blur(6px) saturate(120%);
+      transition: background .22s ease, backdrop-filter .22s ease, opacity .18s ease;
+      pointer-events: auto; /* clicking the backdrop will still register */
+    }
+
+    /* Make sure modal itself sits above the backdrop */
+    #appSettingsModal > .relative { z-index: 11001; } /* if your modal structure changes, ensure z-index is > backdrop */
+
+    /* small responsive nicety: reduce blur on very small devices for perf */
+    @media (max-width: 420px) {
+      #appSettingsModalBackdrop { backdrop-filter: blur(4px) saturate(110%); -webkit-backdrop-filter: blur(4px); }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
   // --- Small helper to ensure settings button gets the expected class ---
 // Must be defined before any code calls it (prevents ReferenceError aborting the function)
 function ensureSettingsBtnClass() {
@@ -4885,7 +4911,7 @@ window.ensureSettingsBtnClass = ensureSettingsBtnClass;
     <!-- Header -->
     <div class="flex items-center justify-between p-4 border-b border-indigo-100 dark:border-indigo-800">
       <div class="flex items-center gap-4">
-        <h2 id="settingsTitle" class="text-xl md:text-2xl font-extrabold tracking-tight text-indigo-900 dark:text-amber-50">Settings &amp; Utilities</h2>
+        <h2 id="settingsTitle" class="text-xl md:text-2xl font-extrabold tracking-tight text-indigo-900 dark:text-amber-50">Settings & Utilities</h2>
 
         <!-- Language pill -->
         <div id="langToggle" class="inline-flex items-center bg-indigo-50 dark:bg-indigo-900/20 rounded-full p-1">
@@ -4895,9 +4921,7 @@ window.ensureSettingsBtnClass = ensureSettingsBtnClass;
       </div>
 
       <div class="flex items-center gap-2">
-        <button id="settingsHelpOpen" title="Help" class="p-2 rounded-md bg-amber-50 dark:bg-amber-700/10 text-amber-700 dark:text-amber-200 hover:shadow-sm">
-          <i class="fa-solid fa-question"></i>
-        </button>
+        
         <button id="settingsCloseBtn" class="px-3 py-1 rounded-md bg-amber-600 dark:bg-amber-500 text-white font-semibold hover:opacity-95">Close</button>
       </div>
     </div>
@@ -5679,44 +5703,46 @@ function migrateStoreName(oldName, newName) {
   })();
 
   // create account panel if not exists
-  if (!modal.querySelector('.settings-panel[data-panel="account"]')) {
-    const panel = document.createElement('div');
-    panel.className = 'settings-panel';
-    panel.dataset.panel = 'account';
-    panel.style.display = 'none';
-    panel.innerHTML = `
+/* ---------- Account panel with robust footer + hide bottom nav while modal open ---------- */
+if (!modal.querySelector('.settings-panel[data-panel="account"]')) {
+  const panel = document.createElement('div');
+  panel.className = 'settings-panel';
+  panel.dataset.panel = 'account';
+  panel.style.display = 'none';
+
+  panel.innerHTML = `
     <h4 class="font-bold mb-3 text-indigo-900 dark:text-amber-100">Account / Edit User</h4>
-  
-    <!-- content area: add extra bottom padding so the footer doesn't overlap content when scrolling -->
-    <div class="space-y-3 max-w-xl" style="padding-bottom: calc(96px + env(safe-area-inset-bottom));">
+
+    <!-- content area: a larger bottom padding so footer never overlaps content when scrolling -->
+    <div class="space-y-3 max-w-xl account-panel-scrollable" style="padding-bottom: calc(160px + env(safe-area-inset-bottom));">
       <label class="block text-sm">Supermarket Name
         <input id="accountName" class="w-full p-2 border rounded mt-1" />
       </label>
-  
+
       <label class="block text-sm">Address / Location
         <input id="accountAddress" class="w-full p-2 border rounded mt-1" />
       </label>
-  
+
       <label class="block text-sm">Phone
         <input id="accountPhone" class="w-full p-2 border rounded mt-1" />
       </label>
-  
+
       <label class="block text-sm">Email
         <input id="accountEmail" type="email" class="w-full p-2 border rounded mt-1" />
       </label>
-  
+
       <label class="block text-sm">New Password
         <input id="accountPassword" type="password" class="w-full p-2 border rounded mt-1" placeholder="leave blank to keep current" />
       </label>
-  
+
       <label class="block text-sm">Confirm Password
         <input id="accountConfirm" type="password" class="w-full p-2 border rounded mt-1" placeholder="confirm new password" />
       </label>
-  
+
       <div id="accountStatus" class="text-sm text-slate-600 hidden"></div>
     </div>
-  
-    <!-- sticky footer: stays above mobile bottom navs; includes safe-area inset -->
+
+    <!-- sticky footer that stays above mobile bottom navs; includes safe-area inset -->
     <div id="accountFooter" style="
         position: sticky;
         bottom: 0;
@@ -5726,23 +5752,123 @@ function migrateStoreName(oldName, newName) {
         padding: 12px;
         padding-bottom: calc(12px + env(safe-area-inset-bottom));
         background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,1));
-        z-index: 50;
-        border-top: 1px solid rgba(15, 23, 42, 0.04);
+        z-index: 9999;
+        border-top: 1px solid rgba(15, 23, 42, 0.06);
     ">
       <button id="accountCancelBtn" class="px-4 py-2 bg-amber-100 text-amber-800 rounded-md">Cancel</button>
       <button id="accountSaveBtn" class="px-4 py-2 bg-emerald-600 text-white rounded-md">Save</button>
     </div>
   `;
-  
-    // insert the panel into content area (prefer before 'notices' or after helpNotice)
-    const content = modal.querySelector('#settingsContent');
-    if (content) {
-      // put near top
-      content.insertBefore(panel, content.firstChild);
-    } else {
-      modal.querySelector('.md:flex-1')?.appendChild(panel);
-    }
+
+  // insert panel
+  const content = modal.querySelector('#settingsContent');
+  if (content) content.insertBefore(panel, content.firstChild);
+  else modal.querySelector('.md:flex-1')?.appendChild(panel);
+
+  /* ---------- Utilities to hide/restore common bottom navigation elements ---------- */
+  function hideBottomNav() {
+    // selectors to try hiding — add your app-specific selectors here if needed
+    const selectors = [
+      '.bottom-nav',
+      '#mobileNav',
+      '#bottomNav',
+      '.mobile-nav',
+      '.app-bottom-nav',
+      '.navbar-bottom',
+      '.tabbar',
+      '.safe-bottom-bar'
+    ];
+    const els = document.querySelectorAll(selectors.join(','));
+    els.forEach((el, i) => {
+      // store prior inline display value so we can restore exactly
+      if (el && el.dataset) {
+        el.dataset._prevDisplay = el.style.display || '';
+        el.style.display = 'none';
+        // also ensure it is visually hidden for screen readers
+        el.setAttribute('aria-hidden', 'true');
+      }
+    });
   }
+  function restoreBottomNav() {
+    const selectors = [
+      '.bottom-nav',
+      '#mobileNav',
+      '#bottomNav',
+      '.mobile-nav',
+      '.app-bottom-nav',
+      '.navbar-bottom',
+      '.tabbar',
+      '.safe-bottom-bar'
+    ];
+    const els = document.querySelectorAll(selectors.join(','));
+    els.forEach(el => {
+      if (!el || !el.dataset) return;
+      const prev = el.dataset._prevDisplay || '';
+      el.style.display = prev;
+      el.removeAttribute('aria-hidden');
+      delete el.dataset._prevDisplay;
+    });
+  }
+
+  /* ---------- Wire open/close hooks so nav is hidden while modal is visible ---------- */
+  // When the settings modal is shown your existing code calls modal.classList.remove('hidden')
+  // so we also call hideBottomNav() wherever you open the modal. To be robust, call it here now:
+  try { hideBottomNav(); } catch(e) { /* ignore */ }
+
+  // Close/cancel wiring (restore bottom nav in every close path)
+  const saveBtn = modal.querySelector('#accountSaveBtn');
+  const cancelBtn = modal.querySelector('#accountCancelBtn');
+
+  // override modal-level close handlers as well (backdrop / header close)
+  // ensure we restore on close
+  const origCloseBtn = modal.querySelector('#settingsCloseBtn');
+  if (origCloseBtn) {
+    origCloseBtn.addEventListener('click', () => {
+      try { restoreBottomNav(); } catch(e) {}
+      modal.classList.add('hidden');
+    });
+  }
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal || e.target.id === 'appSettingsModalBackdrop') {
+      try { restoreBottomNav(); } catch(e) {}
+      modal.classList.add('hidden');
+    }
+  });
+
+  // Cancel button
+  cancelBtn?.addEventListener('click', () => {
+    try { restoreBottomNav(); } catch(e) {}
+    if (typeof showTab === 'function') showTab('helpNotice');
+    else modal.querySelectorAll('.settings-panel').forEach(p => p.dataset.panel === 'helpNotice' ? p.style.display = 'block' : p.style.display = 'none');
+  });
+
+  // Save button: after successful save we restore bottom nav (your existing save handler should still be used)
+  saveBtn?.addEventListener('click', () => {
+    // NOTE: keep your existing validation and save logic — after it completes successfully you should call restoreBottomNav()
+    // If you use the save logic in-place, call restoreBottomNav() at the end of that logic.
+    // For safety we also restore here after a short delay (in case the modal auto-closes):
+    setTimeout(()=> {
+      try { restoreBottomNav(); } catch(e) {}
+    }, 700);
+  });
+
+  // If modal is closed through other code paths elsewhere, make sure nav is restored on hide.
+  // A defensive mutation observer: watch for the modal to become hidden (classList change).
+  try {
+    const observer = new MutationObserver((mutList) => {
+      mutList.forEach(m => {
+        if (m.type === 'attributes' && m.attributeName === 'class') {
+          const cls = modal.className || '';
+          if (cls.indexOf('hidden') !== -1) {
+            try { restoreBottomNav(); } catch(e) {}
+          }
+        }
+      });
+    });
+    observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+  } catch (e) { /* ignore if MutationObserver unavailable */ }
+}
+
 
   // wiring for account panel actions
   (function wireAccountPanel() {
@@ -5886,6 +6012,7 @@ function migrateStoreName(oldName, newName) {
   setTimeout(ensureSettingsNavVisible, 60);
 
 
+  
 } // end openSettingsModal
 
 
