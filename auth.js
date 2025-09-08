@@ -2816,184 +2816,242 @@ function setActiveNav(targetId) {
   // Make addProductBtn icon-only if present
 /* ======= PRODUCT MODAL: clean replace + multi-row behavior ======= */
 /* Paste this once after your DOM lookups (where you declared productModal, productForm, addProductBtn, etc.) */
-
-(function setupProductModalMulti() {
-  function cloneReplaceById(id) {
-    const old = document.getElementById(id);
-    if (!old || !old.parentNode) return null;
-    const nw = old.cloneNode(true);
-    old.parentNode.replaceChild(nw, old);
-    return document.getElementById(id);
-  }
-
-  // replace controls to remove old listeners (defensive)
-  cloneReplaceById('addProductBtn');
-  cloneReplaceById('emptyAddBtn');
-  cloneReplaceById('productForm');
-  cloneReplaceById('productModal');
-  cloneReplaceById('productModalBackdrop');
-  cloneReplaceById('closeModal');
-  cloneReplaceById('cancelModal');
-  cloneReplaceById('addProductRowBtn');
-
-  const modalTitleEl = document.getElementById('modalTitle');
-  window.editingProductId = window.editingProductId || null;
-
-  function makeUniqueProductId() { return `PRD-${Date.now()}-${Math.floor(Math.random()*9000+1000)}`; }
-
-  function createProductRowNode({ id = '', name = '', cost = '', price = '', qty = '' } = {}, singleMode = false) {
-    const row = document.createElement('div');
-    row.className = 'grid grid-cols-12 gap-2 items-end';
-    if (id) row.dataset.rowId = id;
-    row.innerHTML = `
-      <div class="col-span-12 sm:col-span-5">
-        <label class="block text-sm text-gray-600 dark:text-gray-300">Name *</label>
-        <input type="text" class="prod-name mt-1 w-full border rounded-xl px-3 py-2" placeholder="Product name" value="${escapeHtml(name)}" required />
-      </div>
-      <div class="col-span-6 sm:col-span-2">
-        <label class="block text-sm text-gray-600 dark:text-gray-300">Cost</label>
-        <input type="number" step="0.01" min="0" class="prod-cost mt-1 w-full border rounded-xl px-3 py-2" placeholder="0.00" value="${escapeHtml(cost)}" />
-      </div>
-      <div class="col-span-6 sm:col-span-2">
-        <label class="block text-sm text-gray-600 dark:text-gray-300">Price *</label>
-        <input type="number" step="0.01" min="0" class="prod-price mt-1 w-full border rounded-xl px-3 py-2" placeholder="0.00" value="${escapeHtml(price)}" required />
-      </div>
-      <div class="col-span-8 sm:col-span-2">
-        <label class="block text-sm text-gray-600 dark:text-gray-300">Qty *</label>
-        <input type="number" step="1" min="0" class="prod-qty mt-1 w-full border rounded-xl px-3 py-2" placeholder="0" value="${escapeHtml(qty)}" required />
-      </div>
-      <div class="col-span-4 sm:col-span-1 flex justify-end items-start">
-        <button type="button" class="remove-product-row px-3 py-2 rounded-xl bg-red-600 text-white" title="Remove row">
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </div>
-    `;
-    const rm = row.querySelector('.remove-product-row');
-    rm.addEventListener('click', () => {
-      if (singleMode && window.editingProductId) {
-        row.querySelector('.prod-name').value = '';
-        row.querySelector('.prod-cost').value = '';
-        row.querySelector('.prod-price').value = '';
-        row.querySelector('.prod-qty').value = '';
-        return;
-      }
-      row.remove();
-      const pr = document.getElementById('productRowsModal');
-      if (pr && !pr.children.length) addProductRow();
-    });
-    return row;
-  }
-
-  function addProductRow(prefill = null) {
-    const container = document.getElementById('productRowsModal'); // <-- new id
-    if (!container) return null;
-    const node = createProductRowNode(prefill || { id:'', name:'', cost:'', price:'', qty:'' }, !!window.editingProductId);
-    container.appendChild(node);
-    const nameInput = node.querySelector('.prod-name');
-    if (nameInput) nameInput.focus();
-    return node;
-  }
-
-  function openProductModal(isEdit = false) {
-    const modal = document.getElementById('productModal');
-    const backdrop = document.getElementById('productModalBackdrop');
-    if (!modal) return;
-    modal.classList.remove('hidden');
-    if (backdrop) backdrop.classList.remove('hidden');
-
-    const rowsEl = document.getElementById('productRowsModal'); // <-- new id
-    if (rowsEl) rowsEl.innerHTML = '';
-
-    if (isEdit && window.editingProductId) {
-      const all = getAllProducts() || [];
-      const p = all.find(x => x.id === window.editingProductId);
-      if (p) {
-        addProductRow({ id: p.id, name: p.name || '', cost: p.cost || '', price: p.price || '', qty: p.qty || '' });
-        modalTitleEl && (modalTitleEl.textContent = 'Edit Product');
+/* ---------------------------
+   Product modal setup (multi-row)
+   --------------------------- */
+   (function setupProductsModule() {
+    // --- defensive clone helper (clears old listeners) ---
+    function cloneReplaceById(id) {
+      const old = document.getElementById(id);
+      if (!old || !old.parentNode) return null;
+      const nw = old.cloneNode(true);
+      old.parentNode.replaceChild(nw, old);
+      return document.getElementById(id);
+    }
+  
+    // Replace UI nodes so previously attached listeners don't conflict
+    ['addProductBtn','emptyAddBtn','productForm','productModal','productModalBackdrop','closeModal','cancelModal','addProductRowBtn']
+      .forEach(cloneReplaceById);
+  
+    const modalTitleEl = document.getElementById('modalTitle');
+  
+    // state
+    window.editingProductId = window.editingProductId || null;
+  
+    function makeUniqueProductId() { return `PRD-${Date.now()}-${Math.floor(Math.random()*9000+1000)}`; }
+  
+    function _escapeHtml(s) { return (String(s||'')).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    const eHtml = (typeof escapeHtml === 'function') ? escapeHtml : _escapeHtml;
+  
+    function createProductRowNode({ id = '', name = '', cost = '', price = '', qty = '' } = {}, singleMode = false) {
+      const row = document.createElement('div');
+      row.className = 'grid grid-cols-12 gap-2 items-end';
+      if (id) row.dataset.rowId = id;
+  
+      row.innerHTML = `
+        <div class="col-span-12 sm:col-span-5">
+          <label class="block text-sm text-gray-600 dark:text-gray-300">Name *</label>
+          <input type="text" class="prod-name mt-1 w-full border rounded-xl px-3 py-2" placeholder="Product name" value="${eHtml(name)}" required />
+        </div>
+        <div class="col-span-6 sm:col-span-2">
+          <label class="block text-sm text-gray-600 dark:text-gray-300">Cost</label>
+          <input type="number" step="0.01" min="0" class="prod-cost mt-1 w-full border rounded-xl px-3 py-2" placeholder="0.00" value="${eHtml(cost)}" />
+        </div>
+        <div class="col-span-6 sm:col-span-2">
+          <label class="block text-sm text-gray-600 dark:text-gray-300">Price *</label>
+          <input type="number" step="0.01" min="0" class="prod-price mt-1 w-full border rounded-xl px-3 py-2" placeholder="0.00" value="${eHtml(price)}" required />
+        </div>
+        <div class="col-span-8 sm:col-span-2">
+          <label class="block text-sm text-gray-600 dark:text-gray-300">Qty *</label>
+          <input type="number" step="1" min="0" class="prod-qty mt-1 w-full border rounded-xl px-3 py-2" placeholder="0" value="${eHtml(qty)}" required />
+        </div>
+        <div class="col-span-4 sm:col-span-1 flex justify-end items-start">
+          <button type="button" class="remove-product-row px-3 py-2 rounded-xl bg-red-600 text-white" title="Remove row">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      `;
+  
+      const rm = row.querySelector('.remove-product-row');
+      rm.addEventListener('click', () => {
+        if (singleMode && window.editingProductId) {
+          row.querySelector('.prod-name').value = '';
+          row.querySelector('.prod-cost').value = '';
+          row.querySelector('.prod-price').value = '';
+          row.querySelector('.prod-qty').value = '';
+          return;
+        }
+        row.remove();
+        const pr = document.getElementById('productRowsModal');
+        if (pr && !pr.children.length) addProductRow();
+      });
+  
+      return row;
+    }
+  
+    function addProductRow(prefill = null) {
+      const container = document.getElementById('productRowsModal');
+      if (!container) return null;
+      const node = createProductRowNode(prefill || { id:'', name:'', cost:'', price:'', qty:'' }, !!window.editingProductId);
+      container.appendChild(node);
+      const nameInput = node.querySelector('.prod-name');
+      if (nameInput) nameInput.focus();
+      return node;
+    }
+  
+    function openProductModal(isEdit = false) {
+      const modal = document.getElementById('productModal');
+      const backdrop = document.getElementById('productModalBackdrop');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      if (backdrop) backdrop.classList.remove('hidden');
+  
+      const rowsEl = document.getElementById('productRowsModal');
+      if (rowsEl) rowsEl.innerHTML = '';
+  
+      if (isEdit && window.editingProductId) {
+        const all = (typeof getAllProducts === 'function') ? getAllProducts() || [] : [];
+        const p = all.find(x => x.id === window.editingProductId);
+        if (p) {
+          addProductRow({ id: p.id, name: p.name || '', cost: p.cost || '', price: p.price || '', qty: p.qty || '' });
+          modalTitleEl && (modalTitleEl.textContent = 'Edit Product');
+        } else {
+          addProductRow();
+          modalTitleEl && (modalTitleEl.textContent = 'Edit Product');
+        }
       } else {
         addProductRow();
-        modalTitleEl && (modalTitleEl.textContent = 'Edit Product');
+        window.editingProductId = null;
+        modalTitleEl && (modalTitleEl.textContent = 'Add Product(s)');
       }
-    } else {
-      addProductRow();
-      window.editingProductId = null;
-      modalTitleEl && (modalTitleEl.textContent = 'Add Product(s)');
     }
-  }
-
-  function closeProductModal() {
-    const modal = document.getElementById('productModal');
-    const backdrop = document.getElementById('productModalBackdrop');
-    if (modal) modal.classList.add('hidden');
-    if (backdrop) backdrop.classList.add('hidden');
-    window.editingProductId = null;
-  }
-
-  const btnAdd = document.getElementById('addProductBtn');
-  const btnEmptyAdd = document.getElementById('emptyAddBtn');
-  const btnClose = document.getElementById('closeModal');
-  const btnCancel = document.getElementById('cancelModal');
-  const btnBackdrop = document.getElementById('productModalBackdrop');
-  const btnAddRow = document.getElementById('addProductRowBtn');
-  const form = document.getElementById('productForm');
-
-  btnAdd?.addEventListener('click', (ev) => { ev.preventDefault(); window.editingProductId = null; openProductModal(false); });
-  btnEmptyAdd?.addEventListener('click', (ev) => { ev.preventDefault(); window.editingProductId = null; openProductModal(false); });
-  btnClose?.addEventListener('click', (ev) => { ev.preventDefault(); closeProductModal(); });
-  btnCancel?.addEventListener('click', (ev) => { ev.preventDefault(); closeProductModal(); });
-  btnBackdrop?.addEventListener('click', () => closeProductModal());
-  btnAddRow?.addEventListener('click', (ev) => { ev.preventDefault(); addProductRow(); });
-
-  form?.addEventListener('submit', (ev) => {
-    ev.preventDefault();
-    const user = getCurrentUser();
-    if (!user) { toast('Login required', 'error'); return; }
-    const all = getAllProducts() || [];
-    const rows = Array.from(document.getElementById('productRowsModal')?.children || []); // <-- new id
-    if (!rows.length) { toast('Add at least one product', 'error'); return; }
-
-    if (window.editingProductId) {
-      const r = rows[0];
-      const name = (r.querySelector('.prod-name')?.value || '').trim();
-      const cost = parseFloat(r.querySelector('.prod-cost')?.value || '0') || 0;
-      const price = parseFloat(r.querySelector('.prod-price')?.value || '0') || 0;
-      const qty = parseInt(r.querySelector('.prod-qty')?.value || '0') || 0;
-      if (!name) { toast('Product name required', 'error'); return; }
-      const idx = all.findIndex(p => p.id === window.editingProductId && String(p.store || '').toLowerCase() === String(user.name || '').toLowerCase());
-      if (idx === -1) { toast('Product not found', 'error'); window.editingProductId = null; return; }
-      all[idx] = { ...all[idx], name, cost, price, qty };
-      saveAllProducts(all);
+  
+    function closeProductModal() {
+      const modal = document.getElementById('productModal');
+      const backdrop = document.getElementById('productModalBackdrop');
+      if (modal) modal.classList.add('hidden');
+      if (backdrop) backdrop.classList.add('hidden');
+      window.editingProductId = null;
+    }
+  
+    // Wire elements
+    const btnAdd = document.getElementById('addProductBtn');
+    const btnEmptyAdd = document.getElementById('emptyAddBtn');
+    const btnClose = document.getElementById('closeModal');
+    const btnCancel = document.getElementById('cancelModal');
+    const btnBackdrop = document.getElementById('productModalBackdrop');
+    const btnAddRow = document.getElementById('addProductRowBtn');
+    const form = document.getElementById('productForm');
+  
+    btnAdd?.addEventListener('click', e => { e.preventDefault(); window.editingProductId = null; openProductModal(false); });
+    btnEmptyAdd?.addEventListener('click', e => { e.preventDefault(); window.editingProductId = null; openProductModal(false); });
+    btnClose?.addEventListener('click', e => { e.preventDefault(); closeProductModal(); });
+    btnCancel?.addEventListener('click', e => { e.preventDefault(); closeProductModal(); });
+    btnBackdrop?.addEventListener('click', () => closeProductModal());
+    btnAddRow?.addEventListener('click', e => { e.preventDefault(); addProductRow(); });
+  
+    form?.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
+      if (!user) { toast('Login required', 'error'); return; }
+      const all = (typeof getAllProducts === 'function') ? getAllProducts() || [] : [];
+      const rows = Array.from(document.getElementById('productRowsModal')?.children || []);
+      if (!rows.length) { toast('Add at least one product', 'error'); return; }
+  
+      if (window.editingProductId) {
+        const r = rows[0];
+        const name = (r.querySelector('.prod-name')?.value || '').trim();
+        const cost = parseFloat(r.querySelector('.prod-cost')?.value || '0') || 0;
+        const price = parseFloat(r.querySelector('.prod-price')?.value || '0') || 0;
+        const qty = parseInt(r.querySelector('.prod-qty')?.value || '0') || 0;
+        if (!name) { toast('Product name required', 'error'); return; }
+        const idx = all.findIndex(p => p.id === window.editingProductId && String(p.store || '').toLowerCase() === String(user.name || '').toLowerCase());
+        if (idx === -1) { toast('Product not found', 'error'); window.editingProductId = null; return; }
+        all[idx] = { ...all[idx], name, cost, price, qty };
+        if (typeof saveAllProducts === 'function') saveAllProducts(all);
+        closeProductModal();
+        if (typeof renderProductList === 'function') renderProductList(searchInput?.value || '');
+        window.dispatchEvent(new Event('dataUpdated'));
+        toast('Product updated', 'success');
+        window.editingProductId = null;
+        return;
+      }
+  
+      const newProducts = [];
+      for (const r of rows) {
+        const name = (r.querySelector('.prod-name')?.value || '').trim();
+        if (!name) continue;
+        const cost = parseFloat(r.querySelector('.prod-cost')?.value || '0') || 0;
+        const price = parseFloat(r.querySelector('.prod-price')?.value || '0') || 0;
+        const qty = parseInt(r.querySelector('.prod-qty')?.value || '0') || 0;
+        const id = makeUniqueProductId();
+        newProducts.push({ id, store: user.name, name, cost, price, qty });
+      }
+  
+      if (!newProducts.length) { toast('Please fill at least one valid product', 'error'); return; }
+      const merged = all.concat(newProducts);
+      if (typeof saveAllProducts === 'function') saveAllProducts(merged);
       closeProductModal();
-      renderProductList(searchInput?.value || '');
+      if (typeof renderProductList === 'function') renderProductList(searchInput?.value || '');
       window.dispatchEvent(new Event('dataUpdated'));
-      toast('Product updated', 'success');
-      window.editingProductId = null;
-      return;
+      toast(`${newProducts.length} product(s) saved.`, 'success');
+    });
+  
+    // handle product actions (edit / buy / delete)
+    function handleProductAction(action, id) {
+      const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
+      if (!user) return;
+      const all = (typeof getAllProducts === 'function') ? getAllProducts() || [] : [];
+      const idx = all.findIndex(p => p.id === id && String(p.store || '').toLowerCase() === String(user.name || '').toLowerCase());
+  
+      if (action === 'edit' && idx >= 0) {
+        window.editingProductId = id;
+        openProductModal(true);
+        return;
+      }
+  
+      if (action === 'delete' && idx >= 0) {
+        if (!confirm('Delete this product?')) return;
+        all.splice(idx, 1);
+        if (typeof saveAllProducts === 'function') saveAllProducts(all);
+        if (typeof renderProductList === 'function') renderProductList(searchInput?.value || '');
+        window.dispatchEvent(new Event('dataUpdated'));
+        toast('Product deleted', 'success');
+        return;
+      }
+  
+      if (action === 'buy' && idx >= 0) {
+        addToCart(id);
+        return;
+      }
     }
-
-    const newProducts = [];
-    for (const r of rows) {
-      const name = (r.querySelector('.prod-name')?.value || '').trim();
-      if (!name) continue;
-      const cost = parseFloat(r.querySelector('.prod-cost')?.value || '0') || 0;
-      const price = parseFloat(r.querySelector('.prod-price')?.value || '0') || 0;
-      const qty = parseInt(r.querySelector('.prod-qty')?.value || '0') || 0;
-      const id = makeUniqueProductId();
-      newProducts.push({ id, store: user.name, name, cost, price, qty });
-    }
-
-    if (!newProducts.length) { toast('Please fill at least one valid product', 'error'); return; }
-
-    const merged = all.concat(newProducts);
-    saveAllProducts(merged);
-    closeProductModal();
-    renderProductList(searchInput?.value || '');
-    window.dispatchEvent(new Event('dataUpdated'));
-    toast(`${newProducts.length} product(s) saved.`, 'success');
-  });
-
-})(); // end setupProductModalMulti
-
+  
+    // Attach action delegation to product rows/cards
+    const productRowsContainer = document.getElementById('productRows');
+    const productCardsContainer = document.getElementById('productCards');
+  
+    productRowsContainer?.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      handleProductAction(btn.getAttribute('data-action'), btn.getAttribute('data-id'));
+    });
+    productCardsContainer?.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      handleProductAction(btn.getAttribute('data-action'), btn.getAttribute('data-id'));
+    });
+  
+    // Expose global alias so legacy code that expects a global still works
+    window.handleProductAction = handleProductAction;
+  
+    // expose for debugging
+    window._rb_products = {
+      openProductModal, closeProductModal, addProductRow, handleProductAction
+    };
+  
+  })(); // end setupProductsModule
+  
+  
 
   function renderProductList(filter = '') {
     const user = getCurrentUser();
@@ -3112,19 +3170,7 @@ function setActiveNav(targetId) {
   });
 
   
-  function handleProductAction(action, id) {
-    const user = getCurrentUser(); if (!user) return;
-    const all = getAllProducts();
-    const idx = all.findIndex(p => p.id === id && String(p.store || '').toLowerCase() === String(user.name || '').toLowerCase());
-    if (action === 'edit' && idx >= 0) {
-      const prod = all[idx]; editingProductId = id; modalTitle && (modalTitle.textContent = 'Edit Product'); productName.value = prod.name; productCost.value = prod.cost; productPrice.value = prod.price; productQty.value = prod.qty; openProductModal(true); return;
-    }
-    if (action === 'delete' && idx >= 0) {
-      if (!confirm('Delete this product?')) return;
-      all.splice(idx, 1); saveAllProducts(all); renderProductList(searchInput?.value || ''); window.dispatchEvent(new Event('dataUpdated')); toast('Product deleted', 'success'); return;
-    }
-    if (action === 'buy' && idx >= 0) { addToCart(id); return; }
-  }
+  
 
   /* CART */
   function addToCart(productId) {
