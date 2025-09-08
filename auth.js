@@ -458,7 +458,285 @@ let dashboardLiveInterval = null;
   
 
 
-  
+  /* -------------------------
+   Forgot / Reset Password (client-side)
+   ------------------------- */
+(function(){
+  const RESET_LS_KEY = 'password_reset_requests_v1';
+  const RESET_TOKEN_TTL_MS = 1000 * 60 * 60; // 1 hour
+  const MAX_ACTIVE_TOKENS = 3;
+
+  // Helper: use app's getUsers/saveUsers if available, otherwise fallback
+  function _getUsers() {
+    if (typeof getUsers === 'function') {
+      try { const u = getUsers(); if (Array.isArray(u)) return u; } catch(e){}
+    }
+    try { const raw = localStorage.getItem('users_v1') || localStorage.getItem('supermarket_users') || localStorage.getItem('supermarket_users_v1'); if (!raw) return []; return JSON.parse(raw) || []; } catch(e){ return []; }
+  }
+  function _saveUsers(arr) {
+    if (typeof saveUsers === 'function') {
+      try { saveUsers(arr); return; } catch(e) {}
+    }
+    try { localStorage.setItem('users_v1', JSON.stringify(Array.isArray(arr) ? arr : [])); } catch(e){}
+  }
+  function _getCurrentUser() {
+    if (typeof getCurrentUser === 'function') {
+      try { return getCurrentUser(); } catch(e) {}
+    }
+    try { return JSON.parse(localStorage.getItem('current_user') || 'null'); } catch(e){ return null; }
+  }
+  function _setCurrentUser(u) {
+    if (typeof setCurrentUser === 'function') { try { setCurrentUser(u); } catch(e) {} }
+    try { localStorage.setItem('current_user', JSON.stringify(u || null)); } catch(e) {}
+  }
+
+  function _lsGetReset() {
+    try { return JSON.parse(localStorage.getItem(RESET_LS_KEY) || '{}') || {}; } catch(e){ return {}; }
+  }
+  function _lsSetReset(obj) {
+    try { localStorage.setItem(RESET_LS_KEY, JSON.stringify(obj || {})); } catch(e){}
+  }
+
+  function _randomToken(len = 40) {
+    const arr = new Uint8Array(len);
+    if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(arr);
+    return Array.from(arr).map(b => ('0' + (b & 0xff).toString(16)).slice(-2)).join('').slice(0, len);
+  }
+
+  // Create UI elements: request modal & reset modal; insert forgot button
+  function _ensureForgotUi() {
+    // forgot button under login form
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm && !document.getElementById('forgotPwdBtn')) {
+      const html = `<div class="mt-2 text-center"><button id="forgotPwdBtn" class="text-sm text-sky-600 underline">Forgot password?</button></div>`;
+      // append near login button if exists
+      const lb = document.getElementById('loginBtn');
+      if (lb && lb.parentNode) {
+        lb.parentNode.insertAdjacentHTML('afterend', html);
+      } else {
+        loginForm.insertAdjacentHTML('beforeend', html);
+      }
+      document.getElementById('forgotPwdBtn').addEventListener('click', openRequestModal);
+    }
+
+    // request modal
+    if (!document.getElementById('forgotRequestModal')) {
+      const m = document.createElement('div');
+      m.id = 'forgotRequestModal';
+      m.className = 'hidden fixed inset-0 z-100 flex items-center justify-center p-4';
+      m.innerHTML = `
+        <div class="absolute inset-0 bg-black/40"></div>
+        <div class="relative max-w-md w-full bg-white rounded-lg p-4 shadow-lg">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="font-semibold">Password reset</h3>
+            <button id="forgotReqClose" class="px-2">✕</button>
+          </div>
+          <div class="text-sm mb-2">Enter your supermarket name or email to request a password reset. A reset link will be shown (simulate email).</div>
+          <input id="forgotReqInput" placeholder="name or email" class="w-full p-2 border rounded mb-2" />
+          <div class="flex gap-2">
+            <button id="forgotReqSend" class="px-3 py-2 bg-emerald-600 text-white rounded">Send reset link</button>
+            <button id="forgotReqCancel" class="px-3 py-2 bg-amber-100 text-amber-800 rounded">Cancel</button>
+          </div>
+          <div id="forgotReqStatus" class="text-sm mt-2 hidden"></div>
+          <div id="forgotReqResult" class="mt-3 text-sm"></div>
+        </div>
+      `;
+      document.body.appendChild(m);
+      m.querySelector('#forgotReqClose').addEventListener('click', closeRequestModal);
+      m.querySelector('#forgotReqCancel').addEventListener('click', closeRequestModal);
+      m.querySelector('#forgotReqSend').addEventListener('click', handleRequestSend);
+    }
+
+    // reset modal
+    if (!document.getElementById('forgotResetModal')) {
+      const m2 = document.createElement('div');
+      m2.id = 'forgotResetModal';
+      m2.className = 'hidden fixed inset-0 z-110 flex items-center justify-center p-4';
+      m2.innerHTML = `
+        <div class="absolute inset-0 bg-black/40"></div>
+        <div class="relative max-w-md w-full bg-white rounded-lg p-4 shadow-lg">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="font-semibold">Reset password</h3>
+            <button id="forgotResetClose" class="px-2">✕</button>
+          </div>
+          <div class="text-sm mb-2">Enter the reset token or use the link you received, then choose a new password.</div>
+          <input id="forgotResetToken" placeholder="Reset token (or leave blank if opened via link)" class="w-full p-2 border rounded mb-2" />
+          <input id="forgotResetPass" type="password" placeholder="New password" class="w-full p-2 border rounded mb-2" />
+          <input id="forgotResetConfirm" type="password" placeholder="Confirm password" class="w-full p-2 border rounded mb-2" />
+          <div class="flex gap-2">
+            <button id="forgotResetDo" class="px-3 py-2 bg-emerald-600 text-white rounded">Reset password</button>
+            <button id="forgotResetCancel" class="px-3 py-2 bg-amber-100 text-amber-800 rounded">Cancel</button>
+          </div>
+          <div id="forgotResetStatus" class="text-sm mt-2 hidden"></div>
+        </div>
+      `;
+      document.body.appendChild(m2);
+      m2.querySelector('#forgotResetClose').addEventListener('click', closeResetModal);
+      m2.querySelector('#forgotResetCancel').addEventListener('click', closeResetModal);
+      m2.querySelector('#forgotResetDo').addEventListener('click', handlePerformReset);
+    }
+  }
+
+  function openRequestModal() {
+    _ensureForgotUi();
+    const m = document.getElementById('forgotRequestModal');
+    if (!m) return;
+    m.classList.remove('hidden');
+    const i = document.getElementById('forgotReqInput');
+    if (i) i.value = (document.getElementById('loginName')||{}).value || '';
+    document.getElementById('forgotReqStatus').classList.add('hidden');
+    document.getElementById('forgotReqResult').innerHTML = '';
+    (document.getElementById('forgotReqInput')||{}).focus();
+  }
+  function closeRequestModal(){ const m = document.getElementById('forgotRequestModal'); if (m) m.classList.add('hidden'); }
+
+  function openResetModal(token) {
+    _ensureForgotUi();
+    const m = document.getElementById('forgotResetModal');
+    if (!m) return;
+    m.classList.remove('hidden');
+    if (token) document.getElementById('forgotResetToken').value = token;
+    document.getElementById('forgotResetPass').value = '';
+    document.getElementById('forgotResetConfirm').value = '';
+    document.getElementById('forgotResetStatus').classList.add('hidden');
+    document.getElementById('forgotResetToken').focus();
+  }
+  function closeResetModal(){ const m = document.getElementById('forgotResetModal'); if (m) m.classList.add('hidden'); }
+
+  // Send request: find user by email or name, create token, save mapping -> show link
+  function handleRequestSend() {
+    const input = (document.getElementById('forgotReqInput')||{}).value.trim();
+    const status = document.getElementById('forgotReqStatus');
+    const result = document.getElementById('forgotReqResult');
+    status.classList.add('hidden');
+    result.innerHTML = '';
+
+    if (!input) { status.textContent = 'Enter supermarket name or email'; status.style.color = '#991b1b'; status.classList.remove('hidden'); return; }
+
+    const users = _getUsers();
+    const target = users.find(u => (u && ((u.email && u.email.toLowerCase() === input.toLowerCase()) || (u.name && u.name.toLowerCase() === input.toLowerCase()))));
+    if (!target) {
+      status.textContent = 'No account found for that name or email.'; status.style.color = '#991b1b'; status.classList.remove('hidden'); return;
+    }
+
+    // load resets
+    const map = _lsGetReset();
+    const now = Date.now();
+    // prune expired
+    Object.keys(map).forEach(token => {
+      if (map[token].expiresAt && map[token].expiresAt < now) delete map[token];
+    });
+
+    // count active tokens for this user
+    const activeForUser = Object.values(map).filter(r => String(r.userId) === String(target.id)).length;
+    if (activeForUser >= MAX_ACTIVE_TOKENS) {
+      status.textContent = 'Too many active reset requests. Try again later.'; status.style.color = '#991b1b'; status.classList.remove('hidden'); return;
+    }
+
+    // create token
+    const token = _randomToken(48);
+    map[token] = { userId: target.id, createdAt: now, expiresAt: now + RESET_TOKEN_TTL_MS };
+    _lsSetReset(map);
+
+    // craft a "link" — in real app you'd email this. Here we show it so user can copy/paste or open
+    const link = `${location.origin}${location.pathname}?reset=${token}`;
+    result.innerHTML = `
+      <div class="rounded p-2 bg-slate-50 border">
+        <div class="text-sm mb-2">Reset link (copy or open):</div>
+        <div class="truncate text-xs mb-2"><code id="forgotResetLink">${escapeHtml(link)}</code></div>
+        <div class="flex gap-2">
+          <button id="forgotCopyLink" class="px-2 py-1 bg-sky-600 text-white rounded">Copy link</button>
+          <button id="forgotOpenLink" class="px-2 py-1 bg-emerald-600 text-white rounded">Open reset UI</button>
+        </div>
+        <div class="text-xs text-gray-500 mt-2">Link expires in 1 hour.</div>
+      </div>
+    `;
+    // wire copy/open
+    document.getElementById('forgotCopyLink').addEventListener('click', () => {
+      try { navigator.clipboard.writeText(link); toast('Link copied', 'success'); } catch(e){ toast('Copy failed', 'error'); }
+    });
+    document.getElementById('forgotOpenLink').addEventListener('click', () => {
+      closeRequestModal();
+      openResetModal(token);
+    });
+
+    status.textContent = 'Reset link created'; status.style.color = '#065f46'; status.classList.remove('hidden');
+  }
+
+  // Perform reset: read token, validate, set new password for user with same id
+  function handlePerformReset() {
+    const token = (document.getElementById('forgotResetToken')||{}).value.trim();
+    const pass = (document.getElementById('forgotResetPass')||{}).value;
+    const conf = (document.getElementById('forgotResetConfirm')||{}).value;
+    const status = document.getElementById('forgotResetStatus');
+    status.classList.add('hidden');
+
+    if (!token) { status.textContent = 'Enter a reset token (or use a reset link)'; status.style.color = '#991b1b'; status.classList.remove('hidden'); return; }
+    if (!pass || !conf) { status.textContent = 'Enter and confirm new password'; status.style.color = '#991b1b'; status.classList.remove('hidden'); return; }
+    if (pass.length < 4) { status.textContent = 'Password too short (min 4 chars)'; status.style.color = '#991b1b'; status.classList.remove('hidden'); return; }
+    if (pass !== conf) { status.textContent = 'Passwords do not match'; status.style.color = '#991b1b'; status.classList.remove('hidden'); return; }
+
+    const map = _lsGetReset();
+    const rec = map[token];
+    if (!rec) { status.textContent = 'Invalid or expired token'; status.style.color = '#991b1b'; status.classList.remove('hidden'); return; }
+    if (rec.expiresAt && rec.expiresAt < Date.now()) { delete map[token]; _lsSetReset(map); status.textContent = 'Token expired'; status.style.color = '#991b1b'; status.classList.remove('hidden'); return; }
+
+    // find user
+    const users = _getUsers();
+    const idx = users.findIndex(u => u && String(u.id) === String(rec.userId));
+    if (idx < 0) { status.textContent = 'Account for token not found'; status.style.color = '#991b1b'; status.classList.remove('hidden'); return; }
+
+    // update password (mutate copy)
+    users[idx] = { ...users[idx], password: pass, updatedAt: Date.now() };
+    try {
+      _saveUsers(users);
+      // clear all tokens for this user (security)
+      Object.keys(map).forEach(t => { if (map[t].userId === rec.userId) delete map[t]; });
+      _lsSetReset(map);
+      // optionally set current user session
+      const updatedUser = users[idx];
+      _setCurrentUser(updatedUser);
+      if (typeof setCurrentUser === 'function') {
+        try { setCurrentUser(updatedUser); } catch(e) {}
+      }
+      status.textContent = 'Password reset. You are now logged in.'; status.style.color = '#065f46'; status.classList.remove('hidden');
+      toast('Password updated', 'success');
+      setTimeout(()=> {
+        closeResetModal();
+        // reload dashboard or call your loadDashboard if exists
+        try { if (typeof loadDashboard === 'function') loadDashboard(); } catch(e) {}
+      }, 900);
+    } catch (e) {
+      console.error('reset save error', e);
+      status.textContent = 'Failed to update password'; status.style.color = '#991b1b'; status.classList.remove('hidden');
+      toast('Failed to reset password', 'error');
+    }
+  }
+
+  // small escape helper
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // On load: ensure button exists and if URL contains ?reset=token open reset UI
+  document.addEventListener('DOMContentLoaded', () => {
+    try { _ensureForgotUi(); } catch(e){ console.warn(e); }
+    try {
+      const params = new URLSearchParams(location.search);
+      const t = params.get('reset');
+      if (t) {
+        // open reset modal and prefill token
+        openResetModal(t);
+        // optionally remove token from URL to avoid leaking; keep history
+        try {
+          const url = new URL(location.href);
+          url.searchParams.delete('reset');
+          history.replaceState(null, '', url.pathname + url.search);
+        } catch(e){}
+      }
+    } catch(e){}
+  });
+
+})(); 
+
 
   /* =========================
     /* ---------- Dashboard: totals, filtering and charts ---------- */
