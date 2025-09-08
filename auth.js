@@ -5685,22 +5685,55 @@ function migrateStoreName(oldName, newName) {
     panel.dataset.panel = 'account';
     panel.style.display = 'none';
     panel.innerHTML = `
-      <h4 class="font-bold mb-3 text-indigo-900 dark:text-amber-100">Account / Edit User</h4>
-      <div class="space-y-3 max-w-xl">
-        <label class="block text-sm">Supermarket Name<input id="accountName" class="w-full p-2 border rounded mt-1" /></label>
-        <label class="block text-sm">Address / Location<input id="accountAddress" class="w-full p-2 border rounded mt-1" /></label>
-        <label class="block text-sm">Phone<input id="accountPhone" class="w-full p-2 border rounded mt-1" /></label>
-        <label class="block text-sm">Email<input id="accountEmail" type="email" class="w-full p-2 border rounded mt-1" /></label>
-        <label class="block text-sm">New Password<input id="accountPassword" type="password" class="w-full p-2 border rounded mt-1" placeholder="leave blank to keep current" /></label>
-        <label class="block text-sm">Confirm Password<input id="accountConfirm" type="password" class="w-full p-2 border rounded mt-1" placeholder="confirm new password" /></label>
-
-        <div class="flex gap-3 mt-2">
-          <button id="accountSaveBtn" class="px-4 py-2 bg-emerald-600 text-white rounded-md">Save</button>
-          <button id="accountCancelBtn" class="px-4 py-2 bg-amber-100 text-amber-800 rounded-md">Cancel</button>
-        </div>
-        <div id="accountStatus" class="text-sm text-slate-600 hidden"></div>
-      </div>
-    `;
+    <h4 class="font-bold mb-3 text-indigo-900 dark:text-amber-100">Account / Edit User</h4>
+  
+    <!-- content area: add extra bottom padding so the footer doesn't overlap content when scrolling -->
+    <div class="space-y-3 max-w-xl" style="padding-bottom: calc(96px + env(safe-area-inset-bottom));">
+      <label class="block text-sm">Supermarket Name
+        <input id="accountName" class="w-full p-2 border rounded mt-1" />
+      </label>
+  
+      <label class="block text-sm">Address / Location
+        <input id="accountAddress" class="w-full p-2 border rounded mt-1" />
+      </label>
+  
+      <label class="block text-sm">Phone
+        <input id="accountPhone" class="w-full p-2 border rounded mt-1" />
+      </label>
+  
+      <label class="block text-sm">Email
+        <input id="accountEmail" type="email" class="w-full p-2 border rounded mt-1" />
+      </label>
+  
+      <label class="block text-sm">New Password
+        <input id="accountPassword" type="password" class="w-full p-2 border rounded mt-1" placeholder="leave blank to keep current" />
+      </label>
+  
+      <label class="block text-sm">Confirm Password
+        <input id="accountConfirm" type="password" class="w-full p-2 border rounded mt-1" placeholder="confirm new password" />
+      </label>
+  
+      <div id="accountStatus" class="text-sm text-slate-600 hidden"></div>
+    </div>
+  
+    <!-- sticky footer: stays above mobile bottom navs; includes safe-area inset -->
+    <div id="accountFooter" style="
+        position: sticky;
+        bottom: 0;
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        padding: 12px;
+        padding-bottom: calc(12px + env(safe-area-inset-bottom));
+        background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,1));
+        z-index: 50;
+        border-top: 1px solid rgba(15, 23, 42, 0.04);
+    ">
+      <button id="accountCancelBtn" class="px-4 py-2 bg-amber-100 text-amber-800 rounded-md">Cancel</button>
+      <button id="accountSaveBtn" class="px-4 py-2 bg-emerald-600 text-white rounded-md">Save</button>
+    </div>
+  `;
+  
     // insert the panel into content area (prefer before 'notices' or after helpNotice)
     const content = modal.querySelector('#settingsContent');
     if (content) {
