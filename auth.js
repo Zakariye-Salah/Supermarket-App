@@ -2747,7 +2747,51 @@ function setActiveNav(targetId) {
    Mobile swipe navigation between SECTIONS
    (lightweight, non-invasive)
    ========================= */
-
+/* =========================
+   Mobile swipe navigation between SECTIONS
+   ========================= */
+   (function setupSwipeNavigation() {
+    let touchStartX = 0, touchEndX = 0;
+    const threshold = 50; // minimum px swipe to trigger
+    const container = document.body; // could be #app or parent wrapper
+  
+    container.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].screenX;
+    });
+  
+    container.addEventListener('touchend', e => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    });
+  
+    function handleSwipe() {
+      const deltaX = touchEndX - touchStartX;
+      if (Math.abs(deltaX) < threshold) return; // ignore short swipes
+  
+      // find currently visible section
+      const currentVisible = SECTIONS.map(id => document.getElementById(id))
+        .find(el => el && !el.classList.contains('hidden'));
+      if (!currentVisible) return;
+  
+      const fromIndex = SECTIONS.indexOf(currentVisible.id);
+      if (fromIndex === -1) return;
+  
+      let targetIndex = fromIndex;
+      if (deltaX < 0) {
+        // swipe left → go forward
+        if (fromIndex < SECTIONS.length - 1) targetIndex = fromIndex + 1;
+      } else {
+        // swipe right → go backward
+        if (fromIndex > 0) targetIndex = fromIndex - 1;
+      }
+  
+      if (targetIndex !== fromIndex) {
+        const targetId = SECTIONS[targetIndex];
+        showSection(targetId);
+      }
+    }
+  })();
+  
 
   
 /* =========================
