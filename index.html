@@ -583,55 +583,43 @@ class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition">
 
     </div>
 
-    <!-- Add Product Modal -->
-    <div id="productModal" class="hidden fixed inset-0 z-50">
-      <div id="productModalBackdrop" class="absolute inset-0 bg-black/40"></div>
-      <div id="productDialog"
-           class="relative max-w-md w-[92%] sm:w-[420px] mx-auto mt-20 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-5">
-        <div class="flex items-center justify-between mb-3">
-          <h3 id="modalTitle" class="text-lg font-semibold"></h3>
-          <button id="closeModal" class="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">
-            <i class="fa-solid fa-xmark text-xl"></i>
+ <!-- Add Product Modal (REPLACE existing productModal block with this) -->
+<div id="productModal" class="hidden fixed inset-0 z-50">
+  <div id="productModalBackdrop" class="absolute inset-0 bg-black/40"></div>
+  <div id="productDialog"
+       class="relative max-w-md w-[92%] sm:w-[720px] mx-auto mt-20 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 id="modalTitle" class="text-lg font-semibold">Add Product(s)</h3>
+      <button id="closeModal" class="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+    </div>
+
+    <form id="productForm" class="space-y-3">
+      <!-- dynamic product rows go here -->
+      <div id="productRowsModal" class="space-y-3"></div>
+
+      <div class="flex items-center justify-between gap-2 mt-2">
+        <button type="button" id="addProductRowBtn"
+                class="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm">
+          <i class="fa-solid fa-plus mr-2"></i> Add another product
+        </button>
+
+        <div class="flex justify-end gap-2">
+          <button type="button" id="cancelModal"
+                  class="px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">
+            Cancel
+          </button>
+          <button type="submit" id="saveProductBtn"
+                  class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white">
+            Save Product(s)
           </button>
         </div>
-
-        <form id="productForm" class="space-y-3">
-          <label class="block">
-            <span id="lblName" class="text-sm text-gray-600 dark:text-gray-300">Product Name *</span>
-            <input id="productName" class="mt-1 w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. Rice 25kg" required />
-          </label>
-
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <label class="block">
-              <span id="lblCost" class="text-sm text-gray-600 dark:text-gray-300">Original Price</span>
-              <input id="productCost" type="number" step="0.01" min="0"
-                     class="mt-1 w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00" />
-            </label>
-            <label class="block">
-              <span id="lblPrice" class="text-sm text-gray-600 dark:text-gray-300">Price *</span>
-              <input id="productPrice" type="number" step="0.01" min="0"
-                     class="mt-1 w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00" required />
-            </label>
-            <label class="block">
-              <span id="lblQty" class="text-sm text-gray-600 dark:text-gray-300">Quantity *</span>
-              <input id="productQty" type="number" step="1" min="0"
-                     class="mt-1 w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0" required />
-            </label>
-          </div>
-
-          <div class="flex justify-end gap-2 pt-2">
-            <button type="button" id="cancelModal"
-                    class="px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">
-              Cancel
-            </button>
-            <button type="submit" id="saveProductBtn"
-                    class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white">
-              Save Product
-            </button>
-          </div>
-        </form>
       </div>
-    </div>
+    </form>
+  </div>
+</div>
+
 
   </div> <!-- end productsSection -->
 
