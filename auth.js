@@ -5517,9 +5517,341 @@ setTimeout(ensureSettingsNavVisible, 60); // you already do this at bottom too
   window.applySettingsModalLanguage = function(lang){
     try { if (typeof applyLanguage === 'function') applyLanguage(lang, true); } catch(e){}
   };
+  // ---------- Add "Account / Edit User" panel + button (paste after modal appended) ----------
+(function(){
+  // helpers: use app's getUsers/saveUsers if available, otherwise fallback to localStorage 'users_v1'
+  // Call this before you overwrite the user.name when renaming a store
+function migrateStoreName(oldName, newName) {
+  if (!oldName || !newName || oldName === newName) return { migrated: 0, affected: [] };
+  try {
+    const keys = Object.keys(localStorage);
+    const affected = [];
+    const backup = {};
+    const ts = Date.now();
+
+    keys.forEach(key => {
+      const val = localStorage.getItem(key);
+      if (val == null) return;
+
+      // 1) Key-level rename: key contains oldName -> create equivalent key with newName
+      if (key.includes(oldName)) {
+        const newKey = key.split(oldName).join(newName); // replace all occurrences
+        backup[key] = val;
+        // If newKey already exists, use a safe alternative to avoid overwriting
+        if (localStorage.getItem(newKey) === null) {
+          localStorage.setItem(newKey, val);
+        } else {
+          const alt = `${newKey}.__migrated__${ts}`;
+          localStorage.setItem(alt, val);
+        }
+        affected.push({ type: 'key-rename', from: key, to: newKey });
+        return;
+      }
+
+      // 2) Attempt to parse JSON values and update embedded references equal to oldName
+      let parsed;
+      try {
+        parsed = JSON.parse(val);
+      } catch (e) {
+        parsed = null;
+      }
+      if (parsed !== null) {
+        let changed = false;
+        const seen = new WeakSet();
+        function deepUpdate(obj) {
+          if (!obj || typeof obj !== 'object') return;
+          if (seen.has(obj)) return;
+          seen.add(obj);
+          if (Array.isArray(obj)) {
+            for (let i = 0; i < obj.length; i++) {
+              if (obj[i] === oldName) { obj[i] = newName; changed = true; }
+              else deepUpdate(obj[i]);
+            }
+            return;
+          }
+          Object.keys(obj).forEach(k => {
+            const v = obj[k];
+            if (v === oldName) { obj[k] = newName; changed = true; }
+            else if (typeof v === 'object' && v !== null) deepUpdate(v);
+          });
+        }
+        deepUpdate(parsed);
+        if (changed) {
+          backup[key] = val;
+          localStorage.setItem(key, JSON.stringify(parsed));
+          affected.push({ type: 'in-value-update', key });
+        }
+      }
+    });
+
+    // store backup of originals so admin can revert if needed
+    const backupKey = `migration_backup_${oldName}_to_${newName}_${ts}`;
+    try { localStorage.setItem(backupKey, JSON.stringify({ migratedAt: ts, oldName, newName, backup, affected })); }
+    catch (e) { console.warn('Could not write migration backup', e); }
+
+    return { migrated: affected.length, affected, backupKey };
+  } catch (err) {
+    console.error('migrateStoreName failed', err);
+    return { migrated: 0, affected: [], error: err.message };
+  }
+}
+
+  function getUsersSafe() {
+    if (typeof getUsers === 'function') {
+      try { const u = getUsers(); if (Array.isArray(u)) return u; } catch(e){/*fallthrough*/ }
+    }
+    try {
+      const raw = localStorage.getItem('users_v1') || localStorage.getItem('supermarket_users') || localStorage.getItem('supermarket_users_v1');
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed && typeof parsed === 'object') return Object.values(parsed);
+    } catch(e){ console.warn('getUsersSafe parse error', e); }
+    return [];
+  }
+  function saveUsersSafe(arr) {
+    if (typeof saveUsers === 'function') {
+      try { return saveUsers(arr); } catch(e){ /*fallback*/ }
+    }
+    try { localStorage.setItem('users_v1', JSON.stringify(Array.isArray(arr) ? arr : [])); } catch(e){ console.warn('saveUsersSafe error', e); }
+  }
+  function getCurrentUserSafe() {
+    if (typeof getCurrentUser === 'function') {
+      try { return getCurrentUser(); } catch(e) {}
+    }
+    try { return JSON.parse(localStorage.getItem('current_user') || 'null'); } catch(e){return null;}
+  }
+  function setCurrentUserSafe(u) {
+    if (typeof setCurrentUser === 'function') {
+      try { setCurrentUser(u); } catch(e) {}
+    }
+    try { localStorage.setItem('current_user', JSON.stringify(u || null)); } catch(e) {}
+  }
+
+  // ensure modal exists
+  const modal = document.getElementById('appSettingsModal');
+  if (!modal) return;
+
+  // add Account tab button to nav (if not present)
+  (function ensureAccountTabBtn(){
+    const nav = modal.querySelector('#settingsNav ul');
+    if (!nav) return;
+    if (!modal.querySelector('.settings-tab[data-tab="account"]')) {
+      const li = document.createElement('li');
+      li.innerHTML = `<button class="settings-tab w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-indigo-800 dark:text-indigo-100" data-tab="account"><i class="fa-solid fa-user-gear mr-2 text-sky-600"></i> Account</button>`;
+      nav.insertBefore(li, nav.firstChild); // put it at the top
+      // wire click -> showTab (reuse modal's showTab if available)
+      const btn = li.querySelector('button');
+      btn.addEventListener('click', () => {
+        if (typeof showTab === 'function') {
+          showTab('account');
+        } else {
+          modal.querySelectorAll('.settings-panel').forEach(p => p.dataset.panel === 'account' ? (p.style.display='block') : (p.style.display='none'));
+        }
+        // focus first field
+        setTimeout(()=> modal.querySelector('#accountName')?.focus(), 40);
+      });
+    }
+  })();
+
+  // add header "Edit Account" button (if not present)
+  (function ensureEditAccountHeaderBtn(){
+    const headerBtns = modal.querySelector('.flex.items-center.gap-2');
+    // fallback: find header right area
+    const headerRight = modal.querySelector('.flex.items-center.justify-between') || modal.querySelector('.flex.items-center.gap-2');
+    const container = headerRight ? headerRight : modal.querySelector('div.flex.items-center.gap-2') || null;
+    if (!container) return;
+    if (!modal.querySelector('#openAccountBtn')) {
+      const b = document.createElement('button');
+      b.id = 'openAccountBtn';
+      b.className = 'px-3 py-1 rounded-md bg-sky-600 text-white hover:opacity-95';
+      b.title = 'Edit Account';
+      b.innerHTML = '<i class="fa-solid fa-user-gear"></i>';
+      container.insertBefore(b, container.firstChild);
+      b.addEventListener('click', () => {
+        // open modal if hidden, then show account tab
+        modal.classList.remove('hidden');
+        if (typeof showTab === 'function') showTab('account');
+        else modal.querySelectorAll('.settings-panel').forEach(p => p.dataset.panel === 'account' ? (p.style.display='block') : (p.style.display='none'));
+        setTimeout(()=> modal.querySelector('#accountName')?.focus(), 60);
+      });
+    }
+  })();
+
+  // create account panel if not exists
+  if (!modal.querySelector('.settings-panel[data-panel="account"]')) {
+    const panel = document.createElement('div');
+    panel.className = 'settings-panel';
+    panel.dataset.panel = 'account';
+    panel.style.display = 'none';
+    panel.innerHTML = `
+      <h4 class="font-bold mb-3 text-indigo-900 dark:text-amber-100">Account / Edit User</h4>
+      <div class="space-y-3 max-w-xl">
+        <label class="block text-sm">Supermarket Name<input id="accountName" class="w-full p-2 border rounded mt-1" /></label>
+        <label class="block text-sm">Address / Location<input id="accountAddress" class="w-full p-2 border rounded mt-1" /></label>
+        <label class="block text-sm">Phone<input id="accountPhone" class="w-full p-2 border rounded mt-1" /></label>
+        <label class="block text-sm">Email<input id="accountEmail" type="email" class="w-full p-2 border rounded mt-1" /></label>
+        <label class="block text-sm">New Password<input id="accountPassword" type="password" class="w-full p-2 border rounded mt-1" placeholder="leave blank to keep current" /></label>
+        <label class="block text-sm">Confirm Password<input id="accountConfirm" type="password" class="w-full p-2 border rounded mt-1" placeholder="confirm new password" /></label>
+
+        <div class="flex gap-3 mt-2">
+          <button id="accountSaveBtn" class="px-4 py-2 bg-emerald-600 text-white rounded-md">Save</button>
+          <button id="accountCancelBtn" class="px-4 py-2 bg-amber-100 text-amber-800 rounded-md">Cancel</button>
+        </div>
+        <div id="accountStatus" class="text-sm text-slate-600 hidden"></div>
+      </div>
+    `;
+    // insert the panel into content area (prefer before 'notices' or after helpNotice)
+    const content = modal.querySelector('#settingsContent');
+    if (content) {
+      // put near top
+      content.insertBefore(panel, content.firstChild);
+    } else {
+      modal.querySelector('.md:flex-1')?.appendChild(panel);
+    }
+  }
+
+  // wiring for account panel actions
+  (function wireAccountPanel() {
+    const nameEl = modal.querySelector('#accountName');
+    const addrEl = modal.querySelector('#accountAddress');
+    const phoneEl = modal.querySelector('#accountPhone');
+    const emailEl = modal.querySelector('#accountEmail');
+    const passEl = modal.querySelector('#accountPassword');
+    const confEl = modal.querySelector('#accountConfirm');
+    const saveBtn = modal.querySelector('#accountSaveBtn');
+    const cancelBtn = modal.querySelector('#accountCancelBtn');
+    const status = modal.querySelector('#accountStatus');
+
+    function showStatus(msg, ok=true) {
+      if (!status) return;
+      status.classList.remove('hidden');
+      status.style.color = ok ? '#065f46' : '#991b1b';
+      status.textContent = msg;
+      setTimeout(()=> status.classList.add('hidden'), 2500);
+    }
+
+    // fill form from current user
+    function populateFromCurrentUser() {
+      const u = getCurrentUserSafe();
+      if (!u) {
+        nameEl.value = addrEl.value = phoneEl.value = emailEl.value = '';
+        passEl.value = confEl.value = '';
+        return;
+      }
+      nameEl.value = u.name || '';
+      addrEl.value = u.address || u.location || '';
+      phoneEl.value = u.phone || '';
+      emailEl.value = u.email || '';
+      passEl.value = confEl.value = '';
+    }
+
+    // when account tab is opened we should populate fields
+    // attach event to the tab button if exists
+    const tabBtn = modal.querySelector('.settings-tab[data-tab="account"]');
+    if (tabBtn) tabBtn.addEventListener('click', populateFromCurrentUser);
+    // also populate on modal open / header edit click
+    const openAccountBtn = modal.querySelector('#openAccountBtn');
+    if (openAccountBtn) openAccountBtn.addEventListener('click', populateFromCurrentUser);
+
+    // cancel -> go back to helpNotice
+    cancelBtn?.addEventListener('click', ()=> {
+      if (typeof showTab === 'function') showTab('helpNotice');
+      else modal.querySelectorAll('.settings-panel').forEach(p => p.dataset.panel === 'helpNotice' ? p.style.display='block' : p.style.display='none');
+    });
+
+    // Save -> validate + update user record
+    saveBtn?.addEventListener('click', ()=> {
+      const cur = getCurrentUserSafe();
+      if (!cur) { toast('No user logged in','error'); return; }
+    
+      const newName = (nameEl.value||'').trim();
+      const newAddr = (addrEl.value||'').trim();
+      const newPhone = (phoneEl.value||'').trim();
+      const newEmail = (emailEl.value||'').trim();
+      const newPass = (passEl.value||'');
+      const newConf = (confEl.value||'');
+    
+      if (!newName || !newPhone || !newEmail) { showStatus('Name, phone & email are required', false); return; }
+      if (newPass || newConf) {
+        if (newPass !== newConf) { showStatus('Passwords do not match', false); return; }
+        if (newPass.length && newPass.length < 4) { showStatus('Password too short', false); return; }
+      }
+    
+      // check uniqueness (name/email) among other users
+      const users = getUsersSafe();
+      const other = users.filter(u => u && String(u.id) !== String(cur.id));
+      const conflictName = other.find(u => u.name && u.name.toLowerCase() === newName.toLowerCase());
+      if (conflictName) { showStatus('Supermarket name already taken', false); return; }
+      const conflictEmail = other.find(u => u.email && u.email.toLowerCase() === newEmail.toLowerCase());
+      if (conflictEmail) { showStatus('Email already registered', false); return; }
+    
+      // If store name changed — prompt & migrate localStorage
+      const oldName = cur.name || '';
+      if (newName !== oldName) {
+        if (!confirm(`You changed the supermarket name from "${oldName}" to "${newName}".\n\nThis will migrate data keys and internal references so your products, invoices and reports stay available. Do you want to continue?`)) {
+          return;
+        }
+        showStatus('Migrating data...', true);
+        try {
+          const result = migrateStoreName(oldName, newName);
+          if (result && result.migrated > 0) {
+            toast(`Migrated ${result.migrated} item(s). Backup: ${result.backupKey || 'created'}`, 'success');
+          } else {
+            toast('Rename completed (no obvious keys to migrate)', 'info');
+          }
+        } catch (e) {
+          console.error('Migration error', e);
+          toast('Migration failed, aborting', 'error');
+          return;
+        }
+      }
+    
+      // update the user object (mutate copy)
+      const updated = { ...cur, name: newName, address: newAddr, phone: newPhone, email: newEmail, updatedAt: Date.now() };
+      if (newPass) updated.password = newPass; // replace password only if provided
+    
+      // find in users array and replace
+      const idx = users.findIndex(u => u && String(u.id) === String(cur.id));
+      if (idx >= 0) {
+        users[idx] = updated;
+      } else {
+        users.push(updated);
+      }
+    
+      try {
+        saveUsersSafe(users);
+        // update current user in app
+        setCurrentUserSafe(updated);
+        if (typeof setCurrentUser === 'function') {
+          try { setCurrentUser(updated); } catch(e) { /*ignore*/ }
+        }
+        // update on-screen store display if present
+        const d = document.getElementById('storeDisplayDesktop');
+        if (d) d.textContent = updated.name;
+        const loginNameInput = document.getElementById('loginName');
+        if (loginNameInput) loginNameInput.value = updated.name || updated.email || '';
+        showStatus('Saved', true);
+        toast('Account updated', 'success');
+        setTimeout(()=> { if (typeof showTab === 'function') showTab('helpNotice'); }, 600);
+      } catch(e) {
+        console.error('account save error', e);
+        showStatus('Save failed', false);
+        toast('Failed to save account', 'error');
+      }
+    });
+    
+
+    // populate once initially
+    populateFromCurrentUser();
+  })();
+
+})();
+
 
   // ensure nav visible on initial create
   setTimeout(ensureSettingsNavVisible, 60);
+
 
 } // end openSettingsModal
 
@@ -5963,5 +6295,6 @@ setTimeout(ensureSettingsNavVisible, 60); // you already do this at bottom too
   
   })(); // end auth.js
   
+
 
 
